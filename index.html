@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio — Animator & VFX Artist</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0d0b;
+      --surface: #161410;
+      --border: rgba(220,130,80,0.1);
+      --text: #ede8df;
+      --muted: #7a7168;
+      --accent: #c4501a;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── FOV zoom wrapper ── */
+    #page-content {
+      transform-origin: center center;
+      transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
+      will-change: transform;
+    }
+    #page-content.zoomed { transform: scale(1.05); }
+
+    /* Cheap dark overlay — no per-pixel blur, zero GPU cost */
+    #dim-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9; /* above snow (0), below morph-canvas (10) */
+      background: rgba(6,5,4,0);
+      pointer-events: none;
+      transition: background 0.65s cubic-bezier(0.16,1,0.3,1);
+    }
+    #dim-overlay.active {
+      background: rgba(6,5,4,0.82);
+      pointer-events: auto;
+    }
+
+    #snow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #morph-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 4rem;
+      background: rgba(14,13,11,0.65);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    section { position: relative; z-index: 1; }
+
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6rem 4rem 4rem;
+    }
+    .hero-tag {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s forwards;
+    }
+    .hero-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      line-height: 1.05;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+    .hero-name em { font-style: italic; color: var(--accent); }
+    .hero-sub {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 420px;
+      line-height: 1.9;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+    .hero-cta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: var(--accent); color: #ede8df; font-weight: 500; border: 1px solid var(--accent); }
+    .btn-primary:hover { background: transparent; color: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    .hero-scroll {
+      margin-top: 6rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 1s forwards;
+    }
+    .hero-scroll span { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line { width: 40px; height: 1px; background: var(--muted); position: relative; overflow: hidden; }
+    .scroll-line::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: var(--accent);
+      animation: slide 2s infinite;
+    }
+
+    #projects { padding: 6rem 4rem; }
+    .projects-header { margin-bottom: 4rem; }
+    .section-label { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .projects-title { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1.1; }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+    .project-card {
+      background: var(--bg);
+      padding: 2.5rem;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px; height: 0;
+      background: var(--accent);
+      transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .project-card:hover::before { height: 100%; }
+    .project-card:hover { background: var(--surface); }
+    .project-type { font-size: 0.62rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.2rem; }
+    .project-name { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--text); margin-bottom: 1rem; line-height: 1.2; }
+    .project-desc { font-size: 0.76rem; color: var(--muted); line-height: 1.9; margin-bottom: 2rem; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .tag { font-size: 0.62rem; letter-spacing: 0.08em; padding: 0.3rem 0.75rem; border: 1px solid var(--border); color: var(--muted); border-radius: 1px; }
+    .project-link { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); transition: gap 0.2s; }
+    .project-card:hover .project-link { gap: 0.8rem; }
+
+    .divider { position: relative; z-index: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 4rem; }
+
+    #contact { padding: 8rem 4rem; text-align: center; }
+    .contact-pre { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
+    .contact-heading { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 1.5rem; }
+    .contact-heading em { font-style: italic; color: var(--accent); }
+    .contact-sub { color: var(--muted); font-size: 0.8rem; line-height: 2; margin-bottom: 3rem; }
+    .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center; }
+    footer p { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
+
+    /* Modal */
+    #modal-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
+    #modal-overlay.active { display: block; }
+    #modal-backdrop { position: absolute; inset: 0; background: rgba(10,9,7,0); transition: background 0.5s; }
+    #modal-overlay.active #modal-backdrop { background: rgba(10,9,7,0.0); }
+    #modal-box { position: absolute; background: #0e0d0b; border: 1px solid rgba(196,80,26,0.35); overflow: hidden; display: none; }
+    #modal-box.visible { display: block; }
+    #modal-box iframe { display: block; width: 100%; height: 100%; border: none; }
+    #modal-close {
+      position: absolute;
+      top: 1rem; right: 1rem;
+      width: 34px; height: 34px;
+      background: rgba(14,13,11,0.9);
+      border: 1px solid rgba(196,80,26,0.4);
+      color: #ede8df;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+      z-index: 10;
+    }
+    #modal-close:hover { background: var(--accent); }
+    #modal-close.visible { display: flex; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slide {
+      0%   { left: -100%; }
+      100% { left: 100%; }
+    }
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1.2rem 1.5rem; }
+      #hero, #projects, #contact, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .nav-links { gap: 1.5rem; }
+      .divider { margin: 0 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="snow"></canvas>
+<div id="dim-overlay"></div>
+<canvas id="morph-canvas"></canvas>
+
+<div id="modal-overlay">
+  <div id="modal-backdrop"></div>
+  <div id="modal-box">
+    <button id="modal-close">✕</button>
+    <iframe id="modal-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+</div>
+
+<div id="page-content">
+  <nav>
+    <span class="nav-logo">Your Name.</span>
+    <ul class="nav-links">
+      <li><a href="#projects">Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section id="hero">
+    <p class="hero-tag">Animator · VFX Artist · Roblox Developer</p>
+    <h1 class="hero-name">Crafting<br><em>worlds</em> in<br>motion.</h1>
+    <p class="hero-sub">I bring Roblox experiences to life through fluid animation, visual effects, and Luau scripting — blending technical precision with artistic intuition.</p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-primary">See my work</a>
+      <a href="#contact" class="btn btn-ghost">Get in touch</a>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="projects">
+    <div class="projects-header reveal">
+      <p class="section-label">Selected work</p>
+      <h2 class="projects-title">Projects</h2>
+    </div>
+    <div class="projects-grid">
+      <div class="project-card reveal" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+        <p class="project-type">Placeholder</p>
+        <h3 class="project-name">Placeholder</h3>
+        <p class="project-desc">Placeholder</p>
+        <div class="project-tags"><span class="tag">Placeholder</span></div>
+        <p class="project-link">View project →</p>
+      </div>
+      <div class="project-card reveal" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+        <p class="project-type">Placeholder</p>
+        <h3 class="project-name">Placeholder</h3>
+        <p class="project-desc">Placeholder</p>
+        <div class="project-tags"><span class="tag">Placeholder</span></div>
+        <p class="project-link">View project →</p>
+      </div>
+      <div class="project-card reveal" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+        <p class="project-type">Placeholder</p>
+        <h3 class="project-name">Placeholder</h3>
+        <p class="project-desc">Placeholder</p>
+        <div class="project-tags"><span class="tag">Placeholder</span></div>
+        <p class="project-link">View project →</p>
+      </div>
+      <div class="project-card reveal" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+        <p class="project-type">Placeholder</p>
+        <h3 class="project-name">Placeholder</h3>
+        <p class="project-desc">Placeholder</p>
+        <div class="project-tags"><span class="tag">Placeholder</span></div>
+        <p class="project-link">View project →</p>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="contact">
+    <div class="reveal">
+      <p class="contact-pre">Let's talk</p>
+      <h2 class="contact-heading">Got a project<br>in <em>mind?</em></h2>
+      <p class="contact-sub">Open for freelance work, collaborations,<br>and long-term Roblox projects.</p>
+      <div class="contact-links">
+        <a href="#projects" class="btn btn-ghost">See my work</a>
+        <button class="btn btn-primary" onclick="navigator.clipboard.writeText('.JGG').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Discord: .JGG',1800)})">Discord: .JGG</button>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    <p>© 2026 Your Name. All rights reserved.</p>
+    <p>Built by hand. Falling snow included.</p>
+  </footer>
+</div><!-- end #page-content -->
+
+<script>
+/* ── SNOW ── */
+const canvas = document.getElementById('snow');
+const ctx    = canvas.getContext('2d');
+let W = canvas.width  = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+window.addEventListener('resize', () => {
+  W = canvas.width  = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+});
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+class Flake {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = rand(0, W);
+    this.y = init ? rand(0, H) : -10;
+    const t = Math.random();
+    this.r  = t < 0.5 ? rand(0.6,1.2) : t < 0.85 ? rand(1.2,2.2) : rand(2.2,3.5);
+    this.vy = rand(0.4,1.1) * (this.r/1.5);
+    this.vx = rand(0.1,0.35);
+    this.swayAmp   = rand(0.2,0.8);
+    this.swaySpeed = rand(0.003,0.009);
+    this.swayOff   = rand(0,Math.PI*2);
+    this.turbX     = 0;
+    this.turbDecay = rand(0.92,0.97);
+    this.alpha     = this.r<1.2 ? rand(0.2,0.45) : this.r<2.2 ? rand(0.45,0.7) : rand(0.65,0.9);
+    this.frozen    = false;
+  }
+  isOnScreen() {
+    return this.x >= -10 && this.x <= W+10 && this.y >= -10 && this.y <= H+10;
+  }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(240,225,210,${this.alpha})`;
+    ctx.fill();
+  }
+}
+
+const flakes = Array.from({length:160}, () => new Flake());
+
+let lastScrollY = window.scrollY, windY = 0, tick = 0;
+window.addEventListener('scroll', () => {
+  const d = window.scrollY - lastScrollY;
+  lastScrollY = window.scrollY;
+  windY += d * 0.08;
+}, {passive:true});
+
+function snowLoop() {
+  windY *= 0.88;
+  ctx.clearRect(0,0,W,H);
+  tick++;
+  for (const f of flakes) {
+    if (f.frozen) continue;
+    const sway = Math.sin(tick*f.swaySpeed+f.swayOff)*f.swayAmp;
+    if (Math.random()<0.001) f.turbX = rand(-1.5,1.5);
+    f.turbX *= f.turbDecay;
+    f.x += f.vx + sway + f.turbX;
+    f.y += f.vy - windY*(f.r/2);
+    f.vx += rand(-0.008,0.008);
+    f.vx = Math.max(-0.6, Math.min(0.6, f.vx));
+    if (f.x < -10)  f.x = W+10;
+    if (f.x > W+10) f.x = -10;
+    if (f.y > H+10) f.reset(false);
+    if (f.y < -10)  f.y = H+10;
+    f.draw();
+  }
+  requestAnimationFrame(snowLoop);
+}
+snowLoop();
+
+/* ── MORPH ── */
+const mc   = document.getElementById('morph-canvas');
+const mctx = mc.getContext('2d');
+mc.width = window.innerWidth; mc.height = window.innerHeight;
+window.addEventListener('resize', () => { mc.width = window.innerWidth; mc.height = window.innerHeight; });
+
+const overlay    = document.getElementById('modal-overlay');
+const modalBox   = document.getElementById('modal-box');
+const iframeEl   = document.getElementById('modal-iframe');
+const closeBtn   = document.getElementById('modal-close');
+const backdrop   = document.getElementById('modal-backdrop');
+const pageContent = document.getElementById('page-content');
+const dimOverlay  = document.getElementById('dim-overlay');
+
+let morphRAF    = null;
+let trackedFlake = null;
+
+function ease(p) { return p<0.5 ? 2*p*p : -1+(4-2*p)*p; }
+
+function rrect(c,x,y,w,h,r) {
+  r = Math.max(0,Math.min(r,w/2,h/2));
+  c.beginPath();
+  c.moveTo(x+r,y); c.lineTo(x+w-r,y); c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r); c.arcTo(x+w,y+h,x+w-r,y+h,r);
+  c.lineTo(x+r,y+h); c.arcTo(x,y+h,x,y+h-r,r);
+  c.lineTo(x,y+r); c.arcTo(x,y,x+r,y,r);
+  c.closePath();
+}
+
+function getTarget() {
+  const tw = Math.min(860, window.innerWidth*0.85);
+  const th = tw*(9/16);
+  return { tx:(window.innerWidth-tw)/2, ty:(window.innerHeight-th)/2, tw, th };
+}
+
+/* Edge strip height: top 20% or bottom 20% of screen — gives dramatic travel distance */
+const EDGE = 0.22;
+function isEdgeFlake(f) {
+  return f.y < H * EDGE || f.y > H * (1 - EDGE);
+}
+
+function pickFlake() {
+  // Prefer: big flake in edge strip
+  const edgeBig = flakes.filter(f => !f.frozen && f.r > 2 && f.isOnScreen() && isEdgeFlake(f));
+  if (edgeBig.length) return edgeBig[Math.floor(Math.random()*edgeBig.length)];
+  // Fallback: any edge flake
+  const edge = flakes.filter(f => !f.frozen && f.isOnScreen() && isEdgeFlake(f));
+  if (edge.length) return edge[Math.floor(Math.random()*edge.length)];
+  // Last resort: any on-screen flake
+  const any = flakes.filter(f => !f.frozen && f.isOnScreen());
+  return any.length ? any[Math.floor(Math.random()*any.length)] : flakes[0];
+}
+
+function getTrackedOrSwap() {
+  if (!trackedFlake || !trackedFlake.isOnScreen()) {
+    if (trackedFlake) trackedFlake.frozen = false;
+    trackedFlake = pickFlake();
+    trackedFlake.frozen = true;
+  }
+  return trackedFlake;
+}
+
+function openVideo(url) {
+  cancelAnimationFrame(morphRAF);
+  mctx.clearRect(0,0,mc.width,mc.height);
+
+  if (trackedFlake) trackedFlake.frozen = false;
+  trackedFlake = pickFlake();
+  trackedFlake.frozen = true;
+
+  const sr = trackedFlake.r;
+  const sa = trackedFlake.alpha;
+
+  overlay.classList.add('active');
+  modalBox.classList.remove('visible');
+  closeBtn.classList.remove('visible');
+
+  pageContent.classList.add('zoomed');
+  dimOverlay.classList.add('active');
+
+  const t0=performance.now(), dur=700;
+
+  function step(now) {
+    const f = getTrackedOrSwap();
+    const sx = f.x, sy = f.y;
+    const p = ease(Math.min((now-t0)/dur, 1));
+    const {tx,ty,tw,th} = getTarget();
+    mctx.clearRect(0,0,mc.width,mc.height);
+
+    const cx = sx + (tx+tw/2-sx)*p;
+    const cy = sy + (ty+th/2-sy)*p;
+    const cw = sr*2 + (tw-sr*2)*p;
+    const ch = sr*2 + (th-sr*2)*p;
+    const cr = sr*(1-p);
+
+    // Fade from snowflake warm-white → black as it grows into the video frame
+    const r = Math.round(240 - 240*p);
+    const g = Math.round(225 - 225*p);
+    const b = Math.round(210 - 210*p);
+    const a = sa + (1-sa)*p;
+    mctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+    rrect(mctx, cx-cw/2, cy-ch/2, cw, ch, cr);
+    mctx.fill();
+
+    if (p < 1) { morphRAF = requestAnimationFrame(step); return; }
+
+    mctx.clearRect(0,0,mc.width,mc.height);
+    const {tx:tx2,ty:ty2,tw:tw2,th:th2} = getTarget();
+    modalBox.style.cssText = `left:${tx2}px;top:${ty2}px;width:${tw2}px;height:${th2}px;`;
+    iframeEl.src = url+'?autoplay=1';
+    modalBox.classList.add('visible');
+    closeBtn.classList.add('visible');
+  }
+  morphRAF = requestAnimationFrame(step);
+}
+
+function pickOppositeFlake(fromFlake) {
+  // Roughly opposite: flip vertical zone (top→bottom, bottom→top),
+  // and bias toward the other horizontal half too
+  const fromTop = fromFlake ? fromFlake.y < H * 0.5 : true;
+  const fromLeft = fromFlake ? fromFlake.x < W * 0.5 : true;
+
+  // Score each candidate by how "opposite" it is
+  // Only big flakes so the landing is clearly visible
+  const candidates = flakes.filter(f => !f.frozen && f.r > 2 && f.isOnScreen() && isEdgeFlake(f));
+  const pool = candidates.length
+    ? candidates
+    : flakes.filter(f => !f.frozen && f.r > 2 && f.isOnScreen())
+      .concat(flakes.filter(f => !f.frozen && f.isOnScreen())).slice(0, 20);
+  if (!pool.length) return pickFlake();
+
+  // Weight by distance from the source flake — farther = better, but softened
+  pool.sort((a, b) => {
+    const ax = fromFlake ? Math.abs(a.x - fromFlake.x) / W + (fromTop ? (a.y / H) : (1 - a.y / H)) : 0;
+    const bx = fromFlake ? Math.abs(b.x - fromFlake.x) / W + (fromTop ? (b.y / H) : (1 - b.y / H)) : 0;
+    return bx - ax; // descending — most opposite first
+  });
+
+  // Pick randomly from the top third of "most opposite" candidates
+  const top = Math.max(1, Math.floor(pool.length / 3));
+  return pool[Math.floor(Math.random() * top)];
+}
+
+function closeVideo() {
+  cancelAnimationFrame(morphRAF);
+
+  iframeEl.src = '';
+  modalBox.classList.remove('visible');
+  closeBtn.classList.remove('visible');
+
+  pageContent.classList.remove('zoomed');
+  dimOverlay.classList.remove('active');
+
+  // Unfreeze the open flake and pick an opposite one for the close animation
+  const openFlake = trackedFlake;
+  if (trackedFlake) { trackedFlake.frozen = false; trackedFlake = null; }
+
+  const destFlake = pickOppositeFlake(openFlake);
+  destFlake.frozen = true;
+  trackedFlake = destFlake;
+
+  const er = destFlake.r;
+  const ea = destFlake.alpha;
+
+  const {tx,ty,tw,th} = getTarget();
+  const t0=performance.now(), dur=620;
+
+  function step(now) {
+    // Track destFlake live so the rectangle lands exactly on it
+    if (destFlake && !destFlake.isOnScreen()) {
+      destFlake.frozen = false;
+      trackedFlake = null;
+    }
+    const lx = destFlake.isOnScreen() ? destFlake.x : W * 0.5;
+    const ly = destFlake.isOnScreen() ? destFlake.y : H * 0.1;
+
+    const p = ease(Math.min((now-t0)/dur, 1));
+    mctx.clearRect(0,0,mc.width,mc.height);
+
+    const cx = (tx+tw/2) + (lx-(tx+tw/2))*p;
+    const cy = (ty+th/2) + (ly-(ty+th/2))*p;
+    const cw = tw + (er*2-tw)*p;
+    const ch = th + (er*2-th)*p;
+    const cr = er*p;
+
+    // Fade from black → snowflake warm-white as it shrinks back
+    const r = Math.round(240*p);
+    const g = Math.round(225*p);
+    const b = Math.round(210*p);
+    const a = 1 - (1-ea)*p;
+    mctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+    rrect(mctx, cx-cw/2, cy-ch/2, cw, ch, cr);
+    mctx.fill();
+
+    if (p < 1) { morphRAF = requestAnimationFrame(step); return; }
+
+    mctx.clearRect(0,0,mc.width,mc.height);
+    if (trackedFlake) { trackedFlake.frozen = false; trackedFlake = null; }
+    overlay.classList.remove('active');
+  }
+  morphRAF = requestAnimationFrame(step);
+}
+
+document.querySelectorAll('.project-card[data-video]').forEach(card => {
+  card.addEventListener('click', () => openVideo(card.dataset.video));
+});
+backdrop.addEventListener('click', closeVideo);
+closeBtn.addEventListener('click',  closeVideo);
+document.addEventListener('keydown', e => { if(e.key==='Escape') closeVideo(); });
+
+/* ── REVEALS ── */
+const obs = new IntersectionObserver(
+  es => es.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); }),
+  {threshold:0.15}
+);
+document.querySelectorAll('.reveal').forEach(el => obs.observe(el));
+</script>
+</body>
+</html>
