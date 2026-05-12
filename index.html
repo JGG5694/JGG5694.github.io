@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portfolio — Animator & VFX Artist</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0c;
+      --surface: #111114;
+      --surface2: #18181d;
+      --border: rgba(255,255,255,0.07);
+      --text: #e8e6e1;
+      --muted: #6b6a6e;
+      --accent: #c8b8ff;
+      --accent2: #7dd3fc;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ── Snow Canvas ── */
+    #snow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* ── Nav ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 4rem;
+      background: rgba(10,10,12,0.6);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.1rem;
+      color: var(--accent);
+      letter-spacing: 0.02em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+    }
+
+    .nav-links a:hover { color: var(--text); }
+
+    /* ── Sections ── */
+    section {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── Hero ── */
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 0 4rem;
+      padding-top: 6rem;
+    }
+
+    .hero-tag {
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+      opacity: 0;
+      animation: fadeUp 0.7s 0.2s forwards;
+    }
+
+    .hero-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(3.5rem, 8vw, 7rem);
+      line-height: 1.05;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      opacity: 0;
+      animation: fadeUp 0.8s 0.4s forwards;
+    }
+
+    .hero-name em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .hero-sub {
+      margin-top: 2rem;
+      font-size: 0.85rem;
+      color: var(--muted);
+      max-width: 420px;
+      line-height: 1.9;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.6s forwards;
+    }
+
+    .hero-cta {
+      margin-top: 3rem;
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 0.8s forwards;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.25s;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0a0a0c;
+      font-weight: 500;
+      border: 1px solid var(--accent);
+    }
+    .btn-primary:hover {
+      background: transparent;
+      color: var(--accent);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover {
+      color: var(--text);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .hero-scroll {
+      margin-top: 6rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      opacity: 0;
+      animation: fadeUp 0.8s 1s forwards;
+    }
+
+    .hero-scroll span {
+      font-size: 0.65rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .scroll-line {
+      width: 40px;
+      height: 1px;
+      background: var(--muted);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .scroll-line::after {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 100%; height: 100%;
+      background: var(--accent);
+      animation: slide 2s infinite;
+    }
+
+    /* ── About ── */
+    #about {
+      padding: 8rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6rem;
+      align-items: center;
+    }
+
+    .section-label {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 2rem;
+    }
+
+    .about-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .about-heading em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .about-body {
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 2;
+    }
+
+    .about-body p + p { margin-top: 1rem; }
+
+    .skills-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+
+    .skill-pill {
+      padding: 0.6rem 1rem;
+      border: 1px solid var(--border);
+      border-radius: 2px;
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.25s;
+    }
+
+    .skill-pill:hover {
+      border-color: rgba(200,184,255,0.3);
+      color: var(--accent);
+    }
+
+    .skill-dot {
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+    }
+
+    /* ── Projects ── */
+    #projects {
+      padding: 6rem 4rem;
+    }
+
+    .projects-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      margin-bottom: 4rem;
+    }
+
+    .projects-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 4vw, 3.2rem);
+      line-height: 1.1;
+    }
+
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5px;
+      background: var(--border);
+      border: 1px solid var(--border);
+    }
+
+    .project-card {
+      background: var(--bg);
+      padding: 2.5rem;
+      transition: background 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .project-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 2px; height: 0;
+      background: var(--accent);
+      transition: height 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .project-card:hover::before { height: 100%; }
+    .project-card:hover { background: var(--surface); }
+
+    .project-type {
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.2rem;
+    }
+
+    .project-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.4rem;
+      color: var(--text);
+      margin-bottom: 1rem;
+      line-height: 1.2;
+    }
+
+    .project-desc {
+      font-size: 0.76rem;
+      color: var(--muted);
+      line-height: 1.9;
+      margin-bottom: 2rem;
+    }
+
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .tag {
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      padding: 0.3rem 0.75rem;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 1px;
+    }
+
+    .project-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 1.5rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-decoration: none;
+      transition: gap 0.2s;
+    }
+    .project-link:hover { gap: 0.8rem; }
+
+    /* ── Contact ── */
+    #contact {
+      padding: 8rem 4rem;
+      text-align: center;
+    }
+
+    .contact-pre {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-heading {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.5rem, 5vw, 4.5rem);
+      line-height: 1.1;
+      margin-bottom: 1.5rem;
+    }
+
+    .contact-heading em {
+      font-style: italic;
+      color: var(--accent);
+    }
+
+    .contact-sub {
+      color: var(--muted);
+      font-size: 0.8rem;
+      line-height: 2;
+      margin-bottom: 3rem;
+    }
+
+    .contact-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      border-top: 1px solid var(--border);
+      padding: 2rem 4rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    footer p {
+      font-size: 0.68rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 4rem;
+    }
+
+    /* ── Animations ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slide {
+      0%   { left: -100%; }
+      100% { left: 100%; }
+    }
+
+    /* ── Intersection observer reveals ── */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 768px) {
+      nav { padding: 1.2rem 1.5rem; }
+      #hero, #about, #projects, #contact, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+      #about { grid-template-columns: 1fr; gap: 3rem; }
+      .projects-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+      .nav-links { gap: 1.5rem; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="snow"></canvas>
+
+<!-- Navigation -->
+<nav>
+  <span class="nav-logo">Your Name.</span>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#projects">Work</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- Hero -->
+<section id="hero">
+  <p class="hero-tag">Animator · VFX Artist · Roblox Developer</p>
+  <h1 class="hero-name">Crafting<br><em>worlds</em> in<br>motion.</h1>
+  <p class="hero-sub">
+    I bring Roblox experiences to life through fluid animation,
+    visual effects, and Luau scripting — blending technical precision
+    with artistic intuition.
+  </p>
+  <div class="hero-cta">
+    <a href="#projects" class="btn btn-primary">See my work</a>
+    <a href="#contact" class="btn btn-ghost">Get in touch</a>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- About -->
+<section id="about">
+  <div class="reveal">
+    <p class="section-label">About me</p>
+    <h2 class="about-heading">Animation is<br><em>storytelling</em><br>without words.</h2>
+  </div>
+  <div class="reveal">
+    <div class="about-body">
+      <p>
+        I'm a Roblox-focused animator and VFX artist with a passion for making
+        virtual worlds feel alive. From character rigs to particle systems,
+        I obsess over the details that make a game feel good to play.
+      </p>
+      <p>
+        I also write Luau scripts to support my creative work — building
+        custom animation controllers, VFX triggers, and interactive systems
+        that tie everything together.
+      </p>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-pill"><span class="skill-dot"></span>Character Animation</div>
+      <div class="skill-pill"><span class="skill-dot"></span>Particle VFX</div>
+      <div class="skill-pill"><span class="skill-dot"></span>Luau Scripting</div>
+      <div class="skill-pill"><span class="skill-dot"></span>Roblox Studio</div>
+      <div class="skill-pill"><span class="skill-dot"></span>Rigging</div>
+      <div class="skill-pill"><span class="skill-dot"></span>Game Feel</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Projects -->
+<section id="projects">
+  <div class="projects-header reveal">
+    <div>
+      <p class="section-label">Selected work</p>
+      <h2 class="projects-title">Projects</h2>
+    </div>
+  </div>
+
+  <div class="projects-grid">
+
+    <div class="project-card reveal">
+      <p class="project-type">Animation</p>
+      <h3 class="project-name">Combat System Animations</h3>
+      <p class="project-desc">
+        Full animation suite for a melee combat game — including attack combos,
+        hit reactions, dodge rolls, and idle blends with seamless state transitions.
+      </p>
+      <div class="project-tags">
+        <span class="tag">Moon Animator</span>
+        <span class="tag">Luau</span>
+        <span class="tag">Rigging</span>
+      </div>
+      <a href="#" class="project-link">View project →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <p class="project-type">VFX</p>
+      <h3 class="project-name">Magic Spell Effects</h3>
+      <p class="project-desc">
+        A library of real-time particle effects for a fantasy RPG —
+        fire, lightning, and water spells with custom emission patterns and
+        shader tricks inside Roblox Studio.
+      </p>
+      <div class="project-tags">
+        <span class="tag">Particles</span>
+        <span class="tag">Beams</span>
+        <span class="tag">Roblox Studio</span>
+      </div>
+      <a href="#" class="project-link">View project →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <p class="project-type">Scripting</p>
+      <h3 class="project-name">Cutscene Engine</h3>
+      <p class="project-desc">
+        A lightweight cutscene controller built in Luau — supports camera paths,
+        timed animation events, dialogue overlays, and skippable sequences
+        with zero frame drops.
+      </p>
+      <div class="project-tags">
+        <span class="tag">Luau</span>
+        <span class="tag">TweenService</span>
+        <span class="tag">Camera</span>
+      </div>
+      <a href="#" class="project-link">View project →</a>
+    </div>
+
+    <div class="project-card reveal">
+      <p class="project-type">Animation · VFX</p>
+      <h3 class="project-name">Elemental Boss Fight</h3>
+      <p class="project-desc">
+        End-to-end animation and VFX work for a multi-phase boss encounter —
+        attack telegraphs, phase transition cinematics, and death sequences.
+      </p>
+      <div class="project-tags">
+        <span class="tag">Moon Animator</span>
+        <span class="tag">Particles</span>
+        <span class="tag">Scripting</span>
+      </div>
+      <a href="#" class="project-link">View project →</a>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- Contact -->
+<section id="contact">
+  <div class="reveal">
+    <p class="contact-pre">Let's talk</p>
+    <h2 class="contact-heading">Got a project<br>in <em>mind?</em></h2>
+    <p class="contact-sub">
+      Open for freelance work, collaborations,<br>and long-term Roblox projects.
+    </p>
+    <div class="contact-links">
+      <a href="mailto:your@email.com" class="btn btn-primary">Send an email</a>
+      <a href="https://twitter.com/yourhandle" target="_blank" class="btn btn-ghost">Twitter / X</a>
+      <a href="https://github.com/yourusername" target="_blank" class="btn btn-ghost">GitHub</a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <p>© 2026 Your Name. All rights reserved.</p>
+  <p>Built by hand. Falling snow included.</p>
+</footer>
+
+<script>
+/* ── Realistic Snow Physics ── */
+const canvas = document.getElementById('snow');
+const ctx = canvas.getContext('2d');
+
+let W = canvas.width = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+
+window.addEventListener('resize', () => {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+});
+
+const FLAKE_COUNT = 160;
+const flakes = [];
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+class Flake {
+  constructor() { this.reset(true); }
+
+  reset(init) {
+    this.x = rand(0, W);
+    this.y = init ? rand(0, H) : -10;
+
+    /* Size — three natural tiers: distant, mid, close */
+    const tier = Math.random();
+    if (tier < 0.5)       this.r = rand(0.6, 1.2);   // distant
+    else if (tier < 0.85) this.r = rand(1.2, 2.2);   // mid
+    else                  this.r = rand(2.2, 3.5);   // close
+
+    /* Speed proportional to size (parallax feel) */
+    this.vy  = rand(0.4, 1.1) * (this.r / 1.5);
+    this.vx  = rand(-0.3, 0.3);
+
+    /* Drift: gentle horizontal sway */
+    this.swayAmp   = rand(0.2, 0.8);
+    this.swaySpeed = rand(0.003, 0.009);
+    this.swayOff   = rand(0, Math.PI * 2);
+
+    /* Turbulence: occasional gust nudge */
+    this.turbX = 0;
+    this.turbDecay = rand(0.92, 0.97);
+
+    /* Opacity by tier */
+    this.alpha = this.r < 1.2 ? rand(0.2, 0.45)
+               : this.r < 2.2 ? rand(0.45, 0.7)
+               :                rand(0.65, 0.9);
+  }
+
+  update(t) {
+    /* Sway */
+    const sway = Math.sin(t * this.swaySpeed + this.swayOff) * this.swayAmp;
+
+    /* Random micro-turbulence burst */
+    if (Math.random() < 0.001) this.turbX = rand(-1.5, 1.5);
+    this.turbX *= this.turbDecay;
+
+    this.x += this.vx + sway + this.turbX;
+    this.y += this.vy;
+
+    /* Slight horizontal drift that accumulates */
+    this.vx += rand(-0.008, 0.008);
+    this.vx = Math.max(-0.6, Math.min(0.6, this.vx));
+
+    /* Wrap horizontally */
+    if (this.x < -10) this.x = W + 10;
+    if (this.x > W + 10) this.x = -10;
+    if (this.y > H + 10) this.reset(false);
+  }
+
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(220,225,240,${this.alpha})`;
+    ctx.fill();
+  }
+}
+
+for (let i = 0; i < FLAKE_COUNT; i++) flakes.push(new Flake());
+
+let t = 0;
+function loop() {
+  ctx.clearRect(0, 0, W, H);
+  t++;
+  for (const f of flakes) { f.update(t); f.draw(); }
+  requestAnimationFrame(loop);
+}
+loop();
+
+/* ── Scroll Reveals ── */
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold: 0.15 }
+);
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
