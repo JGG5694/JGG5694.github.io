@@ -533,7 +533,12 @@ function openVideo(url) {
     const ch = sr*2 + (th-sr*2)*p;
     const cr = sr*(1-p);
 
-    mctx.fillStyle = `rgba(240,225,210,${sa+(1-sa)*p})`;
+    // Fade from snowflake warm-white → black as it grows into the video frame
+    const r = Math.round(240 - 240*p);
+    const g = Math.round(225 - 225*p);
+    const b = Math.round(210 - 210*p);
+    const a = sa + (1-sa)*p;
+    mctx.fillStyle = `rgba(${r},${g},${b},${a})`;
     rrect(mctx, cx-cw/2, cy-ch/2, cw, ch, cr);
     mctx.fill();
 
@@ -618,7 +623,12 @@ function closeVideo() {
     const ch = th + (er*2-th)*p;
     const cr = er*p;
 
-    mctx.fillStyle = `rgba(240,225,210,${1-(1-ea)*p})`;
+    // Fade from black → snowflake warm-white as it shrinks back
+    const r = Math.round(240*p);
+    const g = Math.round(225*p);
+    const b = Math.round(210*p);
+    const a = 1 - (1-ea)*p;
+    mctx.fillStyle = `rgba(${r},${g},${b},${a})`;
     rrect(mctx, cx-cw/2, cy-ch/2, cw, ch, cr);
     mctx.fill();
 
