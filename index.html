@@ -9,14 +9,14 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --bg: #0a0a0c;
-      --surface: #111114;
-      --surface2: #18181d;
-      --border: rgba(255,255,255,0.07);
-      --text: #e8e6e1;
-      --muted: #6b6a6e;
-      --accent: #c8b8ff;
-      --accent2: #7dd3fc;
+      --bg: #0e0d0b;
+      --surface: #161410;
+      --surface2: #1e1b16;
+      --border: rgba(220,130,80,0.1);
+      --text: #ede8df;
+      --muted: #7a7168;
+      --accent: #c4501a;
+      --accent2: #a83e10;
     }
 
     html { scroll-behavior: smooth; }
@@ -48,7 +48,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 1.5rem 4rem;
-      background: rgba(10,10,12,0.6);
+      background: rgba(14,13,11,0.65);
       backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
@@ -151,7 +151,7 @@
 
     .btn-primary {
       background: var(--accent);
-      color: #0a0a0c;
+      color: #ede8df;
       font-weight: 500;
       border: 1px solid var(--accent);
     }
@@ -262,7 +262,7 @@
     }
 
     .skill-pill:hover {
-      border-color: rgba(200,184,255,0.3);
+      border-color: rgba(196,80,26,0.4);
       color: var(--accent);
     }
 
@@ -620,9 +620,8 @@
       Open for freelance work, collaborations,<br>and long-term Roblox projects.
     </p>
     <div class="contact-links">
-      <a href="mailto:your@email.com" class="btn btn-primary">Send an email</a>
-      <a href="https://twitter.com/yourhandle" target="_blank" class="btn btn-ghost">Twitter / X</a>
-      <a href="https://github.com/yourusername" target="_blank" class="btn btn-ghost">GitHub</a>
+      <a href="#projects" class="btn btn-ghost">See my work</a>
+      <button class="btn btn-primary" onclick="navigator.clipboard.writeText('.JGG').then(()=>{this.textContent='Copied!';setTimeout(()=>this.textContent='Discord: .JGG',1800)})">Discord: .JGG</button>
     </div>
   </div>
 </section>
@@ -707,7 +706,7 @@ class Flake {
   draw() {
     ctx.beginPath();
     ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-    ctx.fillStyle = `rgba(220,225,240,${this.alpha})`;
+    ctx.fillStyle = `rgba(240,225,210,${this.alpha})`;
     ctx.fill();
   }
 }
