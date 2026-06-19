@@ -4,6 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portofolio - Wip</title>
+  <!-- Discord Embed -->
+  <meta property="og:title" content=".JGG — Animator & VFX Artist" />
+  <meta property="og:description" content="Animation, VFX, and Roblox scripting. Click to see my work." />
+  <meta property="og:url" content="https://yourusername.github.io" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://via.placeholder.com/1200x630/0e0d0b/c4501a?text=.JGG+Portfolio" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="theme-color" content="#c4501a" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -246,8 +255,9 @@
     .contact-heading em { font-style: italic; color: var(--accent); }
     .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 
-    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center; }
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
     footer p { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
+    #visit-counter { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
 
     /* Modal */
     #modal-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
@@ -280,6 +290,7 @@
       .divider { margin: 0 1.5rem; }
       .tab-group-label { display: none; }
       .tab-btn { padding: 0.75rem 0.7rem; font-size: 0.63rem; }
+      footer { flex-direction: column; align-items: center; text-align: center; }
     }
   </style>
 </head>
@@ -328,12 +339,10 @@
     </div>
 
     <div class="tab-bar reveal">
-      <!-- Main -->
       <div class="tab-group">
         <span class="tab-group-label">Main</span>
         <button class="tab-btn active" data-tab="animation">Animation</button>
       </div>
-      <!-- Extras -->
       <div class="tab-group">
         <span class="tab-group-label">Extras</span>
         <button class="tab-btn" data-tab="vfx">VFX</button>
@@ -344,7 +353,6 @@
 
     <div class="grid-viewport" id="grid-viewport">
 
-      <!-- ANIMATION -->
       <div class="grid-panel current" id="panel-animation">
         <div class="projects-grid">
           <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
@@ -374,7 +382,6 @@
         </div>
       </div>
 
-      <!-- VFX -->
       <div class="grid-panel" id="panel-vfx">
         <div class="projects-grid">
           <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
@@ -389,7 +396,7 @@
             <div class="project-tags"><span class="tag">Placeholder</span></div>
             <p class="project-link">View project →</p>
           </div>
-           <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
             <p class="project-type">VFX</p><h3 class="project-name">Placeholder</h3>
             <p class="project-desc">Placeholder</p>
             <div class="project-tags"><span class="tag">Placeholder</span></div>
@@ -398,7 +405,6 @@
         </div>
       </div>
 
-      <!-- SCRIPTS -->
       <div class="grid-panel" id="panel-scripts">
         <div class="projects-grid">
           <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
@@ -410,10 +416,9 @@
         </div>
       </div>
 
-      <!-- MODELS -->
       <div class="grid-panel" id="panel-models">
         <div class="projects-grid">
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
+          <div class="project-card" data-video="https://cdn.discordapp.com/attachments/1504544969250181241/1504544969694646312/image.png?ex=6a076031&is=6a060eb1&hm=a97b7fbb6872f954ae359ca2564ee69e511c99093165cb128fa8d40c6ec4f4e0&">
             <p class="project-type">Models</p><h3 class="project-name">Placeholder</h3>
             <p class="project-desc">Placeholder</p>
             <div class="project-tags"><span class="tag">Placeholder</span></div>
@@ -422,7 +427,7 @@
         </div>
       </div>
 
-    </div><!-- /grid-viewport -->
+    </div>
   </section>
 
   <div class="divider"></div>
@@ -440,10 +445,21 @@
 
   <footer>
     <p>Made with love by JGG © 2026</p>
+    <div id="visit-counter">Visitors: <span>0</span></div>
   </footer>
 </div>
 
 <script>
+/* ── VISIT COUNTER ── */
+function initVisitCounter(){
+  const key='portfolio_visits';
+  let count=parseInt(localStorage.getItem(key)||'0',10);
+  count++;
+  localStorage.setItem(key,count);
+  document.querySelector('#visit-counter span').textContent=count.toLocaleString();
+}
+initVisitCounter();
+
 /* ── SNOW ── */
 const canvas = document.getElementById('snow');
 const ctx    = canvas.getContext('2d');
@@ -551,7 +567,6 @@ function switchTab(nextTab) {
   const fromPanel=document.getElementById('panel-'+currentTab);
   const toPanel=document.getElementById('panel-'+nextTab);
 
-  // Lock height so page doesn't jump during animation
   viewport.style.height = fromPanel.offsetHeight+'px';
 
   toPanel.style.display='block';
@@ -707,7 +722,6 @@ function closeVideo(){
 }
 
 function bindVideoCards(){
-  // Clone to strip stale listeners, then re-attach
   document.querySelectorAll('.project-card[data-video]').forEach(card=>{
     const clone=card.cloneNode(true);
     card.parentNode.replaceChild(clone,card);
