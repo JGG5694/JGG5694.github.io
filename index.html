@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portofolio - Wip</title>
-  <!-- Discord Embed -->
+ <!-- Discord Embed -->
   <meta property="og:title" content=".JGG Portofolio" />
   <meta property="og:description" content="Click to see my work!" />
   <meta property="og:url" content="https://yourusername.github.io" />
@@ -351,77 +351,19 @@
     <div class="grid-viewport" id="grid-viewport">
 
       <div class="grid-panel current" id="panel-animation">
-        <div class="projects-grid">
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">Animation</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">Animation</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">Animation</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">Animation</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-        </div>
+        <div class="projects-grid"></div>
       </div>
 
       <div class="grid-panel" id="panel-vfx">
-        <div class="projects-grid">
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">VFX</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">VFX</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">VFX</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-        </div>
+        <div class="projects-grid"></div>
       </div>
 
       <div class="grid-panel" id="panel-scripts">
-        <div class="projects-grid">
-          <div class="project-card" data-video="https://www.youtube.com/embed/dQw4w9WgXcQ">
-            <p class="project-type">Scripts</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-        </div>
+        <div class="projects-grid"></div>
       </div>
 
       <div class="grid-panel" id="panel-models">
-        <div class="projects-grid">
-          <div class="project-card" data-video="https://cdn.discordapp.com/attachments/1504544969250181241/1504544969694646312/image.png?ex=6a076031&is=6a060eb1&hm=a97b7fbb6872f954ae359ca2564ee69e511c99093165cb128fa8d40c6ec4f4e0&">
-            <p class="project-type">Models</p><h3 class="project-name">Placeholder</h3>
-            <p class="project-desc">Placeholder</p>
-            <div class="project-tags"><span class="tag">Placeholder</span></div>
-            <p class="project-link">View project →</p>
-          </div>
-        </div>
+        <div class="projects-grid"></div>
       </div>
 
     </div>
@@ -447,6 +389,78 @@
 </div>
 
 <script>
+/* ════════════════════════════════════════════════════════════════
+   PROJECT CONFIG — Add your projects here (easier!)
+   Just fill in: type, name, description, tags, videoUrl
+════════════════════════════════════════════════════════════════ */
+
+const PROJECTS = {
+  animation: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ],
+  vfx: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ],
+  scripts: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ],
+  models: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ]
+};
+
+/* ────────────────────────────────────────────────────────────────
+   AUTO-GENERATES HTML FROM CONFIG (you don't touch the HTML!)
+────────────────────────────────────────────────────────────────── */
+function renderProjects() {
+  const tabs = ['animation', 'vfx', 'scripts', 'models'];
+  tabs.forEach(tab => {
+    const panel = document.getElementById(`panel-${tab}`);
+    const grid = panel.querySelector('.projects-grid');
+    grid.innerHTML = '';
+    
+    PROJECTS[tab].forEach(proj => {
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.dataset.video = proj.videoUrl;
+      
+      const tagsHtml = proj.tags.map(t => `<span class="tag">${t}</span>`).join('');
+      
+      card.innerHTML = `
+        <p class="project-type">${tab.charAt(0).toUpperCase() + tab.slice(1)}</p>
+        <h3 class="project-name">${proj.name}</h3>
+        <p class="project-desc">${proj.description}</p>
+        <div class="project-tags">${tagsHtml}</div>
+        <p class="project-link">View project →</p>
+      `;
+      
+      grid.appendChild(card);
+    });
+  });
+  bindVideoCards();
+}
+renderProjects();
+
 /* ── VISIT COUNTER ── */
 function initVisitCounter(){
   const key='portfolio_visits';
