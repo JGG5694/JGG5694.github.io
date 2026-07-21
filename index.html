@@ -328,6 +328,11 @@
     #modal-close:hover { background: var(--accent); }
     #modal-close.visible { display: flex; }
 
+    @keyframes slideOutLeft  { from { transform:translateX(0);    opacity:1; } to { transform:translateX(-6%);  opacity:0; } }
+    @keyframes slideOutRight { from { transform:translateX(0);    opacity:1; } to { transform:translateX(6%);   opacity:0; } }
+    @keyframes slideInLeft   { from { transform:translateX(6%);   opacity:0; } to { transform:translateX(0);   opacity:1; } }
+    @keyframes slideInRight  { from { transform:translateX(-6%);  opacity:0; } to { transform:translateX(0);   opacity:1; } }
+
     @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
     @keyframes slide  { 0% { left:-100%; } 100% { left:100%; } }
     .reveal { opacity:0; transform:translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
