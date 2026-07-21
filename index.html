@@ -4,11 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Portofolio - Wip</title>
- <!-- Discord Embed -->
-  <meta property="og:title" content=".JGG Portofolio" />
-  <meta property="og:description" content="Click to see my work!" />
+  <!-- Discord Embed -->
+  <meta property="og:title" content=".JGG — Animator & VFX Artist" />
+  <meta property="og:description" content="Animation, VFX, and Roblox scripting. Click to see my work." />
   <meta property="og:url" content="https://yourusername.github.io" />
   <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://via.placeholder.com/1200x630/0e0d0b/c4501a?text=.JGG+Portfolio" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
   <meta name="theme-color" content="#c4501a" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
@@ -400,10 +403,40 @@ const PROJECTS = {
       name: "Placeholder",
       description: "Placeholder",
       tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/GWf9_qSrnOM?si=mhHtDmHBnhKP0NR8"
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
     }
   ],
   vfx: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
     {
       name: "Placeholder",
       description: "Placeholder",
@@ -462,12 +495,15 @@ function renderProjects() {
 renderProjects();
 
 /* ── VISIT COUNTER ── */
-function initVisitCounter(){
-  const key='portfolio_visits';
-  let count=parseInt(localStorage.getItem(key)||'0',10);
-  count++;
-  localStorage.setItem(key,count);
-  document.querySelector('#visit-counter span').textContent=count.toLocaleString();
+async function initVisitCounter(){
+  try {
+    const res = await fetch('https://api.countapi.com/hit/jgg-portfolio/visits');
+    const data = await res.json();
+    document.querySelector('#visit-counter span').textContent = data.value.toLocaleString();
+  } catch (err) {
+    console.log('Counter unavailable, showing fallback');
+    document.querySelector('#visit-counter span').textContent = '∞';
+  }
 }
 initVisitCounter();
 
