@@ -299,6 +299,169 @@
 
     .divider { position: relative; z-index: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 4rem; }
 
+    #experience {
+      padding: 8rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .experience-header {
+      margin-bottom: 3rem;
+    }
+
+    .experience-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.5rem, 5vw, 3.8rem);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .experience-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    #timeline-container {
+      position: relative;
+      width: 100%;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      padding-bottom: 3rem;
+    }
+
+    #timeline-canvas {
+      display: block;
+      width: 100%;
+      height: 280px;
+      background: rgba(14,13,11,0.5);
+      cursor: grab;
+    }
+
+    #timeline-canvas:active {
+      cursor: grabbing;
+    }
+
+    #timeline-years {
+      display: flex;
+      justify-content: space-between;
+      padding: 1.5rem 2rem 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .timeline-year {
+      text-align: center;
+      flex: 1;
+    }
+
+    /* Modal */
+    .exp-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6,5,4,0.88);
+      backdrop-filter: blur(8px);
+    }
+
+    .exp-modal-overlay.active {
+      display: flex;
+    }
+
+    #exp-modal-box {
+      background: var(--surface);
+      border: 1px solid rgba(196,80,26,0.35);
+      border-radius: 12px;
+      padding: 2.5rem;
+      max-width: 450px;
+      width: 90%;
+      max-height: 70vh;
+      overflow-y: auto;
+      animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 20px 60px rgba(196,80,26,0.2);
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #exp-modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 32px;
+      height: 32px;
+      background: rgba(196,80,26,0.1);
+      border: 1px solid rgba(196,80,26,0.3);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    #exp-modal-close:hover {
+      background: rgba(196,80,26,0.25);
+      border-color: rgba(196,80,26,0.5);
+    }
+
+    .exp-modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+
+    .exp-modal-company {
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .exp-modal-duration {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .exp-modal-description {
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .exp-modal-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .exp-tool-tag {
+      font-size: 0.65rem;
+      padding: 0.35rem 0.7rem;
+      background: rgba(196,80,26,0.1);
+      border: 1px solid rgba(196,80,26,0.25);
+      color: var(--muted);
+      border-radius: 3px;
+      letter-spacing: 0.08em;
+    }
+
     #contact { padding: 8rem 4rem; text-align: center; }
     .contact-pre { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
     .contact-heading { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 1.5rem; }
@@ -429,7 +592,38 @@
 
   <div class="divider"></div>
 
-  <section id="contact">
+  <section id="experience">
+    <div class="experience-header reveal">
+      <h2 class="experience-title">Experience</h2>
+      <p class="experience-subtitle">Scroll through the timeline</p>
+    </div>
+    
+    <div id="timeline-container">
+      <canvas id="timeline-canvas"></canvas>
+      
+      <!-- Timeline Year Markers -->
+      <div id="timeline-years">
+        <div class="timeline-year">2021</div>
+        <div class="timeline-year">2022</div>
+        <div class="timeline-year">2023</div>
+        <div class="timeline-year">2024</div>
+      </div>
+
+      <!-- Experience Modal -->
+      <div id="exp-modal-overlay" class="exp-modal-overlay">
+        <button id="exp-modal-close" class="exp-close">✕</button>
+        <div id="exp-modal-box">
+          <h3 id="exp-title" class="exp-modal-title">Experience</h3>
+          <p id="exp-company" class="exp-modal-company">Company</p>
+          <p id="exp-duration" class="exp-modal-duration">Duration</p>
+          <p id="exp-description" class="exp-modal-description">Description</p>
+          <div id="exp-tools" class="exp-modal-tools"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
     <div class="reveal">
       <p class="contact-pre">Let's talk</p>
       <h2 class="contact-heading">Got a project<br>in <em>mind?</em></h2>
@@ -549,7 +743,309 @@ function renderProjects() {
 }
 renderProjects();
 
-/* ── VISIT COUNTER ── */
+/* ════════════════════════════════════════════════════════════════
+   EXPERIENCE TIMELINE — DRAGGABLE CARDS
+════════════════════════════════════════════════════════════════ */
+
+const EXPERIENCE_DATA = [
+  {
+    id: 'animator',
+    title: 'Lead Animator',
+    company: 'Studio Vibes',
+    duration: '2022–2024',
+    year: 2022,
+    description: 'Directed animation pipelines for 50+ projects. Character rigging, motion design, fluid transitions.',
+    tools: ['Moon Animator', 'Rigging', 'Animation'],
+  },
+  {
+    id: 'vfx',
+    title: 'VFX Specialist',
+    company: 'Digital Dreams',
+    duration: '2021–2022',
+    year: 2021,
+    description: 'Real-time particle effects, optimized systems. 60fps guaranteed with Luau controllers.',
+    tools: ['Particles', 'Beams', 'Luau'],
+  },
+  {
+    id: 'scripter',
+    title: 'Luau Developer',
+    company: 'Tech Studios',
+    duration: '2020–2021',
+    year: 2021,
+    description: 'Game systems, cutscene engines, state managers. Zero frame drops. Clean architecture.',
+    tools: ['Luau', 'Game Systems', 'Architecture'],
+  },
+  {
+    id: 'freelance',
+    title: 'Freelancer',
+    company: 'Various',
+    duration: '2019–Present',
+    year: 2023,
+    description: 'Full-stack work across animation, VFX, scripting. Client-focused, detail-oriented.',
+    tools: ['Full Stack', 'Problem Solving', 'Client Work'],
+  },
+  {
+    id: 'mentor',
+    title: 'Mentor & Educator',
+    company: 'Community',
+    duration: '2021–Present',
+    year: 2024,
+    description: 'Teaching animation and game dev. Published tutorials, led workshops. Passionate about sharing knowledge.',
+    tools: ['Teaching', 'Documentation', 'Community'],
+  },
+];
+
+class TimelineCard {
+  constructor(data, x) {
+    this.data = data;
+    this.x = x;
+    this.y = 100;
+    this.width = 120;
+    this.height = 140;
+    this.isDragging = false;
+    this.hovered = false;
+  }
+
+  update() {
+    // No snap-back! Just stay where dragged
+  }
+
+  draw(ctx) {
+    const x = this.x;
+    const y = this.y;
+
+    // Subtle glow on hover
+    if (this.hovered) {
+      ctx.fillStyle = 'rgba(196,80,26,0.12)';
+      ctx.roundRect(x - 6, y - 6, this.width + 12, this.height + 12, 8);
+      ctx.fill();
+    }
+
+    // Main card
+    ctx.fillStyle = this.hovered ? 'rgba(196,80,26,0.18)' : 'rgba(196,80,26,0.09)';
+    ctx.strokeStyle = 'rgba(196,80,26,0.4)';
+    ctx.lineWidth = 1.2;
+    ctx.roundRect(x, y, this.width, this.height, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Year badge
+    ctx.fillStyle = 'rgba(196,80,26,0.3)';
+    ctx.roundRect(x + 6, y + 6, 40, 20, 3);
+    ctx.fill();
+
+    ctx.fillStyle = '#c4501a';
+    ctx.font = '600 11px "DM Mono"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.data.year, x + 26, y + 16);
+
+    // Title
+    ctx.fillStyle = '#ede8df';
+    ctx.font = '500 11px "DM Serif Display"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    
+    const titleWords = this.data.title.split(' ');
+    let lineY = y + 32;
+    for (let word of titleWords) {
+      ctx.fillText(word, x + this.width/2, lineY);
+      lineY += 14;
+    }
+
+    // Company
+    ctx.fillStyle = 'rgba(196,80,26,0.7)';
+    ctx.font = '300 9px "DM Mono"';
+    ctx.fillText(this.data.company.substring(0, 12), x + this.width/2, y + 110);
+  }
+
+  contains(px, py) {
+    return px >= this.x - 6 && px <= this.x + this.width + 6 &&
+           py >= this.y - 6 && py <= this.y + this.height + 6;
+  }
+}
+
+const tlCanvas = document.getElementById('timeline-canvas');
+const tlCtx = tlCanvas.getContext('2d');
+
+// Polyfill roundRect
+if (!tlCtx.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.arcTo(x + w, y, x + w, y + r, r);
+    this.lineTo(x + w, y + h - r);
+    this.arcTo(x + w, y + h, x + w - r, y + h, r);
+    this.lineTo(x + r, y + h);
+    this.arcTo(x, y + h, x, y + h - r, r);
+    this.lineTo(x, y + r);
+    this.arcTo(x, y, x + r, y, r);
+    this.closePath();
+  };
+}
+
+function resizeTlCanvas() {
+  const container = document.getElementById('timeline-container');
+  tlCanvas.width = container.clientWidth;
+  tlCanvas.height = 280;
+}
+resizeTlCanvas();
+window.addEventListener('resize', resizeTlCanvas);
+
+const cards = [];
+let dragCard = null;
+let dragOffsetX = 0;
+let scrollOffset = 0;
+
+// Init cards with spacing
+let cardX = 60;
+EXPERIENCE_DATA.forEach((data) => {
+  cards.push(new TimelineCard(data, cardX));
+  cardX += 160;
+});
+
+// Mouse events
+tlCanvas.addEventListener('mousedown', (e) => {
+  const rect = tlCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left + scrollOffset;
+  const y = e.clientY - rect.top;
+
+  for (let card of cards) {
+    if (card.contains(x, y)) {
+      dragCard = card;
+      card.isDragging = true;
+      dragOffsetX = x - card.x;
+      return;
+    }
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!tlCanvas.parentElement.contains(e.target) && !dragCard) return;
+
+  const rect = tlCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left + scrollOffset;
+  const y = e.clientY - rect.top;
+
+  for (let card of cards) {
+    card.hovered = card.contains(x, y) && !dragCard;
+  }
+
+  if (dragCard && e.buttons & 1) {
+    dragCard.x = x - dragOffsetX;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragCard) {
+    dragCard.isDragging = false;
+    dragCard = null;
+  }
+});
+
+tlCanvas.addEventListener('click', (e) => {
+  if (dragCard) return;
+
+  const rect = tlCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left + scrollOffset;
+  const y = e.clientY - rect.top;
+
+  for (let card of cards) {
+    if (card.contains(x, y)) {
+      openExpModal(card);
+      return;
+    }
+  }
+});
+
+// Scroll wheel for horizontal panning
+tlCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  scrollOffset += e.deltaY * 0.5;
+  scrollOffset = Math.max(0, scrollOffset);
+}, { passive: false });
+
+// Modal
+const expModalOverlay = document.getElementById('exp-modal-overlay');
+const expModalClose = document.getElementById('exp-modal-close');
+
+function openExpModal(card) {
+  document.getElementById('exp-title').textContent = card.data.title;
+  document.getElementById('exp-company').textContent = card.data.company;
+  document.getElementById('exp-duration').textContent = card.data.duration;
+  document.getElementById('exp-description').textContent = card.data.description;
+
+  const toolsContainer = document.getElementById('exp-tools');
+  toolsContainer.innerHTML = card.data.tools
+    .map(t => `<span class="exp-tool-tag">${t}</span>`)
+    .join('');
+
+  expModalOverlay.classList.add('active');
+}
+
+function closeExpModal() {
+  expModalOverlay.classList.remove('active');
+}
+
+expModalClose.addEventListener('click', closeExpModal);
+expModalOverlay.addEventListener('click', (e) => {
+  if (e.target === expModalOverlay) closeExpModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeExpModal();
+});
+
+// Animation loop
+function animateTl() {
+  tlCtx.clearRect(0, 0, tlCanvas.width, tlCanvas.height);
+
+  // Draw timeline line
+  tlCtx.strokeStyle = 'rgba(196,80,26,0.2)';
+  tlCtx.lineWidth = 1;
+  tlCtx.beginPath();
+  tlCtx.moveTo(-scrollOffset, 80);
+  tlCtx.lineTo(tlCanvas.width + 1000 - scrollOffset, 80);
+  tlCtx.stroke();
+
+  // Draw year markers on timeline
+  const years = [2021, 2022, 2023, 2024];
+  const yearSpacing = tlCanvas.width / 4;
+  
+  tlCtx.fillStyle = 'rgba(196,80,26,0.15)';
+  tlCtx.strokeStyle = 'rgba(196,80,26,0.25)';
+  tlCtx.lineWidth = 0.5;
+  
+  years.forEach((year, i) => {
+    const xPos = yearSpacing * i + yearSpacing/2 - scrollOffset;
+    if (xPos > -20 && xPos < tlCanvas.width + 20) {
+      tlCtx.beginPath();
+      tlCtx.arc(xPos, 80, 4, 0, Math.PI * 2);
+      tlCtx.fill();
+      tlCtx.stroke();
+    }
+  });
+
+  // Update & draw cards
+  for (let card of cards) {
+    card.update();
+  }
+
+  tlCtx.save();
+  tlCtx.translate(-scrollOffset, 0);
+  
+  for (let card of cards) {
+    card.draw(tlCtx);
+  }
+
+  tlCtx.restore();
+
+  requestAnimationFrame(animateTl);
+}
+animateTl();
+
+
 async function initVisitCounter(){
   try {
     const res = await fetch('https://api.countapi.com/hit/jgg-portfolio/visits');
