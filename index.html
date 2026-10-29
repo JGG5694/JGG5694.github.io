@@ -230,8 +230,8 @@ const CONFIG = {
 /* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
    Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
 const GAMES = [
-  { name: "Aftershift", role: "scripting · controller support", url: "" },
-  { name: "Shift at Robloxia", role: "my game · in development", url: "" },
+  { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT" },
+  // icon: "icons/jeu.png"  -> optionnel, remplace l'icône auto
 ];
 
 /* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
@@ -346,7 +346,8 @@ if (GAMES.length) {
     const li = el('li');
     const row = el(g.url ? 'a' : 'div', 'game');
     if (g.url) { row.href = g.url; row.target = '_blank'; row.rel = 'noopener'; }
-    const icon = el('span', 'noicon');
+    let icon = el('span', 'noicon');
+    if (g.icon) { icon = el('img'); icon.src = g.icon; icon.alt = ''; }
     const info = el('span'); const b = el('b', null, g.name); const sm = el('small', null, g.role || (g.url ? '' : 'not public yet'));
     info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
     // icône + nombre de joueurs en live depuis Roblox
@@ -355,7 +356,7 @@ if (GAMES.length) {
     fetch(`https://apis.roproxy.com/universes/v1/places/${placeId}/universe`).then(r => r.json()).then(({ universeId }) => {
       if (!universeId) return;
       fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${universeId}&size=150x150&format=Png&isCircular=false`)
-        .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u) { const img = el('img'); img.src = u; img.alt = ''; icon.replaceWith(img); } });
+        .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u && !g.icon) { const img = el('img'); img.src = u; img.alt = ''; icon.replaceWith(img); } });
       fetch(`https://games.roproxy.com/v1/games?universeIds=${universeId}`).then(r => r.json()).then(j => {
         const n = j.data?.[0]?.playing;
         if (n > 0) { sm.append(' · '); sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
