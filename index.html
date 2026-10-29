@@ -64,6 +64,18 @@
     .pfp-wrap::after { background: var(--ring); opacity: 0.22; }
     .pfp-wrap::before { background: conic-gradient(from var(--angle), transparent 0 45%, var(--ring) 78%, transparent 100%); animation: ring 9s linear infinite; z-index: 1; }
     .pfp { display: block; width: 100%; height: 100%; border-radius: 8px; background: var(--surface); object-fit: cover; }
+    /* statut perso Discord : petite bulle de pensée accrochée à la pp */
+    .bubble { position: absolute; z-index: 3; left: calc(100% - 22px); bottom: calc(100% - 4px);
+      display: flex; align-items: center; gap: 0.35rem; max-width: 220px; width: max-content;
+      padding: 0.4rem 0.7rem; border-radius: 14px; background: #fff; color: var(--text);
+      font-size: 12px; line-height: 1.35; box-shadow: 0 1px 2px rgba(20,22,26,0.06), 0 6px 18px rgba(20,22,26,0.09);
+      transform-origin: 0% 100%; animation: pop 0.45s cubic-bezier(.3,1.4,.5,1) both; }
+    .bubble[hidden] { display: none; }
+    .bubble::before, .bubble::after { content: ''; position: absolute; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(20,22,26,0.08); }
+    .bubble::before { width: 9px; height: 9px; left: 6px; bottom: -7px; }
+    .bubble::after { width: 5px; height: 5px; left: -1px; bottom: -13px; }
+    .bubble img { width: 16px; height: 16px; }
+    .bubble.swap { animation: none; opacity: 0; transform: scale(0.9); transition: opacity 0.18s, transform 0.18s; }
     .pfp-deco { position: absolute; inset: -12%; width: 124%; height: 124%; pointer-events: none; z-index: 2; }
     .hi { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
     .hi .name { display: inline-block; }
@@ -146,6 +158,7 @@
     .player-frame iframe, .player-frame video { display: block; width: 100%; height: 100%; border: 0; }
 
     @keyframes blink { 50% { opacity: 0; } }
+    @keyframes pop { from { opacity: 0; transform: scale(0.6) translateY(4px); } to { opacity: 1; transform: none; } }
     @keyframes ring { to { --angle: 360deg; } }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
     @keyframes hop {   /* chaque lettre saute avec anticipation et squash, comme le perso */
@@ -181,7 +194,7 @@
 
     <div>
       <div class="profile">
-        <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
+        <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /><div class="bubble" id="bubble" hidden><span id="bubble-emoji"></span><span id="bubble-text"></span></div></div>
         <div>
           <h1 class="hi">hi, i'm <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
           <p class="sub" id="sub">roblox animator &amp; a bit of everything else.</p>
@@ -242,6 +255,7 @@ const CONFIG = {
    Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
 const GAMES = [
   { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT" },
+  { name: "elder gate", role: "main animator", url: "https://www.roblox.com/games/104403529162136/Elder-Gate" },
   // icon: "icons/jeu.png"  -> optionnel, remplace l'icône auto
 ];
 
@@ -312,6 +326,26 @@ function activityLabel(name) {
   return typeof hit[1] === 'function' ? hit[1](name) : hit[1];
 }
 const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
+let bubbleKey = '';
+function renderBubble(cs) {
+  const b = $('#bubble');
+  const text = cs?.state || '';
+  const em = cs?.emoji;
+  const key = text + '|' + (em?.id || em?.name || '');
+  if (key === bubbleKey) return;
+  bubbleKey = key;
+  if (!text && !em) { b.hidden = true; return; }
+  const fill = () => {
+    const e = $('#bubble-emoji'); e.innerHTML = '';
+    if (em?.id) { const i = el('img'); i.src = `https://cdn.discordapp.com/emojis/${em.id}.${em.animated ? 'gif' : 'webp'}?size=32`; i.alt = em.name || ''; e.append(i); }
+    else if (em?.name) e.textContent = em.name;
+    $('#bubble-text').textContent = text;
+    b.classList.remove('swap'); b.hidden = false;
+    b.style.animation = 'none'; b.offsetWidth; b.style.animation = '';   // rejoue le pop
+  };
+  if (b.hidden) fill(); else { b.classList.add('swap'); setTimeout(fill, 180); }
+}
+
 function renderPresence(d) {
   const s = d.discord_status || 'offline';
   const u = d.discord_user;
@@ -323,6 +357,7 @@ function renderPresence(d) {
     if ($('#pfp').src !== src) $('#pfp').src = src;   // suit aussi un changement de pp
     pfpSet = true;
   } else robloxPfp();
+  renderBubble((d.activities || []).find(a => a.type === 4));
   const game = (d.activities || []).find(a => a.type === 0);
   const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
   $('#act').textContent = game ? activityLabel(game.name) : '';
