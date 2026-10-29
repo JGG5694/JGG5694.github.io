@@ -217,9 +217,13 @@ $('#foot').textContent = `jgg © ${new Date().getFullYear()}`;
   setTimeout(function type() { caret.before(text[i++]); if (i < text.length) setTimeout(type, 28 + Math.random() * 40); }, 700);
 })();
 
-/* pfp : headshot Roblox live */
-fetch(`https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=${CONFIG.robloxUserId}&size=150x150&format=Png&isCircular=false`)
+/* pfp : avatar Discord (via Lanyard) ; si indisponible, tête Roblox */
+let pfpSet = false;
+function robloxPfp() {
+  if (pfpSet) return; pfpSet = true;
+  fetch(`https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=${CONFIG.robloxUserId}&size=150x150&format=Png&isCircular=false`)
   .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u) $('#pfp').src = u; }).catch(() => {});
+}
 
 /* socials */
 const ICONS = {
@@ -240,16 +244,21 @@ const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 
 async function presence() {
   try {
     const j = await (await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`)).json();
-    if (!j.success) return;
+    if (!j.success) { robloxPfp(); return; }
     const d = j.data, s = d.discord_status || 'offline';
+    const u = d.discord_user;
+    if (u?.avatar && !pfpSet) {
+      pfpSet = true;
+      $('#pfp').src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256`;
+    } else robloxPfp();
     const game = (d.activities || []).find(a => a.type === 0);
     const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
     $('#act').textContent = game ? `Playing ${game.name}` : '';
     $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
     $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
-  } catch (_) {}
+  } catch (_) { robloxPfp(); }
 }
-if (CONFIG.discordId) { presence(); setInterval(presence, 30000); }
+if (CONFIG.discordId) { presence(); setInterval(presence, 30000); } else robloxPfp();
 
 /* work */
 const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/) || [])[1];
