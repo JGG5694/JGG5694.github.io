@@ -1,4 +1,4 @@
-newmtl Player8Mtl
+newmtl Player3Mtl
 Material Color
 Ka 0.0666667 0.0666667 0.0666667
 Kd 0.0666667 0.0666667 0.0666667
@@ -8,9 +8,23 @@ d 1
 
 Ns 0
 
-map_Ka 07670ac5d2e4_tex0.png
-map_Kd 07670ac5d2e4_tex0.png
-map_d 07670ac5d2e4_tex0.png
+map_Ka 659b2da0c818_tex0.png
+map_Kd 659b2da0c818_tex0.png
+map_d 659b2da0c818_tex0.png
+
+newmtl Handle4Mtl
+Material Color
+Ka 0.639216 0.635294 0.647059
+Kd 0.639216 0.635294 0.647059
+Ks 0.0401077 0.0398616 0.0405998 
+
+d 1
+
+Ns 0
+
+map_Ka 659b2da0c818_tex1.png
+map_Kd 659b2da0c818_tex1.png
+map_d 659b2da0c818_tex1.png
 
 newmtl Player1Mtl
 Material Color
@@ -22,9 +36,37 @@ d 1
 
 Ns 0
 
-map_Ka 07670ac5d2e4_tex0.png
-map_Kd 07670ac5d2e4_tex0.png
-map_d 07670ac5d2e4_tex0.png
+map_Ka 659b2da0c818_tex0.png
+map_Kd 659b2da0c818_tex0.png
+map_d 659b2da0c818_tex0.png
+
+newmtl Handle2Mtl
+Material Color
+Ka 0.639216 0.635294 0.647059
+Kd 0.639216 0.635294 0.647059
+Ks 0.0401077 0.0398616 0.0405998 
+
+d 1
+
+Ns 0
+
+map_Ka 659b2da0c818_tex3.png
+map_Kd 659b2da0c818_tex3.png
+map_d 659b2da0c818_tex3.png
+
+newmtl Handle3Mtl
+Material Color
+Ka 0.639216 0.635294 0.647059
+Kd 0.639216 0.635294 0.647059
+Ks 0.0401077 0.0398616 0.0405998 
+
+d 1
+
+Ns 0
+
+map_Ka 659b2da0c818_tex2.png
+map_Kd 659b2da0c818_tex2.png
+map_d 659b2da0c818_tex2.png
 
 newmtl Handle1Mtl
 Material Color
@@ -36,7 +78,7 @@ d 1
 
 Ns 0
 
-map_Ka 07670ac5d2e4_tex1.png
-map_Kd 07670ac5d2e4_tex1.png
-map_d 07670ac5d2e4_tex1.png
+map_Ka 659b2da0c818_tex4.png
+map_Kd 659b2da0c818_tex4.png
+map_d 659b2da0c818_tex4.png
 
