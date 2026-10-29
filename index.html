@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>JGG</title>
+  <meta name="description" content="Roblox animator &amp; a bit of everything else." />
+  <meta property="og:title" content="hi, i'm JGG" />
+  <meta property="og:description" content="Roblox animator &amp; a bit of everything else." />
+  <meta property="og:url" content="https://JGG5694.github.io/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://JGG5694.github.io/avatar/avatar.png" />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#747672" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <script type="importmap">
+  { "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+  } }
+  </script>
+
+  <style>
+    :root {
+      /* gris "studio photo" moyen, texte blanc (inspiré de gang.fr) */
+      --bg: #747672;
+      --bg-top: #858783;
+      --text: #ffffff;
+      --dim: #e9eae6;
+      --faint: #cfd1cc;
+      --surface: rgba(255,255,255,0.13);
+      --online: #b4f2ad;
+      --idle: #ffe08a;
+      --dnd: #ffb1ab;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(ellipse 90% 70% at 30% 35%, var(--bg-top), var(--bg) 70%) fixed, var(--bg); color: var(--text);
+      font: 13px/1.6 'JetBrains Mono', ui-monospace, Consolas, monospace;
+      min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    a { color: inherit; text-decoration: none; }
+    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+    :focus-visible { outline: 1px solid var(--text); outline-offset: 3px; }
+    ::selection { background: rgba(255,255,255,0.3); }
+
+    body { display: flex; flex-direction: column; }
+    main { width: 100%; max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+    /* ── TOP : avatar 3D + profil ── */
+    .top { display: grid; grid-template-columns: 340px 1fr; gap: 2.5rem; align-items: center; }
+    .stage { position: relative; height: 400px; cursor: grab; }
+    .stage canvas { z-index: 1; position: absolute; top: -110px; bottom: -110px; left: -40px; right: -40px; width: calc(100% + 80px) !important; height: calc(100% + 220px) !important; pointer-events: none; }
+    .stage img.avatar-2d { position: absolute; inset: 0; margin: auto; width: 100%; height: 100%; object-fit: contain; }
+    .stage-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); }
+
+    .profile { display: flex; align-items: center; gap: 1.6rem; }
+    @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+    .pfp-wrap { --ring: var(--faint); position: relative; flex: none; width: 120px; height: 120px; }
+    .pfp-wrap::before, .pfp-wrap::after { content: ''; position: absolute; inset: -5px; border-radius: 13px; padding: 3px; pointer-events: none;
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+    .pfp-wrap::after { background: var(--ring); opacity: 0.3; }
+    .pfp-wrap::before { background: conic-gradient(from var(--angle), transparent 0 45%, var(--ring) 78%, transparent 100%); animation: ring 9s linear infinite; z-index: 1; }
+    .pfp { display: block; width: 100%; height: 100%; border-radius: 8px; background: var(--surface); object-fit: cover; }
+    .pfp-deco { position: absolute; inset: -12%; width: 124%; height: 124%; pointer-events: none; z-index: 2; }
+    .hi { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
+    .hi .name { display: inline-block; }
+    .hi .name span { display: inline-block; transform-origin: 50% 100%; }
+    .hi .name.jump span { animation: hop 0.85s cubic-bezier(.45,0,.25,1) both; }
+    .hi .name.jump span:nth-child(2) { animation-delay: 0.1s; }
+    .hi .name.jump span:nth-child(3) { animation-delay: 0.2s; }
+    .sub { color: var(--dim); margin-top: 0.2rem; min-height: 1.6em; }
+    .caret { display: inline-block; width: 0.55em; height: 1.05em; margin-left: 2px; vertical-align: -0.18em; background: var(--dim); animation: blink 1s steps(1) infinite; }
+    .socials { display: flex; gap: 0.9rem; margin-top: 0.8rem; }
+    .socials a, .socials button { color: var(--dim); display: flex; transition: color 0.15s; position: relative; }
+    .socials a:hover, .socials button:hover { color: var(--text); }
+    .socials svg { width: 17px; height: 17px; }
+    .tip { position: absolute; left: 50%; top: -1.9rem; transform: translateX(-50%); white-space: nowrap; font-size: 11px; color: var(--text); background: var(--text); color: var(--bg); padding: 0.15rem 0.45rem; border-radius: 3px; pointer-events: none; }
+
+    .presence { margin: 2rem 0 0 calc(120px + 1.6rem); display: flex; flex-direction: column; gap: 0.35rem; color: var(--faint); }
+    .row { display: flex; align-items: center; gap: 0.8rem; }
+    .row[hidden] { display: none; }
+    .row svg { width: 14px; height: 14px; flex: none; color: var(--dim); }
+    .row .st { font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; }
+    .row .st .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s ease-out infinite; }
+    .row .st.offline .dot { animation: none; }
+    .row .st.online { color: var(--online); }
+    .row .st.idle { color: var(--idle); }
+    .row .st.dnd { color: var(--dnd); }
+    .row .st.offline { color: var(--dim); }
+    .row .act { color: var(--dim); }
+
+    /* ── WHAT I'M WORKING ON ── */
+    .wip { margin: 1.6rem 0 0 calc(120px + 1.6rem); }
+    .wip-toggle { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--dim); padding: 0.2rem 0; }
+    .wip-toggle:hover { color: var(--text); }
+    .chev { display: inline-block; transition: transform 0.25s cubic-bezier(.2,.8,.2,1); font-size: 15px; line-height: 1; }
+    .wip-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+    .wip-drawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.2,.8,.2,1); }
+    .wip-drawer.open { grid-template-rows: 1fr; }
+    .wip-list { overflow: hidden; list-style: none; }
+    .wip-list li { opacity: 0; transform: translateY(-4px); transition: opacity 0.25s, transform 0.25s; }
+    .wip-drawer.open .wip-list li { opacity: 1; transform: none; }
+    .wip-drawer.open .wip-list li:nth-child(2) { transition-delay: 0.05s; }
+    .wip-drawer.open .wip-list li:nth-child(3) { transition-delay: 0.1s; }
+    .wip-drawer.open .wip-list li:nth-child(4) { transition-delay: 0.15s; }
+    .game { display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem 0.5rem; margin: 0 -0.5rem; border-radius: 6px; }
+    .wip-list li:first-child .game { margin-top: 0.6rem; }
+    a.game:hover { background: var(--surface); }
+    .game img, .game .noicon { width: 38px; height: 38px; border-radius: 8px; flex: none; background: var(--surface); object-fit: cover; }
+    .game b { font-weight: 600; display: block; }
+    .game small { color: var(--dim); font-size: 12px; }
+    .game small .label { color: var(--faint); }
+    .game .playing { color: var(--online); }
+
+    /* ── WORK ── */
+    .work { margin-top: 4rem; }
+    .work-soon { display: flex; align-items: center; gap: 1.2rem; color: var(--faint); }
+    .work-soon::before, .work-soon::after { content: ''; flex: 1; height: 1px; background: rgba(255,255,255,0.28); }
+    .work-soon[hidden] { display: none; }
+    .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem 1rem; }
+    .clip { text-align: left; }
+    .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: 6px; overflow: hidden; transition: transform 0.25s cubic-bezier(.2,.8,.2,1), box-shadow 0.25s; }
+    .clip.playable:hover .clip-media { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(20,22,26,0.14); }
+    .clip-play { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255,255,255,0.92); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 13px; padding-left: 3px; opacity: 0; transform: scale(0.8); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1); }
+    .clip.playable:hover .clip-play, .clip.playable:focus-visible .clip-play { opacity: 1; transform: scale(1); }
+    .clip-media img, .clip-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter 0.2s; }
+    .clip.playable { cursor: pointer; }
+    .clip.playable:hover img { filter: brightness(1.08); }
+    .clip-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 12px; }
+    .clip-title { margin-top: 0.55rem; }
+    .clip-type { color: var(--faint); font-size: 12px; }
+
+    /* ── BOUTONS 88x31 ── */
+    .bottom { margin-top: 4rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; }
+    .badges img { display: block; width: 88px; height: 31px; image-rendering: pixelated; }
+
+
+    /* ── PLAYER ── */
+    .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(20,22,26,0.85); }
+    .player.open { display: flex; }
+    .player-frame { width: min(960px, 100%, calc((100vh - 4rem) * 16 / 9)); aspect-ratio: 16 / 9; background: #000; border-radius: 4px; overflow: hidden; }
+    .player-frame iframe, .player-frame video { display: block; width: 100%; height: 100%; border: 0; }
+
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes ring { to { --angle: 360deg; } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
+    @keyframes hop {   /* chaque lettre saute avec anticipation et squash, comme le perso */
+      0%   { transform: none; }
+      18%  { transform: scale(1.1, 0.88); }
+      46%  { transform: translateY(-6px) scale(0.95, 1.07); }
+      70%  { transform: translateY(0) scale(1.07, 0.93); }
+      85%  { transform: scale(0.98, 1.02); }
+      100% { transform: none; }
+    }
+
+    @media (max-width: 820px) {
+      main { padding-top: 0.5rem; justify-content: flex-start; }
+      .top { grid-template-columns: 1fr; gap: 0.5rem; }
+      .stage { height: 290px; }
+      .presence, .wip { margin-left: 0; }
+      .work-grid { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 480px) {
+      .work-grid { grid-template-columns: 1fr; }
+      .pfp-wrap { width: 84px; height: 84px; }
+    }
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  </style>
+</head>
+<body>
+
+<main>
+  <section class="top">
+    <div class="stage" id="avatar-stage" aria-label="My Roblox avatar, click to spin">
+      <div class="stage-msg" id="avatar-loading">loading…</div>
+    </div>
+
+    <div>
+      <div class="profile">
+        <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
+        <div>
+          <h1 class="hi">hi, i'm <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
+          <p class="sub" id="sub">roblox animator &amp; a bit of everything else.</p>
+          <div class="socials" id="socials"></div>
+        </div>
+      </div>
+
+      <div class="presence">
+        <div class="row" id="row-discord" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.5 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4-2 1 1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>
+          <span class="st" id="st"></span><span class="act" id="act"></span>
+        </div>
+        <div class="row" id="row-spotify" hidden>
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.7.7 0 0 1-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 1 1-.3-1.4c4.6-1 8.5-.6 11.6 1.3.4.2.5.7.3 1Zm1.5-3.3a.9.9 0 0 1-1.3.3c-3.2-2-8.1-2.6-11.9-1.4a.9.9 0 1 1-.5-1.7c4.3-1.3 9.7-.7 13.4 1.6.4.3.5.8.3 1.2Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 1 1-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 0 1-1.2 1.9Z"/></svg>
+          <span id="spotify">not listening to anything</span>
+        </div>
+      </div>
+
+      <div class="wip" id="wip" hidden>
+        <button class="wip-toggle" id="wip-toggle" aria-expanded="false" aria-controls="wip-list">
+          <span class="chev">›</span> what i'm working on
+        </button>
+        <div class="wip-drawer" id="wip-drawer">
+          <ul class="wip-list" id="wip-list"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="work" aria-label="Work">
+    <div class="work-grid" id="work"></div>
+    <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
+  </section>
+
+  <section class="bottom" id="bottom" hidden>
+    <div class="badges" id="badges"></div>
+  </section>
+</main>
+
+
+<div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video">
+  <div class="player-frame" id="player-frame"></div>
+</div>
+
+<script>
+/* ═══════════ CONFIG — tout se règle ici ═══════════ */
+const CONFIG = {
+  robloxUserId: 1077832330,
+  discordTag: '.JGG',
+  // ID Discord pour le statut live (+ rejoindre https://discord.gg/lanyard). Vide = ligne cachée.
+  discordId: '852210182196035597',
+  // Autres liens (optionnels) : mets l'URL ou laisse vide.
+  youtube: '',
+  x: 'https://x.com/JGG5694',
+};
+
+/* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
+   Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
+const GAMES = [
+  { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT" },
+  { name: "elder gate", role: "main animator", url: "https://www.roblox.com/games/104403529162136/Elder-Gate" },
+  // icon: "icons/jeu.png"  -> optionnel, remplace l'icône auto
+];
+
+/* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
+const PROJECTS = [
+  // { title: "sword combo", type: "animation", videoUrl: "https://youtu.be/..." },
+];
+
+/* Boutons 88x31 de potes (vide = caché). Ex : { img: "buttons/pote.gif", url: "https://..." } */
+const BADGES = [];
+
+/* ═══════════════════════════════════════════════════ */
+const $ = s => document.querySelector(s);
+const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
+
+/* JGG : l'anim se joue en entier au survol, même si la souris repart (pas de snap) */
+(() => {
+  const n = $('.hi .name');
+  n.addEventListener('mouseenter', () => { if (!n.classList.contains('jump')) n.classList.add('jump'); });
+  n.lastElementChild.addEventListener('animationend', () => n.classList.remove('jump'));
+})();
+
+/* sous-titre tapé une fois au chargement */
+(() => {
+  const sub = $('#sub'), text = sub.textContent;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sub.append(el('span', 'caret')); return; }
+  sub.textContent = ''; const caret = el('span', 'caret'); sub.append(caret);
+  let i = 0;
+  setTimeout(function type() { caret.before(text[i++]); if (i < text.length) setTimeout(type, 28 + Math.random() * 40); }, 700);
+})();
+
+/* pfp : avatar Discord (via Lanyard) ; si indisponible, tête Roblox */
+let pfpSet = false;
+function robloxPfp() {
+  if (pfpSet) return; pfpSet = true;
+  fetch(`https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=${CONFIG.robloxUserId}&size=150x150&format=Png&isCircular=false`)
+  .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u) $('#pfp').src = u; }).catch(() => {});
+}
+
+/* socials */
+const ICONS = {
+  discord: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.5 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4-2 1 1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>',
+  roblox: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.2 1 1 18.8 18.8 23 23 5.2 5.2 1Zm8.4 13.9-4.5-1.1 1.1-4.5 4.5 1.1-1.1 4.5Z"/></svg>',
+  youtube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg>',
+  x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7.1 4.2H5.1l11.9 16Z"/></svg>',
+};
+const socials = $('#socials');
+const link = (key, url, label) => { const a = el('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.innerHTML = ICONS[key]; a.setAttribute('aria-label', label); a.title = label; socials.append(a); };
+link('discord', `https://discord.com/users/${CONFIG.discordId}`, 'Discord');
+link('roblox', `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`, 'Roblox profile');
+if (CONFIG.youtube) link('youtube', CONFIG.youtube, 'YouTube');
+if (CONFIG.x) link('x', CONFIG.x, 'X');
+
+
+/* discord + spotify live (Lanyard) */
+/* Texte selon l'appli détectée par Discord (ajoute les tiennes ici) */
+const ACTIVITY = [
+  [/roblox studio/i, 'Working in Roblox Studio'],
+  [/blender/i, 'Working in Blender'],
+  [/visual studio code|^code$|cursor/i, n => `Coding in ${n}`],
+  [/moon animator/i, 'Animating in Moon Animator'],
+  [/photoshop|aseprite|krita/i, n => `Drawing in ${n}`],
+  [/^roblox$/i, 'Playing Roblox'],
+];
+function activityLabel(name) {
+  const hit = ACTIVITY.find(([re]) => re.test(name));
+  if (!hit) return `Playing ${name}`;
+  return typeof hit[1] === 'function' ? hit[1](name) : hit[1];
+}
+const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
+function renderPresence(d) {
+  const s = d.discord_status || 'offline';
+  const u = d.discord_user;
+  $('#pfp-wrap').style.setProperty('--ring', `var(--${s === 'offline' ? 'faint' : s === 'online' ? 'online' : s})`);
+  const deco = u?.avatar_decoration_data?.asset;
+  if (deco && !$('.pfp-deco')) { const di = el('img', 'pfp-deco'); di.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=240&passthrough=true`; di.alt = ''; $('#pfp-wrap').append(di); }
+  if (u?.avatar) {
+    const src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=2048`;
+    if ($('#pfp').src !== src) $('#pfp').src = src;   // suit aussi un changement de pp
+    pfpSet = true;
+  } else robloxPfp();
+  const game = (d.activities || []).find(a => a.type === 0);
+  const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
+  $('#act').textContent = game ? activityLabel(game.name) : '';
+  $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
+  $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
+}
+
+// Temps réel : WebSocket Lanyard (mise à jour instantanée), avec reconnexion auto.
+// Si le socket ne marche pas, on retombe sur un rafraîchissement toutes les 15 s.
+let pollTimer = null;
+async function pollPresence() {
+  try {
+    const j = await (await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`)).json();
+    if (j.success) renderPresence(j.data); else robloxPfp();
+  } catch (_) { robloxPfp(); }
+}
+function startPolling() { if (!pollTimer) { pollPresence(); pollTimer = setInterval(pollPresence, 15000); } }
+function stopPolling() { clearInterval(pollTimer); pollTimer = null; }
+
+function connectLanyard(retry = 0) {
+  let ws, heartbeat;
+  try { ws = new WebSocket('wss://api.lanyard.rest/socket'); } catch (_) { startPolling(); return; }
+  ws.onmessage = ev => {
+    const msg = JSON.parse(ev.data);
+    if (msg.op === 1) { // hello
+      heartbeat = setInterval(() => ws.readyState === 1 && ws.send(JSON.stringify({ op: 3 })), msg.d.heartbeat_interval);
+      ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: CONFIG.discordId } }));
+    } else if (msg.op === 0 && (msg.t === 'INIT_STATE' || msg.t === 'PRESENCE_UPDATE')) {
+      stopPolling(); retry = 0;
+      renderPresence(msg.d);
+    }
+  };
+  ws.onclose = () => {
+    clearInterval(heartbeat);
+    startPolling();                                         // pendant la coupure, on continue en polling
+    setTimeout(() => connectLanyard(retry + 1), Math.min(30000, 2000 * 2 ** retry));
+  };
+  ws.onerror = () => ws.close();
+}
+if (CONFIG.discordId) { pollPresence(); connectLanyard(); } else robloxPfp();
+
+/* work */
+const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/) || [])[1];
+const stId = u => ((u || '').match(/streamable\.com\/(?:e\/)?(\w+)/) || [])[1];
+const isMp4 = u => /\.(mp4|webm)(\?|$)/i.test(u || '');
+const work = $('#work');
+if (!PROJECTS.length) { work.remove(); $('#work-soon').hidden = false; }
+PROJECTS.forEach(p => {
+  const playable = !!p.videoUrl;
+  const c = el(playable ? 'button' : 'div', 'clip' + (playable ? ' playable' : ''));
+  const m = el('div', 'clip-media');
+  const thumb = p.thumb || (ytId(p.videoUrl) && `https://i.ytimg.com/vi/${ytId(p.videoUrl)}/hqdefault.jpg`);
+  if (thumb) { const i = el('img'); i.src = thumb; i.alt = ''; i.loading = 'lazy'; m.append(i); }
+  else if (isMp4(p.videoUrl)) { const v = el('video'); v.src = p.videoUrl + '#t=0.5'; v.muted = true; v.preload = 'metadata'; m.append(v); }
+  else if (!playable) m.append(el('span', 'clip-empty', 'soon'));
+  if (playable) m.append(el('span', 'clip-play', '▶'));
+  c.append(m, el('p', 'clip-title', p.title), el('p', 'clip-type', p.type));
+  if (playable) c.addEventListener('click', () => play(p.videoUrl));
+  work.append(c);
+});
+
+const player = $('#player'), frame = $('#player-frame');
+function play(url) {
+  frame.innerHTML = '';
+  if (isMp4(url)) { const v = el('video'); v.src = url; v.controls = v.autoplay = v.playsInline = true; frame.append(v); }
+  else {
+    const f = el('iframe'); f.allow = 'autoplay; encrypted-media; fullscreen'; f.allowFullscreen = true;
+    f.src = ytId(url) ? `https://www.youtube.com/embed/${ytId(url)}?autoplay=1&rel=0` : stId(url) ? `https://streamable.com/e/${stId(url)}?autoplay=1` : url;
+    frame.append(f);
+  }
+  player.classList.add('open');
+}
+function closePlayer() { player.classList.remove('open'); frame.innerHTML = ''; }
+player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
+
+/* what i'm working on */
+if (GAMES.length) {
+  $('#wip').hidden = false;
+  const list = $('#wip-list'), toggle = $('#wip-toggle'), drawer = $('#wip-drawer');
+  const setOpen = open => { toggle.setAttribute('aria-expanded', open); drawer.classList.toggle('open', open); };
+  toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
+  if (matchMedia('(max-width: 820px)').matches) setOpen(true);   // ouvert de base sur mobile
+  GAMES.forEach(g => {
+    const li = el('li');
+    const row = el(g.url ? 'a' : 'div', 'game');
+    if (g.url) { row.href = g.url; row.target = '_blank'; row.rel = 'noopener'; }
+    let icon = el('span', 'noicon');
+    if (g.icon) { icon = el('img'); icon.src = g.icon; icon.alt = ''; }
+    const info = el('span'); const b = el('b', null, g.name); const sm = el('small');
+    if (g.role) { sm.append(el('span', 'label', 'role: ')); sm.append(g.role); } else if (!g.url) sm.append('not public yet');
+    info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
+    // icône + nombre de joueurs en live depuis Roblox
+    const placeId = (g.url.match(/games\/(\d+)/) || [])[1];
+    if (!placeId) return;
+    fetch(`https://apis.roproxy.com/universes/v1/places/${placeId}/universe`).then(r => r.json()).then(({ universeId }) => {
+      if (!universeId) return;
+      fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${universeId}&size=150x150&format=Png&isCircular=false`)
+        .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u && !g.icon) { const img = el('img'); img.src = u; img.alt = ''; icon.replaceWith(img); } });
+      fetch(`https://games.roproxy.com/v1/games?universeIds=${universeId}`).then(r => r.json()).then(j => {
+        const n = j.data?.[0]?.playing;
+        if (n > 0) { sm.append(' · '); sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
+      });
+    }).catch(() => {});
+  });
+}
+
+/* badges */
+const badges = $('#badges');
+BADGES.forEach(b => { const a = el('a'); a.href = b.url; a.target = '_blank'; a.rel = 'noopener'; const i = el('img'); i.src = b.img; i.alt = ''; a.append(i); badges.append(a); });
+if (BADGES.length) $('#bottom').hidden = false;
+</script>
+
+<!-- Avatar 3D : avatar/avatar.json est mis à jour par la GitHub Action. Fallback 2D sinon. -->
+<script type="module">
+const stage = document.getElementById('avatar-stage');
+const loading = document.getElementById('avatar-loading');
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const pointer = { x: 0, y: 0, last: -1e9 };
+addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect();
+  pointer.x = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (innerWidth * 0.5)));
+  pointer.y = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height * 0.3)) / (innerHeight * 0.5)));
+  pointer.last = performance.now();
+}, { passive: true });
+
+// Mobile : la tête suit l'inclinaison du téléphone (gyroscope), comme s'il te regardait.
+// La position de départ sert de "neutre" et se recale doucement si tu changes ta façon de tenir le tel.
+const tilt = { on: false, base: null, x: 0, y: 0 };
+function onTilt(e) {
+  if (e.beta == null || e.gamma == null) return;
+  let b = e.beta, g = e.gamma;
+  const ang = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+  if (ang === 90) { [b, g] = [-g, b]; } else if (ang === -90 || ang === 270) { [b, g] = [g, -b]; }
+  if (!tilt.base) tilt.base = { b, g };
+  tilt.base.b += (b - tilt.base.b) * 0.004;                 // recalage très lent du neutre
+  tilt.base.g += (g - tilt.base.g) * 0.004;
+  const tx = Math.max(-1, Math.min(1, -(g - tilt.base.g) / 25));   // penche à droite -> il te regarde (vers la gauche de l'écran)
+  const ty = Math.max(-1, Math.min(1, (b - tilt.base.b) / 22));    // haut du tel vers l'arrière -> il regarde vers le bas
+  tilt.x += (tx - tilt.x) * 0.25; tilt.y += (ty - tilt.y) * 0.25;  // anti-tremblement
+  pointer.x = tilt.x; pointer.y = tilt.y; pointer.last = performance.now();
+  tilt.on = true;
+}
+if (matchMedia('(hover: none)').matches && 'DeviceOrientationEvent' in window) {
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iPhone : il faut une autorisation, demandée au premier toucher sur la page
+    const ask = () => DeviceOrientationEvent.requestPermission()
+      .then(r => { if (r === 'granted') addEventListener('deviceorientation', onTilt); }).catch(() => {});
+    addEventListener('touchend', ask, { once: true });
+  } else {
+    addEventListener('deviceorientation', onTilt);
+  }
+}
+
+async function init3D() {
+  const res = await fetch('avatar/avatar.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('no avatar.json');
+  const meta = await res.json();
+  const THREE = await import('three');
+  const { OBJLoader } = await import('three/addons/loaders/OBJLoader.js');
+  const { MTLLoader } = await import('three/addons/loaders/MTLLoader.js');
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 3));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.1;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9a9ca3, 2.0));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.0); sun.position.set(3, 6, 5); scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xdfe6ff, 0.6); fill.position.set(-5, 2, 4); scene.add(fill);
+
+  const v = meta.signature || '';
+  const mtl = new MTLLoader();
+  mtl.setResourcePath('avatar/');
+  mtl.setMaterialOptions({ side: THREE.DoubleSide });
+  const materials = await mtl.loadAsync(`avatar/${meta.mtl}?v=${v}`);
+  materials.preload();
+  // Roblox : couleur finale = mix(couleur du corps, texture, alpha de la texture).
+  // three.js multiplie les deux par défaut, ce qui teintait tout en orange et cachait le t-shirt.
+  for (const k in materials.materials) {
+    const m = materials.materials[k];
+    m.transparent = false; m.alphaMap = null; m.alphaTest = 0; m.opacity = 1; m.shininess = 4;
+    if (m.specular) m.specular.setHex(0x0a0a0a);
+    if (m.map) {
+      m.map.colorSpace = THREE.SRGBColorSpace;
+      m.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      const body = m.color.clone();
+      m.color.set(0xffffff);
+      m.onBeforeCompile = sh => {
+        sh.uniforms.bodyColor = { value: body };
+        sh.fragmentShader = 'uniform vec3 bodyColor;\n' + sh.fragmentShader.replace('#include <map_fragment>',
+          '#ifdef USE_MAP\n vec4 texel = texture2D( map, vMapUv );\n diffuseColor.rgb = mix( bodyColor, texel.rgb, texel.a );\n#endif');
+      };
+      m.customProgramCacheKey = () => 'roblox-mix';
+    }
+    m.needsUpdate = true;
+  }
+  const loader = new OBJLoader(); loader.setMaterials(materials);
+  const obj = await loader.loadAsync(`avatar/${meta.obj}?v=${v}`);
+
+  // pieds à y=0 pour que le squash & stretch se fasse depuis le sol
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
+  obj.position.set(-center.x, -box.min.y, -center.z);
+  const H = 4;
+  const scaler = new THREE.Group(); scaler.add(obj); scaler.scale.setScalar(H / size.y);
+  const facing = new THREE.Group(); facing.add(scaler);
+  if (meta.camera?.position) facing.rotation.y = -Math.atan2(meta.camera.position.x - center.x, meta.camera.position.z - center.z);
+  facing.rotation.y += meta.yawOffset || 0;
+  const pivot = new THREE.Group(); pivot.add(facing);
+  const root = new THREE.Group(); root.add(pivot); scene.add(root);
+
+  // Tête séparée du corps : la tête suit la souris, le corps suit un peu.
+  // Tête = la pièce "Player" la plus haute ; accessoires (Handle) au-dessus du cou = attachés à la tête.
+  const fwd = meta.camera?.position ? Math.atan2(meta.camera.position.x - center.x, meta.camera.position.z - center.z) : 0;
+  const headAxisX = new THREE.Vector3(Math.cos(fwd), 0, -Math.sin(fwd));   // axe "oui" de la tête dans le repère de l'OBJ
+  const AXIS_Y = new THREE.Vector3(0, 1, 0);
+  let head = null;
+  {
+    const parts = obj.children.filter(c => c.isMesh).map(c => ({ c, b: new THREE.Box3().setFromObject(c) }));
+    const players = parts.filter(p => /^player/i.test(p.c.name));
+    if (players.length > 1) {
+      const top = players.reduce((a, b) => (b.b.getCenter(new THREE.Vector3()).y > a.b.getCenter(new THREE.Vector3()).y ? b : a));
+      const neckY = top.b.min.y;
+      const hc = top.b.getCenter(new THREE.Vector3());
+      head = new THREE.Group();
+      head.position.set(hc.x, neckY, hc.z);
+      obj.add(head);
+      parts.forEach(p => {
+        const isHead = p === top || (!/^player/i.test(p.c.name) && p.b.getCenter(new THREE.Vector3()).y > neckY);
+        if (!isHead) return;
+        p.c.position.sub(head.position);
+        head.add(p.c);
+      });
+    }
+  }
+  const qY = new THREE.Quaternion(), qX = new THREE.Quaternion();
+
+  // Le canvas déborde du cadre (110px en haut/bas, 40px sur les côtés) pour que le saut,
+  // la couronne et l'ombre ne soient jamais coupés ; le perso garde la taille du cadre.
+  function fit() {
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    const w = sw + 80, h = sh + 220;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    const half = H * 0.5 * 1.2;
+    const fitH = Math.max(half, half * 0.62 / (sw / sh));
+    const dist = fitH * (h / sh) / Math.tan(THREE.MathUtils.degToRad(13));
+    camera.position.set(0, H / 2 + 1.6, dist); camera.lookAt(0, H / 2 + 0.05, 0);
+    camera.updateProjectionMatrix();
+  }
+  // ombre au sol dans la scène 3D, sous les pieds ; rétrécit quand il saute
+  const shC = document.createElement('canvas'); shC.width = shC.height = 128;
+  const shx = shC.getContext('2d'), grd = shx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(0,0,0,0.42)'); grd.addColorStop(0.6, 'rgba(0,0,0,0.16)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  shx.fillStyle = grd; shx.fillRect(0, 0, 128, 128);
+  const shadowMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shC), transparent: true, depthWrite: false, toneMapped: false });
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 3.4), shadowMat);
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.005; shadow.renderOrder = -1;
+  scene.add(shadow);
+  stage.append(renderer.domElement); loading.remove(); fit();
+  new ResizeObserver(fit).observe(stage);
+
+  // Entrée : le perso tombe et atterrit (squash & stretch). Clic : anticipation, saut, vrille.
+  let drop = reduce ? null : { t0: performance.now() + 150 };
+  let hop = null, landAt = -1;
+  if (drop) stage.classList.add('falling'); else stage.classList.add('landed');
+  stage.addEventListener('click', () => { if (!hop && !drop && (landAt < 0 || performance.now() - landAt > 450)) hop = { t0: performance.now() }; });
+  const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  const smooth = t => t * t * (3 - 2 * t);
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const inOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+  let vis = true; new IntersectionObserver(([e]) => vis = e.isIntersecting).observe(stage);
+  const touch = matchMedia('(hover: none)').matches;
+  // Pose de repos : tourné vers SA gauche et regard un peu vers le bas
+  const REST_YAW = 0.45, REST_PITCH = 0.14;
+  let look = REST_YAW, lookP = REST_PITCH, body = REST_YAW * 0.6, last = performance.now();
+  // ressorts amortis (pas de saut de vitesse = pas de snap)
+  let vLook = 0, vLookP = 0, vBody = 0, idleW = 1;
+  const spring = (x, v, target, k, dt) => { const c = 2 * Math.sqrt(k); v += ((target - x) * k - v * c) * dt; return [x + v * dt, v]; };
+  (function frame(now) {
+    requestAnimationFrame(frame);
+    if (!vis || document.hidden) { last = now; return; }
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    // passage progressif souris <-> pose de repos (au lieu d'un switch brutal)
+    const idleTarget = ((touch && !tilt.on) || now - pointer.last > 4000) ? 1 : 0;
+    idleW += (idleTarget - idleW) * (1 - Math.exp(-dt * (idleTarget ? 1.2 : 6)));
+    // où la tête regarde (yaw/pitch "monde") : la souris, ou la pose de repos avec un léger balancement
+    const restYaw = REST_YAW + (reduce ? 0 : Math.sin(now / 2200) * 0.12);
+    const tLook = pointer.x * 0.95 * (1 - idleW) + restYaw * idleW;
+    const tLookP = (0.04 + pointer.y * 0.35) * (1 - idleW) + REST_PITCH * idleW;
+    [look, vLook] = spring(look, vLook, tLook, 45, dt);            // tête : réactive
+    [lookP, vLookP] = spring(lookP, vLookP, tLookP, 45, dt);
+    const tBody = head ? REST_YAW * 0.6 + (look - REST_YAW * 0.6) * 0.3 : look;
+    [body, vBody] = spring(body, vBody, tBody, 10, dt);            // corps : suit plus lentement
+
+    // Toutes les courbes sont continues : chaque phase démarre exactement là où la précédente s'arrête.
+    let y = 0, sy = 1, spin = 0;
+    if (drop) {
+      const p = Math.max(0, Math.min((now - drop.t0) / 550, 1));
+      y = 8 * (1 - p * p);
+      sy = 1 + 0.12 * 4 * p * (1 - p);                       // stretch en chute, revient à 1 pile à l'impact
+      if (p >= 1) { drop = null; landAt = now; stage.classList.replace('falling', 'landed'); }
+    } else if (hop) {
+      const e = (now - hop.t0) / 1000;
+      const ANTI = 0.16, AIR = 0.6;
+      if (e < ANTI) {
+        sy = 1 - 0.16 * ease((e / ANTI));                     // anticipation : il s'accroupit
+      } else {
+        const p = Math.min((e - ANTI) / AIR, 1);
+        y = 0.55 * 4 * p * (1 - p);
+        spin = inOut(p) * Math.PI * 2;
+        const airSy = 1 + 0.12 * (1 - p) * (1 - p);           // stretch au décollage, 1 pile à l'atterrissage
+        sy = lerp(0.84, airSy, smooth(Math.min((e - ANTI) / 0.11, 1)));  // transition douce accroupi -> étiré
+        if (p >= 1) { hop = null; landAt = now; }
+      }
+    }
+    if (landAt >= 0) {
+      const e = (now - landAt) / 1000;
+      sy *= 1 - 0.27 * Math.exp(-6.5 * e) * Math.sin(15 * e); // squash à l'impact (part de 0 : pas de saut)
+      if (e > 1.4) landAt = -1;
+    }
+    if (!reduce) sy *= 1 + 0.006 * Math.sin(now / 650);       // respiration, toujours active
+    const sx = 1 / Math.sqrt(sy);                             // volume conservé
+
+    root.position.y = y;
+    root.scale.set(sx, sy, sx);
+    const lift = Math.min(y / 3, 1);
+    shadow.scale.setScalar(1 - lift * 0.55);
+    shadowMat.opacity = 1 - lift * 0.85;
+    if (head) {
+      const hy = Math.tanh((look - body) / 1.1) * 1.1;          // limite douce, pas d'arrêt sec
+      const hp = Math.tanh(lookP / 0.45) * 0.45;
+      head.quaternion.copy(qY.setFromAxisAngle(AXIS_Y, hy)).multiply(qX.setFromAxisAngle(headAxisX, hp));
+      pivot.rotation.set(0, body + spin, 0);
+    } else {
+      pivot.rotation.set(lookP * 0.6, body + spin, 0);
+    }
+    renderer.render(scene, camera);
+  })(performance.now());
+}
+
+async function init2D() {
+  const j = await (await fetch(`https://thumbnails.roproxy.com/v1/users/avatar?userIds=${CONFIG.robloxUserId}&size=720x720&format=Png&isCircular=false`)).json();
+  const url = j.data?.[0]?.imageUrl; if (!url) throw 0;
+  const img = new Image(); img.className = 'avatar-2d'; img.alt = 'My Roblox avatar'; img.src = url;
+  await img.decode(); stage.append(img); loading.remove();
+  stage.style.perspective = '900px';
+  (function tilt() { requestAnimationFrame(tilt); img.style.transform = `rotateY(${pointer.x * 18}deg) rotateX(${-pointer.y * 8}deg)`; })();
+}
+
+init3D().catch(() => init2D().catch(() => loading.textContent = ''));
+</script>
+</body>
+</html>
