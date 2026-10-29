@@ -361,6 +361,32 @@ async function init3D() {
   const pivot = new THREE.Group(); pivot.add(facing);
   const root = new THREE.Group(); root.add(pivot); scene.add(root);
 
+  // Tête séparée du corps : la tête suit la souris, le corps suit un peu.
+  // Tête = la pièce "Player" la plus haute ; accessoires (Handle) au-dessus du cou = attachés à la tête.
+  const fwd = meta.camera?.position ? Math.atan2(meta.camera.position.x - center.x, meta.camera.position.z - center.z) : 0;
+  const headAxisX = new THREE.Vector3(Math.cos(fwd), 0, -Math.sin(fwd));   // axe "oui" de la tête dans le repère de l'OBJ
+  const AXIS_Y = new THREE.Vector3(0, 1, 0);
+  let head = null;
+  {
+    const parts = obj.children.filter(c => c.isMesh).map(c => ({ c, b: new THREE.Box3().setFromObject(c) }));
+    const players = parts.filter(p => /^player/i.test(p.c.name));
+    if (players.length > 1) {
+      const top = players.reduce((a, b) => (b.b.getCenter(new THREE.Vector3()).y > a.b.getCenter(new THREE.Vector3()).y ? b : a));
+      const neckY = top.b.min.y;
+      const hc = top.b.getCenter(new THREE.Vector3());
+      head = new THREE.Group();
+      head.position.set(hc.x, neckY, hc.z);
+      obj.add(head);
+      parts.forEach(p => {
+        const isHead = p === top || (!/^player/i.test(p.c.name) && p.b.getCenter(new THREE.Vector3()).y > neckY);
+        if (!isHead) return;
+        p.c.position.sub(head.position);
+        head.add(p.c);
+      });
+    }
+  }
+  const qY = new THREE.Quaternion(), qX = new THREE.Quaternion();
+
   function fit() {
     const w = stage.clientWidth, h = stage.clientHeight;
     renderer.setSize(w, h, false);
@@ -382,16 +408,21 @@ async function init3D() {
 
   let vis = true; new IntersectionObserver(([e]) => vis = e.isIntersecting).observe(stage);
   const touch = matchMedia('(hover: none)').matches;
-  let yaw = 0, pitch = 0, last = performance.now();
+  // Pose de repos : tourné vers SA gauche et regard un peu vers le bas
+  const REST_YAW = 0.45, REST_PITCH = 0.14;
+  let look = REST_YAW, lookP = REST_PITCH, body = REST_YAW * 0.6, last = performance.now();
   (function frame(now) {
     requestAnimationFrame(frame);
     if (!vis || document.hidden) { last = now; return; }
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
     const idle = touch || now - pointer.last > 3000;
-    const ty = idle ? (reduce ? 0 : Math.sin(now / 2000) * 0.3) : pointer.x * 0.85;
-    const tp = idle ? 0 : pointer.y * 0.25;
-    const k = 1 - Math.exp(-dt * (idle ? 2 : 7));
-    yaw += (ty - yaw) * k; pitch += (tp - pitch) * k;
+    // où la tête regarde (yaw/pitch "monde") : la souris, ou la pose de repos avec un léger balancement
+    const tLook = idle ? REST_YAW + (reduce ? 0 : Math.sin(now / 2200) * 0.12) : pointer.x * 0.95;
+    const tLookP = idle ? REST_PITCH : 0.04 + pointer.y * 0.35;
+    look += (tLook - look) * (1 - Math.exp(-dt * (idle ? 2.5 : 9)));     // la tête réagit vite
+    lookP += (tLookP - lookP) * (1 - Math.exp(-dt * (idle ? 2.5 : 9)));
+    const tBody = head ? REST_YAW * 0.6 + (look - REST_YAW * 0.6) * 0.3 : look;
+    body += (tBody - body) * (1 - Math.exp(-dt * 3));                    // le corps suit, plus lentement
 
     let y = 0, sx = 1, sy = 1, spin = 0;
     if (drop) {
@@ -417,7 +448,14 @@ async function init3D() {
 
     root.position.y = y;
     root.scale.set(sx, sy, sx);
-    pivot.rotation.set(pitch, yaw + spin, 0);
+    if (head) {
+      const hy = Math.max(-1, Math.min(1, look - body));
+      const hp = Math.max(-0.4, Math.min(0.45, lookP));
+      head.quaternion.copy(qY.setFromAxisAngle(AXIS_Y, hy)).multiply(qX.setFromAxisAngle(headAxisX, hp));
+      pivot.rotation.set(0, body + spin, 0);
+    } else {
+      pivot.rotation.set(lookP * 0.6, body + spin, 0);
+    }
     renderer.render(scene, camera);
   })(performance.now());
 }
