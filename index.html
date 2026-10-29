@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JGG ✦</title>
+  <title>JGG</title>
   <meta name="description" content="Roblox animator &amp; a bit of everything else." />
   <meta property="og:title" content="hi, i'm JGG" />
   <meta property="og:description" content="Roblox animator &amp; a bit of everything else." />
@@ -257,13 +257,6 @@ const BADGES = [];
 /* ═══════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
-
-/* titre de l'onglet animé : ✦ (long) -> J -> JG -> JGG -> JGG ✦ (moins long) -> ✦ */
-(() => {
-  const steps = [['✦', 4500], ['J', 300], ['JG', 300], ['JGG', 300], ['JGG ✦', 2200]];
-  let i = 0;
-  (function next() { const [t, ms] = steps[i]; document.title = t; i = (i + 1) % steps.length; setTimeout(next, ms); })();
-})();
 
 /* JGG : l'anim se joue en entier au survol, même si la souris repart (pas de snap) */
 (() => {
