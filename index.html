@@ -507,18 +507,24 @@ async function init3D() {
   // Pose de repos : tourné vers SA gauche et regard un peu vers le bas
   const REST_YAW = 0.45, REST_PITCH = 0.14;
   let look = REST_YAW, lookP = REST_PITCH, body = REST_YAW * 0.6, last = performance.now();
+  // ressorts amortis (pas de saut de vitesse = pas de snap)
+  let vLook = 0, vLookP = 0, vBody = 0, idleW = 1;
+  const spring = (x, v, target, k, dt) => { const c = 2 * Math.sqrt(k); v += ((target - x) * k - v * c) * dt; return [x + v * dt, v]; };
   (function frame(now) {
     requestAnimationFrame(frame);
     if (!vis || document.hidden) { last = now; return; }
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
-    const idle = touch || now - pointer.last > 3000;
+    // passage progressif souris <-> pose de repos (au lieu d'un switch brutal)
+    const idleTarget = (touch || now - pointer.last > 4000) ? 1 : 0;
+    idleW += (idleTarget - idleW) * (1 - Math.exp(-dt * (idleTarget ? 1.2 : 6)));
     // où la tête regarde (yaw/pitch "monde") : la souris, ou la pose de repos avec un léger balancement
-    const tLook = idle ? REST_YAW + (reduce ? 0 : Math.sin(now / 2200) * 0.12) : pointer.x * 0.95;
-    const tLookP = idle ? REST_PITCH : 0.04 + pointer.y * 0.35;
-    look += (tLook - look) * (1 - Math.exp(-dt * (idle ? 2.5 : 9)));     // la tête réagit vite
-    lookP += (tLookP - lookP) * (1 - Math.exp(-dt * (idle ? 2.5 : 9)));
+    const restYaw = REST_YAW + (reduce ? 0 : Math.sin(now / 2200) * 0.12);
+    const tLook = pointer.x * 0.95 * (1 - idleW) + restYaw * idleW;
+    const tLookP = (0.04 + pointer.y * 0.35) * (1 - idleW) + REST_PITCH * idleW;
+    [look, vLook] = spring(look, vLook, tLook, 45, dt);            // tête : réactive
+    [lookP, vLookP] = spring(lookP, vLookP, tLookP, 45, dt);
     const tBody = head ? REST_YAW * 0.6 + (look - REST_YAW * 0.6) * 0.3 : look;
-    body += (tBody - body) * (1 - Math.exp(-dt * 3));                    // le corps suit, plus lentement
+    [body, vBody] = spring(body, vBody, tBody, 10, dt);            // corps : suit plus lentement
 
     let y = 0, sx = 1, sy = 1, spin = 0;
     if (drop) {
@@ -545,8 +551,8 @@ async function init3D() {
     root.position.y = y;
     root.scale.set(sx, sy, sx);
     if (head) {
-      const hy = Math.max(-1, Math.min(1, look - body));
-      const hp = Math.max(-0.4, Math.min(0.45, lookP));
+      const hy = Math.tanh((look - body) / 1.1) * 1.1;          // limite douce, pas d'arrêt sec
+      const hp = Math.tanh(lookP / 0.45) * 0.45;
       head.quaternion.copy(qY.setFromAxisAngle(AXIS_Y, hy)).multiply(qX.setFromAxisAngle(headAxisX, hp));
       pivot.rotation.set(0, body + spin, 0);
     } else {
