@@ -499,7 +499,10 @@ async function init3D() {
   let drop = reduce ? null : { t0: performance.now() + 150 };
   let hop = null, landAt = -1;
   if (drop) stage.classList.add('falling'); else stage.classList.add('landed');
-  stage.addEventListener('click', () => { if (!hop && !drop) hop = { t0: performance.now() }; });
+  stage.addEventListener('click', () => { if (!hop && !drop && (landAt < 0 || performance.now() - landAt > 450)) hop = { t0: performance.now() }; });
+  const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+  const smooth = t => t * t * (3 - 2 * t);
+  const lerp = (a, b, t) => a + (b - a) * t;
   const inOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
   let vis = true; new IntersectionObserver(([e]) => vis = e.isIntersecting).observe(stage);
@@ -526,27 +529,34 @@ async function init3D() {
     const tBody = head ? REST_YAW * 0.6 + (look - REST_YAW * 0.6) * 0.3 : look;
     [body, vBody] = spring(body, vBody, tBody, 10, dt);            // corps : suit plus lentement
 
-    let y = 0, sx = 1, sy = 1, spin = 0;
+    // Toutes les courbes sont continues : chaque phase démarre exactement là où la précédente s'arrête.
+    let y = 0, sy = 1, spin = 0;
     if (drop) {
       const p = Math.max(0, Math.min((now - drop.t0) / 550, 1));
-      y = 8 * (1 - p * p); sy = 1.1; sx = 0.95;
+      y = 8 * (1 - p * p);
+      sy = 1 + 0.12 * 4 * p * (1 - p);                       // stretch en chute, revient à 1 pile à l'impact
       if (p >= 1) { drop = null; landAt = now; stage.classList.replace('falling', 'landed'); }
     } else if (hop) {
       const e = (now - hop.t0) / 1000;
-      if (e < 0.13) { const c = Math.sin(e / 0.13 * Math.PI / 2); sy = 1 - 0.15 * c; sx = 1 + 0.08 * c; }
-      else {
-        const p = Math.min((e - 0.13) / 0.62, 1);
-        y = 0.55 * 4 * p * (1 - p); spin = inOut(p) * Math.PI * 2;
-        sy = 1 + 0.1 * (1 - p); sx = 1 - 0.05 * (1 - p);
+      const ANTI = 0.16, AIR = 0.6;
+      if (e < ANTI) {
+        sy = 1 - 0.16 * ease((e / ANTI));                     // anticipation : il s'accroupit
+      } else {
+        const p = Math.min((e - ANTI) / AIR, 1);
+        y = 0.55 * 4 * p * (1 - p);
+        spin = inOut(p) * Math.PI * 2;
+        const airSy = 1 + 0.12 * (1 - p) * (1 - p);           // stretch au décollage, 1 pile à l'atterrissage
+        sy = lerp(0.84, airSy, smooth(Math.min((e - ANTI) / 0.11, 1)));  // transition douce accroupi -> étiré
         if (p >= 1) { hop = null; landAt = now; }
       }
     }
     if (landAt >= 0) {
-      const e = (now - landAt) / 1000, s = 0.2 * Math.exp(-7 * e) * Math.cos(15 * e);
-      sy *= 1 - s; sx *= 1 + s * 0.55;
-      if (e > 1.2) landAt = -1;
+      const e = (now - landAt) / 1000;
+      sy *= 1 - 0.27 * Math.exp(-6.5 * e) * Math.sin(15 * e); // squash à l'impact (part de 0 : pas de saut)
+      if (e > 1.4) landAt = -1;
     }
-    if (!reduce && !drop && !hop) sy *= 1 + 0.007 * Math.sin(now / 650); // respiration
+    if (!reduce) sy *= 1 + 0.006 * Math.sin(now / 650);       // respiration, toujours active
+    const sx = 1 / Math.sqrt(sy);                             // volume conservé
 
     root.position.y = y;
     root.scale.set(sx, sy, sx);
