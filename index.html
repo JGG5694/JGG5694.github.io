@@ -450,6 +450,34 @@ addEventListener('pointermove', e => {
   pointer.last = performance.now();
 }, { passive: true });
 
+// Mobile : la tête suit l'inclinaison du téléphone (gyroscope), comme s'il te regardait.
+// La position de départ sert de "neutre" et se recale doucement si tu changes ta façon de tenir le tel.
+const tilt = { on: false, base: null, x: 0, y: 0 };
+function onTilt(e) {
+  if (e.beta == null || e.gamma == null) return;
+  let b = e.beta, g = e.gamma;
+  const ang = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+  if (ang === 90) { [b, g] = [-g, b]; } else if (ang === -90 || ang === 270) { [b, g] = [g, -b]; }
+  if (!tilt.base) tilt.base = { b, g };
+  tilt.base.b += (b - tilt.base.b) * 0.004;                 // recalage très lent du neutre
+  tilt.base.g += (g - tilt.base.g) * 0.004;
+  const tx = Math.max(-1, Math.min(1, -(g - tilt.base.g) / 25));   // penche à droite -> il te regarde (vers la gauche de l'écran)
+  const ty = Math.max(-1, Math.min(1, (b - tilt.base.b) / 22));    // haut du tel vers l'arrière -> il regarde vers le bas
+  tilt.x += (tx - tilt.x) * 0.25; tilt.y += (ty - tilt.y) * 0.25;  // anti-tremblement
+  pointer.x = tilt.x; pointer.y = tilt.y; pointer.last = performance.now();
+  tilt.on = true;
+}
+if (matchMedia('(hover: none)').matches && 'DeviceOrientationEvent' in window) {
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // iPhone : il faut une autorisation, demandée au premier toucher sur la page
+    const ask = () => DeviceOrientationEvent.requestPermission()
+      .then(r => { if (r === 'granted') addEventListener('deviceorientation', onTilt); }).catch(() => {});
+    addEventListener('touchend', ask, { once: true });
+  } else {
+    addEventListener('deviceorientation', onTilt);
+  }
+}
+
 async function init3D() {
   const res = await fetch('avatar/avatar.json', { cache: 'no-cache' });
   if (!res.ok) throw new Error('no avatar.json');
@@ -584,7 +612,7 @@ async function init3D() {
     if (!vis || document.hidden) { last = now; return; }
     const dt = Math.min((now - last) / 1000, 0.05); last = now;
     // passage progressif souris <-> pose de repos (au lieu d'un switch brutal)
-    const idleTarget = (touch || now - pointer.last > 4000) ? 1 : 0;
+    const idleTarget = ((touch && !tilt.on) || now - pointer.last > 4000) ? 1 : 0;
     idleW += (idleTarget - idleW) * (1 - Math.exp(-dt * (idleTarget ? 1.2 : 6)));
     // où la tête regarde (yaw/pitch "monde") : la souris, ou la pose de repos avec un léger balancement
     const restYaw = REST_YAW + (reduce ? 0 : Math.sin(now / 2200) * 0.12);
