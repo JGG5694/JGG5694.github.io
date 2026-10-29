@@ -88,15 +88,9 @@
     .clip-title { margin-top: 0.55rem; }
     .clip-type { color: var(--faint); font-size: 12px; }
 
-    /* ── BOTTOM : citations + boutons 88x31 ── */
-    .bottom { margin-top: 4rem; display: grid; grid-template-columns: 1fr auto; gap: 3rem; }
-    .quotes { max-height: 210px; overflow-y: auto; padding-right: 1rem; border-right: 1px solid #232325;
-      -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent); mask-image: linear-gradient(to bottom, #000 70%, transparent); scrollbar-width: none; }
-    .quotes::-webkit-scrollbar { display: none; }
-    .q { margin-bottom: 1.1rem; }
-    .q p { font-style: italic; }
-    .q span { color: var(--faint); font-size: 12px; }
-    .badges { display: grid; grid-template-columns: repeat(5, 88px); gap: 6px; align-content: start; }
+    /* ── BOUTONS 88x31 ── */
+    .bottom { margin-top: 4rem; }
+    .badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .badges img { display: block; width: 88px; height: 31px; image-rendering: pixelated; }
 
     footer { max-width: 1000px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--faint); font-size: 12px; }
@@ -118,9 +112,6 @@
       .stage { height: 340px; }
       .presence { margin-left: 0; }
       .work-grid { grid-template-columns: 1fr 1fr; }
-      .bottom { grid-template-columns: 1fr; }
-      .quotes { border-right: 0; }
-      .badges { grid-template-columns: repeat(auto-fill, 88px); }
     }
     @media (max-width: 480px) {
       .work-grid { grid-template-columns: 1fr; }
@@ -156,10 +147,6 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.7.7 0 0 1-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 1 1-.3-1.4c4.6-1 8.5-.6 11.6 1.3.4.2.5.7.3 1Zm1.5-3.3a.9.9 0 0 1-1.3.3c-3.2-2-8.1-2.6-11.9-1.4a.9.9 0 1 1-.5-1.7c4.3-1.3 9.7-.7 13.4 1.6.4.3.5.8.3 1.2Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 1 1-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 0 1-1.2 1.9Z"/></svg>
           <span id="spotify">not listening to anything</span>
         </div>
-        <div class="row">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.2 1 1 18.8 18.8 23 23 5.2 5.2 1Zm8.4 13.9-4.5-1.1 1.1-4.5 4.5 1.1-1.1 4.5Z"/></svg>
-          <span id="commissions"></span>
-        </div>
       </div>
     </div>
   </section>
@@ -169,7 +156,6 @@
   </section>
 
   <section class="bottom" id="bottom" hidden>
-    <div class="quotes" id="quotes"></div>
     <div class="badges" id="badges"></div>
   </section>
 </main>
@@ -185,12 +171,11 @@
 const CONFIG = {
   robloxUserId: 1077832330,
   discordTag: '.JGG',
-  commissions: 'open',   // 'open' ou 'closed'
   // ID Discord pour le statut live (+ rejoindre https://discord.gg/lanyard). Vide = ligne cachée.
-  discordId: '',
+  discordId: '852210182196035597',
   // Autres liens (optionnels) : mets l'URL ou laisse vide.
   youtube: '',
-  x: '',
+  x: 'https://x.com/JGG5694',
 };
 
 /* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
@@ -199,9 +184,6 @@ const PROJECTS = [
   { title: "ton vfx ici", type: "vfx", videoUrl: "" },
   { title: "ton système ici", type: "luau", videoUrl: "" },
 ];
-
-/* Citations de potes (vide = caché). Ex : { text: "ton walk cycle est clean", by: "Pseudo", year: 2026 } */
-const QUOTES = [];
 
 /* Boutons 88x31 de potes (vide = caché). Ex : { img: "buttons/pote.gif", url: "https://..." } */
 const BADGES = [];
@@ -223,20 +205,11 @@ const ICONS = {
   x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7.1 4.2H5.1l11.9 16Z"/></svg>',
 };
 const socials = $('#socials');
-const dc = el('button'); dc.innerHTML = ICONS.discord; dc.setAttribute('aria-label', 'Copy Discord username');
-dc.addEventListener('click', () => navigator.clipboard.writeText(CONFIG.discordTag).then(() => {
-  const t = el('span', 'tip', 'copied ' + CONFIG.discordTag); dc.append(t); setTimeout(() => t.remove(), 1400);
-}).catch(() => {}));
-socials.append(dc);
-const link = (key, url, label) => { const a = el('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.innerHTML = ICONS[key]; a.setAttribute('aria-label', label); socials.append(a); };
+const link = (key, url, label) => { const a = el('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.innerHTML = ICONS[key]; a.setAttribute('aria-label', label); a.title = label; socials.append(a); };
+link('discord', `https://discord.com/users/${CONFIG.discordId}`, 'Discord');
 link('roblox', `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`, 'Roblox profile');
 if (CONFIG.youtube) link('youtube', CONFIG.youtube, 'YouTube');
 if (CONFIG.x) link('x', CONFIG.x, 'X');
-
-/* commissions */
-$('#commissions').innerHTML = CONFIG.commissions === 'open'
-  ? `<span style="color:var(--online);font-weight:600">Commissions open</span>&nbsp;&nbsp;<span style="color:var(--dim)">dm ${CONFIG.discordTag} on discord</span>`
-  : `<span style="color:var(--dim);font-weight:600">Commissions closed</span>`;
 
 /* discord + spotify live (Lanyard) */
 const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
@@ -287,13 +260,10 @@ function closePlayer() { player.classList.remove('open'); frame.innerHTML = ''; 
 player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
 
-/* quotes + badges */
-const quotes = $('#quotes'), badges = $('#badges');
-QUOTES.forEach(q => { const d = el('div', 'q'); d.append(el('p', null, `“${q.text}”`), el('span', null, `${q.by}${q.year ? ', ' + q.year : ''}`)); quotes.append(d); });
+/* badges */
+const badges = $('#badges');
 BADGES.forEach(b => { const a = el('a'); a.href = b.url; a.target = '_blank'; a.rel = 'noopener'; const i = el('img'); i.src = b.img; i.alt = ''; a.append(i); badges.append(a); });
-if (QUOTES.length || BADGES.length) $('#bottom').hidden = false;
-if (!QUOTES.length) quotes.remove();
-if (!BADGES.length) { badges.remove(); quotes.style.borderRight = '0'; $('#bottom').style.gridTemplateColumns = '1fr'; }
+if (BADGES.length) $('#bottom').hidden = false;
 </script>
 
 <!-- Avatar 3D : avatar/avatar.json est mis à jour par la GitHub Action. Fallback 2D sinon. -->
@@ -321,6 +291,7 @@ async function init3D() {
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = 1.1;
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
   scene.add(new THREE.HemisphereLight(0xffffff, 0x404044, 1.9));
@@ -333,11 +304,24 @@ async function init3D() {
   mtl.setMaterialOptions({ side: THREE.DoubleSide });
   const materials = await mtl.loadAsync(`avatar/${meta.mtl}?v=${v}`);
   materials.preload();
+  // Roblox : couleur finale = mix(couleur du corps, texture, alpha de la texture).
+  // three.js multiplie les deux par défaut, ce qui teintait tout en orange et cachait le t-shirt.
   for (const k in materials.materials) {
     const m = materials.materials[k];
-    m.transparent = false; m.alphaMap = null; m.alphaTest = 0; m.opacity = 1; m.shininess = 6;
-    if (m.specular) m.specular.setHex(0x111111);
-    if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+    m.transparent = false; m.alphaMap = null; m.alphaTest = 0; m.opacity = 1; m.shininess = 4;
+    if (m.specular) m.specular.setHex(0x0a0a0a);
+    if (m.map) {
+      m.map.colorSpace = THREE.SRGBColorSpace;
+      m.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      const body = m.color.clone();
+      m.color.set(0xffffff);
+      m.onBeforeCompile = sh => {
+        sh.uniforms.bodyColor = { value: body };
+        sh.fragmentShader = 'uniform vec3 bodyColor;\n' + sh.fragmentShader.replace('#include <map_fragment>',
+          '#ifdef USE_MAP\n vec4 texel = texture2D( map, vMapUv );\n diffuseColor.rgb = mix( bodyColor, texel.rgb, texel.a );\n#endif');
+      };
+      m.customProgramCacheKey = () => 'roblox-mix';
+    }
     m.needsUpdate = true;
   }
   const loader = new OBJLoader(); loader.setMaterials(materials);
