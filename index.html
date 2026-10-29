@@ -60,7 +60,14 @@
     .stage-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); }
 
     .profile { display: flex; align-items: center; gap: 1.6rem; }
-    .pfp { width: 120px; height: 120px; flex: none; border-radius: 6px; background: var(--surface); object-fit: cover; }
+    @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+    .pfp-wrap { --ring: var(--faint); position: relative; flex: none; width: 120px; height: 120px; }
+    .pfp-wrap::before, .pfp-wrap::after { content: ''; position: absolute; inset: -5px; border-radius: 13px; padding: 3px; pointer-events: none;
+      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+    .pfp-wrap::after { background: var(--ring); opacity: 0.22; }
+    .pfp-wrap::before { background: conic-gradient(from var(--angle), transparent 0 45%, var(--ring) 78%, transparent 100%); animation: ring 3.5s linear infinite; z-index: 1; }
+    .pfp { display: block; width: 100%; height: 100%; border-radius: 8px; background: var(--surface); object-fit: cover; }
+    .pfp-deco { position: absolute; inset: -12%; width: 124%; height: 124%; pointer-events: none; z-index: 2; }
     .hi { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
     .hi .name { display: inline-block; }
     .hi .name:hover { animation: glitch 0.3s steps(2) 2; }
@@ -104,7 +111,8 @@
     a.game:hover { background: var(--surface); }
     .game img, .game .noicon { width: 38px; height: 38px; border-radius: 8px; flex: none; background: var(--surface); object-fit: cover; }
     .game b { font-weight: 600; display: block; }
-    .game small { color: var(--faint); font-size: 12px; }
+    .game small { color: var(--dim); font-size: 12px; }
+    .game small .label { color: var(--faint); }
     .game .playing { color: var(--online); }
 
     /* ── WORK ── */
@@ -139,6 +147,7 @@
     .player-frame iframe, .player-frame video { display: block; width: 100%; height: 100%; border: 0; }
 
     @keyframes blink { 50% { opacity: 0; } }
+    @keyframes ring { to { --angle: 360deg; } }
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
     @keyframes glitch {
       0% { transform: translate(1px, 0); text-shadow: -2px 0 #ff6b6b, 2px 0 #4dabf7; }
@@ -154,7 +163,7 @@
     }
     @media (max-width: 480px) {
       .work-grid { grid-template-columns: 1fr; }
-      .pfp { width: 84px; height: 84px; }
+      .pfp-wrap { width: 84px; height: 84px; }
     }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
   </style>
@@ -169,7 +178,7 @@
 
     <div>
       <div class="profile">
-        <img class="pfp" id="pfp" alt="" />
+        <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
         <div>
           <h1 class="hi">hi, i'm <span class="name">JGG</span></h1>
           <p class="sub" id="sub">roblox animator &amp; a bit of everything else.</p>
@@ -286,6 +295,9 @@ async function presence() {
     if (!j.success) { robloxPfp(); return; }
     const d = j.data, s = d.discord_status || 'offline';
     const u = d.discord_user;
+    $('#pfp-wrap').style.setProperty('--ring', `var(--${s === 'offline' ? 'faint' : s === 'online' ? 'online' : s})`);
+    const deco = u?.avatar_decoration_data?.asset;
+    if (deco && !$('.pfp-deco')) { const di = el('img', 'pfp-deco'); di.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=240&passthrough=true`; di.alt = ''; $('#pfp-wrap').append(di); }
     if (u?.avatar && !pfpSet) {
       pfpSet = true;
       $('#pfp').src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256`;
@@ -348,7 +360,8 @@ if (GAMES.length) {
     if (g.url) { row.href = g.url; row.target = '_blank'; row.rel = 'noopener'; }
     let icon = el('span', 'noicon');
     if (g.icon) { icon = el('img'); icon.src = g.icon; icon.alt = ''; }
-    const info = el('span'); const b = el('b', null, g.name); const sm = el('small', null, g.role || (g.url ? '' : 'not public yet'));
+    const info = el('span'); const b = el('b', null, g.name); const sm = el('small');
+    if (g.role) { sm.append(el('span', 'label', 'role: ')); sm.append(g.role); } else if (!g.url) sm.append('not public yet');
     info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
     // icône + nombre de joueurs en live depuis Roblox
     const placeId = (g.url.match(/games\/(\d+)/) || [])[1];
