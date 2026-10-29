@@ -52,9 +52,6 @@
     /* ── TOP : avatar 3D + profil ── */
     .top { display: grid; grid-template-columns: 340px 1fr; gap: 2.5rem; align-items: center; }
     .stage { position: relative; height: 400px; cursor: grab; }
-    .stage::after { content: ''; position: absolute; left: 50%; bottom: 4%; width: 46%; height: 22px; transform: translateX(-50%) scale(0.3); opacity: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.18), transparent 70%); transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.4s; }
-    .stage.falling::after { transform: translateX(-50%) scale(0.6); opacity: 0.5; transition-duration: 0.55s; }
-    .stage.landed::after { transform: translateX(-50%) scale(1); opacity: 1; }
     .stage canvas { z-index: 1; position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
     .stage img.avatar-2d { position: absolute; inset: 0; margin: auto; width: 100%; height: 100%; object-fit: contain; }
     .stage-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); }
@@ -138,7 +135,8 @@
     .badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .badges img { display: block; width: 88px; height: 31px; image-rendering: pixelated; }
 
-    footer { width: 100%; max-width: 1000px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--faint); font-size: 12px; }
+    .fade { position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in; }
+    .fade.on { opacity: 1; pointer-events: auto; }
 
     /* ── PLAYER ── */
     .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(20,22,26,0.85); }
@@ -218,7 +216,7 @@
   </section>
 </main>
 
-<footer id="foot">jgg © 2026</footer>
+<div class="fade" id="fade"></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video">
   <div class="player-frame" id="player-frame"></div>
@@ -254,7 +252,6 @@ const BADGES = [];
 /* ═══════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
-$('#foot').textContent = `jgg © ${new Date().getFullYear()}`;
 
 /* sous-titre tapé une fois au chargement */
 (() => {
@@ -285,31 +282,91 @@ const link = (key, url, label) => { const a = el('a'); a.href = url; a.target = 
 link('discord', `https://discord.com/users/${CONFIG.discordId}`, 'Discord');
 link('roblox', `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`, 'Roblox profile');
 if (CONFIG.youtube) link('youtube', CONFIG.youtube, 'YouTube');
-if (CONFIG.x) link('x', CONFIG.x, 'X');
+if (CONFIG.x) {
+  link('x', CONFIG.x, 'X');
+  // X : écran noir en fondu, puis ouverture une fois le noir complet
+  const xa = socials.lastElementChild, fade = $('#fade');
+  xa.addEventListener('click', e => {
+    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    fade.classList.add('on');
+    fade.addEventListener('transitionend', function go() {
+      fade.removeEventListener('transitionend', go);
+      const w = window.open(CONFIG.x, '_blank', 'noopener');
+      if (!w && !document.hidden) location.href = CONFIG.x;    // si le popup est bloqué
+      setTimeout(() => fade.classList.remove('on'), 400);
+    });
+  });
+  addEventListener('pageshow', () => fade.classList.remove('on'));
+}
 
 /* discord + spotify live (Lanyard) */
+/* Texte selon l'appli détectée par Discord (ajoute les tiennes ici) */
+const ACTIVITY = [
+  [/roblox studio/i, 'Working in Roblox Studio'],
+  [/blender/i, 'Working in Blender'],
+  [/visual studio code|^code$|cursor/i, n => `Coding in ${n}`],
+  [/moon animator/i, 'Animating in Moon Animator'],
+  [/photoshop|aseprite|krita/i, n => `Drawing in ${n}`],
+  [/^roblox$/i, 'Playing Roblox'],
+];
+function activityLabel(name) {
+  const hit = ACTIVITY.find(([re]) => re.test(name));
+  if (!hit) return `Playing ${name}`;
+  return typeof hit[1] === 'function' ? hit[1](name) : hit[1];
+}
 const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
-async function presence() {
+function renderPresence(d) {
+  const s = d.discord_status || 'offline';
+  const u = d.discord_user;
+  $('#pfp-wrap').style.setProperty('--ring', `var(--${s === 'offline' ? 'faint' : s === 'online' ? 'online' : s})`);
+  const deco = u?.avatar_decoration_data?.asset;
+  if (deco && !$('.pfp-deco')) { const di = el('img', 'pfp-deco'); di.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=240&passthrough=true`; di.alt = ''; $('#pfp-wrap').append(di); }
+  if (u?.avatar) {
+    const src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256`;
+    if ($('#pfp').src !== src) $('#pfp').src = src;   // suit aussi un changement de pp
+    pfpSet = true;
+  } else robloxPfp();
+  const game = (d.activities || []).find(a => a.type === 0);
+  const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
+  $('#act').textContent = game ? activityLabel(game.name) : '';
+  $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
+  $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
+}
+
+// Temps réel : WebSocket Lanyard (mise à jour instantanée), avec reconnexion auto.
+// Si le socket ne marche pas, on retombe sur un rafraîchissement toutes les 15 s.
+let pollTimer = null;
+async function pollPresence() {
   try {
     const j = await (await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`)).json();
-    if (!j.success) { robloxPfp(); return; }
-    const d = j.data, s = d.discord_status || 'offline';
-    const u = d.discord_user;
-    $('#pfp-wrap').style.setProperty('--ring', `var(--${s === 'offline' ? 'faint' : s === 'online' ? 'online' : s})`);
-    const deco = u?.avatar_decoration_data?.asset;
-    if (deco && !$('.pfp-deco')) { const di = el('img', 'pfp-deco'); di.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=240&passthrough=true`; di.alt = ''; $('#pfp-wrap').append(di); }
-    if (u?.avatar && !pfpSet) {
-      pfpSet = true;
-      $('#pfp').src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256`;
-    } else robloxPfp();
-    const game = (d.activities || []).find(a => a.type === 0);
-    const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
-    $('#act').textContent = game ? `Playing ${game.name}` : '';
-    $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
-    $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
+    if (j.success) renderPresence(j.data); else robloxPfp();
   } catch (_) { robloxPfp(); }
 }
-if (CONFIG.discordId) { presence(); setInterval(presence, 30000); } else robloxPfp();
+function startPolling() { if (!pollTimer) { pollPresence(); pollTimer = setInterval(pollPresence, 15000); } }
+function stopPolling() { clearInterval(pollTimer); pollTimer = null; }
+
+function connectLanyard(retry = 0) {
+  let ws, heartbeat;
+  try { ws = new WebSocket('wss://api.lanyard.rest/socket'); } catch (_) { startPolling(); return; }
+  ws.onmessage = ev => {
+    const msg = JSON.parse(ev.data);
+    if (msg.op === 1) { // hello
+      heartbeat = setInterval(() => ws.readyState === 1 && ws.send(JSON.stringify({ op: 3 })), msg.d.heartbeat_interval);
+      ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: CONFIG.discordId } }));
+    } else if (msg.op === 0 && (msg.t === 'INIT_STATE' || msg.t === 'PRESENCE_UPDATE')) {
+      stopPolling(); retry = 0;
+      renderPresence(msg.d);
+    }
+  };
+  ws.onclose = () => {
+    clearInterval(heartbeat);
+    startPolling();                                         // pendant la coupure, on continue en polling
+    setTimeout(() => connectLanyard(retry + 1), Math.min(30000, 2000 * 2 ** retry));
+  };
+  ws.onerror = () => ws.close();
+}
+if (CONFIG.discordId) { pollPresence(); connectLanyard(); } else robloxPfp();
 
 /* work */
 const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/) || [])[1];
@@ -489,9 +546,18 @@ async function init3D() {
     camera.aspect = w / h;
     const half = H * 0.5 * 1.2;
     const dist = Math.max(half, half * 0.62 / camera.aspect) / Math.tan(THREE.MathUtils.degToRad(13));
-    camera.position.set(0, H / 2 + 0.35, dist); camera.lookAt(0, H / 2 + 0.2, 0);
+    camera.position.set(0, H / 2 + 1.6, dist); camera.lookAt(0, H / 2 + 0.05, 0);
     camera.updateProjectionMatrix();
   }
+  // ombre au sol dans la scène 3D, sous les pieds ; rétrécit quand il saute
+  const shC = document.createElement('canvas'); shC.width = shC.height = 128;
+  const shx = shC.getContext('2d'), grd = shx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(0,0,0,0.32)'); grd.addColorStop(0.6, 'rgba(0,0,0,0.12)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
+  shx.fillStyle = grd; shx.fillRect(0, 0, 128, 128);
+  const shadowMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shC), transparent: true, depthWrite: false, toneMapped: false });
+  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 3.4), shadowMat);
+  shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.005; shadow.renderOrder = -1;
+  scene.add(shadow);
   stage.append(renderer.domElement); loading.remove(); fit();
   new ResizeObserver(fit).observe(stage);
 
@@ -560,6 +626,9 @@ async function init3D() {
 
     root.position.y = y;
     root.scale.set(sx, sy, sx);
+    const lift = Math.min(y / 3, 1);
+    shadow.scale.setScalar(1 - lift * 0.55);
+    shadowMat.opacity = 1 - lift * 0.85;
     if (head) {
       const hy = Math.tanh((look - body) / 1.1) * 1.1;          // limite douce, pas d'arrêt sec
       const hp = Math.tanh(lookP / 0.45) * 0.45;
