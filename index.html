@@ -3,17 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portofolio - Wip</title>
-  <!-- Discord Embed -->
-  <meta property="og:title" content=".JGG — Animator & VFX Artist" />
-  <meta property="og:description" content="Animation, VFX, and Roblox scripting. Click to see my work." />
-  <meta property="og:url" content="https://yourusername.github.io" />
+  <title>.JGG — Roblox Animator & VFX</title>
+  <meta name="description" content="Roblox animation, VFX and Luau scripting by .JGG." />
+
+  <!-- Discord / social embed — remplace TON-PSEUDO-GITHUB par ton pseudo GitHub -->
+  <meta property="og:title" content=".JGG — Roblox Animator & VFX" />
+  <meta property="og:description" content="Animation, VFX and Luau scripting for Roblox. Click to see my work." />
+  <meta property="og:url" content="https://TON-PSEUDO-GITHUB.github.io/" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://via.placeholder.com/1200x630/0e0d0b/c4501a?text=.JGG+Portfolio" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
+  <meta property="og:image" content="https://TON-PSEUDO-GITHUB.github.io/avatar/avatar.png" />
+  <meta name="twitter:card" content="summary" />
   <meta name="theme-color" content="#c4501a" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+  </script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -21,13 +35,19 @@
       --bg: #0e0d0b;
       --surface: #161410;
       --border: rgba(220,130,80,0.1);
+      --border-strong: rgba(196,80,26,0.35);
       --text: #ede8df;
       --muted: #7a7168;
       --accent: #c4501a;
+      --accent-soft: rgba(196,80,26,0.12);
+      --ok: #6fbf73;
+      --idle: #d9a441;
+      --dnd: #d9534f;
+      --gutter: 4rem;
+      --ease: cubic-bezier(0.16,1,0.3,1);
     }
 
     html { scroll-behavior: smooth; }
-
     body {
       background: var(--bg);
       color: var(--text);
@@ -36,479 +56,314 @@
       min-height: 100vh;
       overflow-x: hidden;
     }
+    ::selection { background: var(--accent); color: var(--text); }
+    a { color: inherit; }
 
-    #page-content {
-      transform-origin: center center;
-      transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
-      will-change: transform;
+    /* ── FX LAYERS ── */
+    #snow, #morph-canvas { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    #snow { z-index: 0; }
+    #morph-canvas { z-index: 10; }
+    #dim-overlay {
+      position: fixed; inset: 0; z-index: 9;
+      background: rgba(6,5,4,0); pointer-events: none;
+      transition: background 0.65s var(--ease);
     }
+    #dim-overlay.active { background: rgba(6,5,4,0.82); pointer-events: auto; }
+
+    #page-content { transform-origin: center center; transition: transform 0.7s var(--ease); }
     #page-content.zoomed { transform: scale(1.05); }
 
-    #dim-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 9;
-      background: rgba(6,5,4,0);
-      pointer-events: none;
-      transition: background 0.65s cubic-bezier(0.16,1,0.3,1);
-    }
-    #dim-overlay.active {
-      background: rgba(6,5,4,0.82);
-      pointer-events: auto;
-    }
-
-    #snow {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    #morph-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 10;
-    }
-
+    /* ── NAV (hors de #page-content pour que position:fixed marche) ── */
     nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 1.5rem 4rem;
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 1.3rem var(--gutter);
       background: rgba(14,13,11,0.65);
-      backdrop-filter: blur(12px);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border);
     }
-    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); text-decoration: none; }
     .nav-links { display: flex; gap: 2.5rem; list-style: none; }
     .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
+      color: var(--muted); text-decoration: none;
+      font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
       transition: color 0.25s;
     }
     .nav-links a:hover { color: var(--text); }
 
     section { position: relative; z-index: 1; }
 
+    /* ── HERO ── */
     #hero {
       min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 6rem 4rem 4rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+      align-items: center;
+      gap: 2rem;
+      padding: 6rem var(--gutter) 3rem;
     }
-    .hero-tag { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s 0.2s forwards; }
-    .hero-name { font-family: 'DM Serif Display', serif; font-size: clamp(3.5rem, 8vw, 7rem); line-height: 1.05; color: var(--text); opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
-    .hero-name em { font-style: italic; color: var(--accent); }
-    .hero-sub { margin-top: 2rem; font-size: 0.85rem; color: var(--muted); max-width: 420px; line-height: 1.9; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
-    .hero-cta { margin-top: 3rem; display: flex; gap: 1rem; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
-    .btn {
-      display: inline-block;
-      padding: 0.75rem 2rem;
-      font-family: 'DM Mono', monospace;
-      font-size: 0.75rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      text-decoration: none;
-      border-radius: 2px;
-      transition: all 0.25s;
-      cursor: pointer;
-      border: none;
-    }
-    .btn-primary { background: var(--accent); color: #ede8df; font-weight: 500; border: 1px solid var(--accent); min-width: 160px; transition: all 0.25s, min-width 0.35s cubic-bezier(0.16,1,0.3,1); }
-    .btn-primary:hover { background: transparent; color: var(--accent); }
-    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
-    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
 
-    .hero-scroll { margin-top: 6rem; display: flex; align-items: center; gap: 1rem; opacity: 0; animation: fadeUp 0.8s 1s forwards; }
-    .hero-scroll span { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .avatar-col { position: relative; display: flex; flex-direction: column; align-items: center; }
+    .avatar-stage {
+      position: relative;
+      width: 100%;
+      height: min(76vh, 680px);
+      cursor: pointer;
+      opacity: 0;
+      animation: fadeIn 1.2s 0.3s var(--ease) forwards;
+    }
+    .avatar-stage::before { /* glow derrière le perso */
+      content: ''; position: absolute; left: 50%; top: 48%;
+      width: 70%; aspect-ratio: 1; transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(196,80,26,0.22) 0%, rgba(196,80,26,0.06) 45%, transparent 70%);
+      filter: blur(10px); pointer-events: none;
+    }
+    .avatar-stage::after { /* ombre au sol */
+      content: ''; position: absolute; left: 50%; bottom: 7%;
+      width: 38%; height: 26px; transform: translateX(-50%);
+      background: radial-gradient(ellipse at center, rgba(0,0,0,0.65) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .avatar-stage canvas { position: relative; z-index: 1; display: block; width: 100% !important; height: 100% !important; }
+    .avatar-stage img.avatar-2d {
+      position: absolute; inset: 0; margin: auto; z-index: 1;
+      width: 88%; height: 88%; object-fit: contain;
+      transition: transform 0.15s linear;
+      filter: drop-shadow(0 20px 30px rgba(0,0,0,0.5));
+    }
+    .avatar-loading {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 2;
+      font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted);
+    }
+    .avatar-loading::before {
+      content: ''; width: 14px; height: 14px; margin-right: 0.7rem;
+      border: 1px solid var(--muted); border-top-color: var(--accent); border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    .avatar-caption {
+      margin-top: -0.5rem;
+      font-size: 0.6rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted);
+      opacity: 0; animation: fadeIn 1s 1.4s forwards;
+    }
+    .avatar-caption b { color: var(--accent); font-weight: 400; }
+
+    .hero-copy { max-width: 560px; }
+    .hero-tag { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s 0.2s forwards; }
+    .hero-name { font-family: 'DM Serif Display', serif; font-size: clamp(3rem, 6.4vw, 6rem); line-height: 1.02; letter-spacing: -0.01em; opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+    .hero-name em { font-style: italic; color: var(--accent); }
+    .hero-sub { margin-top: 1.8rem; font-size: 0.85rem; color: var(--muted); max-width: 440px; line-height: 1.9; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+
+    .presence { margin-top: 1.8rem; display: flex; flex-direction: column; gap: 0.55rem; opacity: 0; animation: fadeUp 0.8s 0.7s forwards; }
+    .presence[hidden] { display: none; }
+    .presence-row { display: flex; align-items: center; gap: 0.7rem; font-size: 0.72rem; color: var(--muted); min-height: 1.1rem; }
+    .presence-row svg { width: 15px; height: 15px; flex: none; opacity: 0.7; }
+    .presence-status { font-weight: 500; }
+    .presence-status.online { color: var(--ok); }
+    .presence-status.idle { color: var(--idle); }
+    .presence-status.dnd { color: var(--dnd); }
+    .presence-status.offline { color: var(--muted); }
+    .presence-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; display: inline-block; margin-right: 0.45rem; box-shadow: 0 0 8px currentColor; }
+
+    .hero-cta { margin-top: 2.4rem; display: flex; gap: 1rem; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+      padding: 0.8rem 1.8rem;
+      font-family: 'DM Mono', monospace; font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none;
+      border-radius: 2px; cursor: pointer; border: none;
+      transition: all 0.25s;
+    }
+    .btn-primary { background: var(--accent); color: var(--text); font-weight: 500; border: 1px solid var(--accent); min-width: 170px; }
+    .btn-primary:hover { background: transparent; color: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border-strong); }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+
+    .hero-scroll { margin-top: 4rem; display: flex; align-items: center; gap: 1rem; opacity: 0; animation: fadeUp 0.8s 1s forwards; }
+    .hero-scroll span { font-size: 0.62rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
     .scroll-line { width: 40px; height: 1px; background: var(--muted); position: relative; overflow: hidden; }
     .scroll-line::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--accent); animation: slide 2s infinite; }
 
+    .section-pre { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1rem; }
+    .section-title { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 3.8rem); line-height: 1.1; letter-spacing: -0.01em; }
+    .divider { position: relative; z-index: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); margin: 0 var(--gutter); }
+
     /* ── PROJECTS ── */
-    #projects { padding: 6rem 4rem; }
-    .projects-header { margin-bottom: 4rem; }
-    .projects-title { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 3.8rem); line-height: 1.1; letter-spacing: -0.01em; }
+    #projects { padding: 7rem var(--gutter); }
+    .projects-header { margin-bottom: 3rem; }
 
-    /* ── TAB BAR ── */
-    .tab-bar {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      margin-bottom: 4rem;
-      flex-wrap: wrap;
-    }
-    .tab-group {
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .tab-group-label {
-      font-size: 0.55rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: var(--muted);
-      opacity: 0.6;
-      white-space: nowrap;
-      margin-right: 0.4rem;
-    }
+    .tab-bar { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 3rem; flex-wrap: wrap; }
+    .tab-group { display: flex; align-items: center; gap: 0.3rem; }
+    .tab-group-label { font-size: 0.55rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); opacity: 0.6; margin-right: 0.4rem; }
     .tab-btn {
-      background: rgba(196,80,26,0.08);
-      border: 1px solid rgba(196,80,26,0.25);
-      font-family: 'DM Mono', monospace;
-      font-size: 0.7rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--muted);
-      cursor: pointer;
-      padding: 0.6rem 1rem;
-      position: relative;
-      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
-      white-space: nowrap;
-      border-radius: 6px;
-      backdrop-filter: blur(8px);
+      background: rgba(196,80,26,0.08); border: 1px solid rgba(196,80,26,0.25);
+      font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); cursor: pointer; padding: 0.6rem 1rem; border-radius: 6px;
+      backdrop-filter: blur(8px); transition: all 0.3s var(--ease); white-space: nowrap;
     }
-    .tab-btn:hover {
-      color: var(--text);
-      background: rgba(196,80,26,0.15);
-      border-color: rgba(196,80,26,0.4);
-    }
-    .tab-btn.active {
-      color: var(--text);
-      background: rgba(196,80,26,0.25);
-      border-color: var(--accent);
-      box-shadow: 0 0 20px rgba(196,80,26,0.2);
-    }
+    .tab-btn:hover { color: var(--text); background: rgba(196,80,26,0.15); border-color: rgba(196,80,26,0.4); }
+    .tab-btn.active { color: var(--text); background: rgba(196,80,26,0.25); border-color: var(--accent); box-shadow: 0 0 20px rgba(196,80,26,0.2); }
+    .tab-count { opacity: 0.5; margin-left: 0.35rem; }
 
-    /* ── SLIDING VIEWPORT ── */
-    .grid-viewport {
-      overflow: hidden;
-      position: relative;
-    }
-    .grid-panel {
-      display: none;
-      width: 100%;
-    }
+    .grid-viewport { overflow: hidden; position: relative; }
+    .grid-panel { display: none; width: 100%; }
     .grid-panel.current { display: block; }
-
-    .grid-panel.slide-out-left  { display: block; position: absolute; top: 0; left: 0; width: 100%; animation: slideOutLeft  0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .grid-panel.slide-out-left  { display: block; position: absolute; top: 0; left: 0; width: 100%; animation: slideOutLeft 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
     .grid-panel.slide-out-right { display: block; position: absolute; top: 0; left: 0; width: 100%; animation: slideOutRight 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
-    .grid-panel.slide-in-left   { display: block; animation: slideInLeft   0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
-    .grid-panel.slide-in-right  { display: block; animation: slideInRight  0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .grid-panel.slide-in-left   { display: block; animation: slideInLeft 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .grid-panel.slide-in-right  { display: block; animation: slideInRight 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
 
-    /* ── GRID ── */
-    .projects-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 1.2rem;
-    }
+    .projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.2rem; }
     .project-card {
-      background: rgba(255,255,255,0.05);
-      backdrop-filter: blur(20px);
-      border: 1px solid rgba(255,255,255,0.1);
-      padding: 2rem;
-      border-radius: 12px;
-      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
-      position: relative;
-      overflow: hidden;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px; overflow: hidden; position: relative;
+      display: flex; flex-direction: column;
+      transition: transform 0.4s var(--ease), border-color 0.4s, box-shadow 0.4s, background 0.4s;
     }
-    .project-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(circle at 0% 0%, rgba(196,80,26,0.15), transparent 50%);
-      opacity: 0;
-      transition: opacity 0.4s;
-      pointer-events: none;
-    }
-    .project-card:hover::before { opacity: 1; }
-    .project-card:hover {
-      background: rgba(255,255,255,0.08);
-      border-color: rgba(196,80,26,0.4);
-      box-shadow: 0 8px 32px rgba(196,80,26,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+    .project-card.playable { cursor: pointer; }
+    .project-card.playable:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(196,80,26,0.45);
+      box-shadow: 0 10px 36px rgba(196,80,26,0.15);
       transform: translateY(-4px);
     }
-    .project-type {
-      font-size: 0.6rem;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--accent);
-      margin-bottom: 0.8rem;
-      opacity: 0.9;
+    .card-media { position: relative; aspect-ratio: 16/9; background: linear-gradient(135deg, #1d1a15, #120f0c); overflow: hidden; }
+    .card-media img, .card-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease), opacity 0.3s; }
+    .card-media video { opacity: 0; }
+    .project-card.previewing .card-media video { opacity: 1; }
+    .project-card.playable:hover .card-media img { transform: scale(1.04); }
+    .card-media::after { content: ''; position: absolute; inset: 0; background: linear-gradient(to top, rgba(14,13,11,0.6), transparent 55%); pointer-events: none; }
+    .card-play {
+      position: absolute; left: 1rem; bottom: 1rem; z-index: 1;
+      width: 38px; height: 38px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(14,13,11,0.7); border: 1px solid var(--border-strong); color: var(--accent);
+      font-size: 0.75rem; transition: all 0.3s var(--ease);
     }
-    .project-name {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.5rem;
-      color: var(--text);
-      margin-bottom: 0.8rem;
-      line-height: 1.2;
-      letter-spacing: -0.01em;
+    .project-card.playable:hover .card-play { background: var(--accent); color: var(--text); transform: scale(1.08); }
+    .card-soon {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted);
     }
-    .project-desc {
-      font-size: 0.75rem;
-      color: var(--muted);
-      line-height: 1.8;
-      margin-bottom: 1.5rem;
-      flex-grow: 1;
-    }
-    .project-tags {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 1.5rem;
-    }
+    .card-body { padding: 1.4rem 1.5rem 1.6rem; display: flex; flex-direction: column; flex-grow: 1; }
+    .project-type { font-size: 0.6rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
+    .project-name { font-family: 'DM Serif Display', serif; font-size: 1.4rem; line-height: 1.2; margin-bottom: 0.6rem; }
+    .project-desc { font-size: 0.74rem; color: var(--muted); line-height: 1.8; margin-bottom: 1.2rem; flex-grow: 1; }
+    .project-tags { display: flex; flex-wrap: wrap; gap: 0.45rem; }
     .tag {
-      font-size: 0.6rem;
-      letter-spacing: 0.08em;
-      padding: 0.4rem 0.8rem;
-      background: rgba(196,80,26,0.1);
-      border: 1px solid rgba(196,80,26,0.3);
-      color: var(--muted);
-      border-radius: 4px;
-      transition: all 0.2s;
+      font-size: 0.6rem; letter-spacing: 0.08em; padding: 0.35rem 0.7rem;
+      background: rgba(196,80,26,0.1); border: 1px solid rgba(196,80,26,0.3);
+      color: var(--muted); border-radius: 4px; transition: all 0.2s;
     }
-    .project-card:hover .tag {
-      background: rgba(196,80,26,0.2);
-      border-color: rgba(196,80,26,0.5);
-      color: var(--accent);
-    }
-    .project-link {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      font-size: 0.68rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--accent);
-      transition: gap 0.3s;
-      width: fit-content;
-    }
-    .project-card:hover .project-link { gap: 0.8rem; }
+    .project-card.playable:hover .tag { background: rgba(196,80,26,0.2); border-color: rgba(196,80,26,0.5); color: var(--accent); }
 
-    .divider { position: relative; z-index: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 4rem; }
-
-    #experience {
-      padding: 8rem 4rem;
-      position: relative;
-      z-index: 1;
+    /* ── EXPERIENCE (timeline DOM, drag + touch) ── */
+    #experience { padding: 7rem var(--gutter); }
+    .experience-header { margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-end; gap: 1rem; flex-wrap: wrap; }
+    .experience-hint { font-size: 0.65rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+    .tl {
+      overflow-x: auto; overflow-y: hidden;
+      scroll-snap-type: x proximity; scrollbar-width: none;
+      cursor: grab; user-select: none;
+      -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+              mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
     }
-
-    .experience-header {
-      margin-bottom: 3rem;
+    .tl::-webkit-scrollbar { display: none; }
+    .tl.dragging { cursor: grabbing; scroll-snap-type: none; }
+    .tl-track { position: relative; display: flex; gap: 1.2rem; padding: 2.2rem 3rem 1rem; width: max-content; }
+    .tl-line { position: absolute; left: 0; right: 0; top: 2.2rem; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong) 5%, var(--border-strong) 95%, transparent); }
+    .tl-card {
+      position: relative; scroll-snap-align: start;
+      width: 250px; margin-top: 1.6rem; text-align: left;
+      background: rgba(255,255,255,0.03); border: 1px solid var(--border-strong); border-radius: 10px;
+      padding: 1.3rem 1.3rem 1.4rem; color: var(--text); font-family: inherit; cursor: pointer;
+      transition: transform 0.35s var(--ease), background 0.35s, box-shadow 0.35s;
     }
-
-    .experience-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2.5rem, 5vw, 3.8rem);
-      line-height: 1.1;
-      letter-spacing: -0.01em;
+    .tl-card::before { /* point sur la ligne */
+      content: ''; position: absolute; left: 1.3rem; top: calc(-1.6rem - 4px);
+      width: 9px; height: 9px; border-radius: 50%; background: var(--bg); border: 1px solid var(--accent);
+      transition: background 0.3s, box-shadow 0.3s;
     }
+    .tl-card::after { content: ''; position: absolute; left: calc(1.3rem + 4px); top: calc(-1.6rem + 5px); width: 1px; height: calc(1.6rem - 5px); background: var(--border-strong); }
+    .tl-card:hover { transform: translateY(-4px); background: var(--accent-soft); box-shadow: 0 10px 30px rgba(196,80,26,0.12); }
+    .tl-card:hover::before { background: var(--accent); box-shadow: 0 0 12px var(--accent); }
+    .tl-year { display: inline-block; font-size: 0.62rem; letter-spacing: 0.12em; color: var(--accent); background: rgba(196,80,26,0.15); padding: 0.25rem 0.55rem; border-radius: 3px; margin-bottom: 0.9rem; }
+    .tl-title { display: block; font-family: 'DM Serif Display', serif; font-size: 1.25rem; line-height: 1.2; margin-bottom: 0.35rem; }
+    .tl-sub { display: block; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
 
-    .experience-subtitle {
-      font-size: 0.8rem;
-      color: var(--muted);
-      margin-top: 0.5rem;
-      letter-spacing: 0.1em;
-    }
-
-    #timeline-container {
-      position: relative;
-      width: 100%;
-      background: rgba(255,255,255,0.01);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      padding-bottom: 3rem;
-    }
-
-    #timeline-canvas {
-      display: block;
-      width: 100%;
-      height: 280px;
-      background: rgba(14,13,11,0.5);
-      cursor: grab;
-    }
-
-    #timeline-canvas:active {
-      cursor: grabbing;
-    }
-
-    #timeline-years {
-      display: flex;
-      justify-content: space-between;
-      padding: 1.5rem 2rem 0;
-      border-top: 1px solid var(--border);
-      font-size: 0.75rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-    }
-
-    .timeline-year {
-      text-align: center;
-      flex: 1;
-    }
-
-    /* Modal */
+    /* ── MODALS ── */
     .exp-modal-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 200;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      background: rgba(6,5,4,0.88);
-      backdrop-filter: blur(8px);
+      position: fixed; inset: 0; z-index: 200; display: none; align-items: center; justify-content: center;
+      background: rgba(6,5,4,0.88); backdrop-filter: blur(8px);
     }
-
-    .exp-modal-overlay.active {
-      display: flex;
+    .exp-modal-overlay.active { display: flex; }
+    .exp-modal-box {
+      position: relative; background: var(--surface); border: 1px solid var(--border-strong); border-radius: 12px;
+      padding: 2.5rem; max-width: 460px; width: calc(100% - 32px); max-height: 75vh; overflow-y: auto;
+      animation: slideUp 0.4s var(--ease); box-shadow: 0 20px 60px rgba(196,80,26,0.2);
     }
-
-    #exp-modal-box {
-      background: var(--surface);
-      border: 1px solid rgba(196,80,26,0.35);
-      border-radius: 12px;
-      padding: 2.5rem;
-      max-width: 450px;
-      width: 90%;
-      max-height: 70vh;
-      overflow-y: auto;
-      animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
-      box-shadow: 0 20px 60px rgba(196,80,26,0.2);
-      position: relative;
+    .x-btn {
+      position: absolute; top: 1rem; right: 1rem; width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(14,13,11,0.9); border: 1px solid rgba(196,80,26,0.4); border-radius: 4px;
+      color: var(--text); font-size: 0.9rem; cursor: pointer; transition: background 0.2s; z-index: 10;
     }
+    .x-btn:hover { background: var(--accent); }
+    .exp-modal-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; margin-bottom: 0.3rem; padding-right: 2.5rem; }
+    .exp-modal-company { font-size: 0.72rem; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+    .exp-modal-duration { font-size: 0.72rem; color: var(--muted); margin-bottom: 1.2rem; }
+    .exp-modal-description { font-size: 0.8rem; line-height: 1.8; color: var(--muted); margin-bottom: 1.5rem; }
+    .exp-modal-tools { display: flex; flex-wrap: wrap; gap: 0.5rem; }
 
-    @keyframes slideUp {
-      from { opacity: 0; transform: translateY(40px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    #modal-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
+    #modal-overlay.active { display: block; }
+    #modal-backdrop { position: absolute; inset: 0; }
+    #modal-box { position: absolute; background: var(--bg); border: 1px solid var(--border-strong); overflow: hidden; display: none; }
+    #modal-box.visible { display: block; }
+    #modal-box iframe { display: block; width: 100%; height: 100%; border: none; }
+    #modal-close { display: none; }
+    #modal-close.visible { display: flex; }
 
-    #exp-modal-close {
-      position: absolute;
-      top: 1.5rem;
-      right: 1.5rem;
-      width: 32px;
-      height: 32px;
-      background: rgba(196,80,26,0.1);
-      border: 1px solid rgba(196,80,26,0.3);
-      color: var(--text);
-      font-size: 1rem;
-      cursor: pointer;
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.2s;
-    }
-
-    #exp-modal-close:hover {
-      background: rgba(196,80,26,0.25);
-      border-color: rgba(196,80,26,0.5);
-    }
-
-    .exp-modal-title {
-      font-family: 'DM Serif Display', serif;
-      font-size: 1.5rem;
-      color: var(--text);
-      margin-bottom: 0.3rem;
-    }
-
-    .exp-modal-company {
-      font-size: 0.75rem;
-      color: var(--accent);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      margin-bottom: 0.5rem;
-    }
-
-    .exp-modal-duration {
-      font-size: 0.75rem;
-      color: var(--muted);
-      margin-bottom: 1rem;
-    }
-
-    .exp-modal-description {
-      font-size: 0.8rem;
-      line-height: 1.7;
-      color: var(--muted);
-      margin-bottom: 1.5rem;
-    }
-
-    .exp-modal-tools {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-
-    .exp-tool-tag {
-      font-size: 0.65rem;
-      padding: 0.35rem 0.7rem;
-      background: rgba(196,80,26,0.1);
-      border: 1px solid rgba(196,80,26,0.25);
-      color: var(--muted);
-      border-radius: 3px;
-      letter-spacing: 0.08em;
-    }
-
-    #contact { padding: 8rem 4rem; text-align: center; }
-    .contact-pre { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
-    .contact-heading { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 1.5rem; }
+    /* ── CONTACT ── */
+    #contact { padding: 8rem var(--gutter); text-align: center; }
+    .contact-heading { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 2rem; }
     .contact-heading em { font-style: italic; color: var(--accent); }
     .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
 
-    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
-    footer p { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
-    #visit-counter { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
-
-    /* Modal */
-    #modal-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
-    #modal-overlay.active { display: block; }
-    #modal-backdrop { position: absolute; inset: 0; background: rgba(10,9,7,0); }
-    #modal-box { position: absolute; background: #0e0d0b; border: 1px solid rgba(196,80,26,0.35); overflow: hidden; display: none; }
-    #modal-box.visible { display: block; }
-    #modal-box iframe { display: block; width: 100%; height: 100%; border: none; }
-    #modal-close {
-      position: absolute; top: 1rem; right: 1rem;
-      width: 34px; height: 34px;
-      background: rgba(14,13,11,0.9);
-      border: 1px solid rgba(196,80,26,0.4);
-      color: #ede8df; font-size: 0.9rem; cursor: pointer;
-      display: none; align-items: center; justify-content: center;
-      transition: background 0.2s; z-index: 10;
+    footer {
+      position: relative; z-index: 1; border-top: 1px solid var(--border);
+      padding: 2rem var(--gutter); display: flex; justify-content: space-between; align-items: center; gap: 1.5rem; flex-wrap: wrap;
     }
-    #modal-close:hover { background: var(--accent); }
-    #modal-close.visible { display: flex; }
+    footer p { font-size: 0.66rem; color: var(--muted); letter-spacing: 0.05em; }
+    footer a { color: var(--accent); text-decoration: none; }
 
-    @keyframes slideOutLeft  { from { transform:translateX(0);    opacity:1; } to { transform:translateX(-6%);  opacity:0; } }
-    @keyframes slideOutRight { from { transform:translateX(0);    opacity:1; } to { transform:translateX(6%);   opacity:0; } }
-    @keyframes slideInLeft   { from { transform:translateX(6%);   opacity:0; } to { transform:translateX(0);   opacity:1; } }
-    @keyframes slideInRight  { from { transform:translateX(-6%);  opacity:0; } to { transform:translateX(0);   opacity:1; } }
+    /* ── ANIMS ── */
+    @keyframes slideOutLeft  { to { transform: translateX(-6%); opacity: 0; } }
+    @keyframes slideOutRight { to { transform: translateX(6%);  opacity: 0; } }
+    @keyframes slideInLeft   { from { transform: translateX(6%);  opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes slideInRight  { from { transform: translateX(-6%); opacity: 0; } to { transform: none; opacity: 1; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+    @keyframes slide { 0% { left: -100%; } 100% { left: 100%; } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.8s var(--ease), transform 0.8s var(--ease); }
+    .reveal.visible { opacity: 1; transform: none; }
 
-    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes slide  { 0% { left:-100%; } 100% { left:100%; } }
-    .reveal { opacity:0; transform:translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
-    .reveal.visible { opacity:1; transform:translateY(0); }
-
-    @media (max-width: 768px) {
-      nav { padding: 1.2rem 1.5rem; }
-      #hero, #projects, #contact, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+    @media (max-width: 900px) {
+      :root { --gutter: 1.5rem; }
+      #hero { grid-template-columns: 1fr; padding-top: 5rem; gap: 0; min-height: auto; }
+      .avatar-stage { height: 50vh; min-height: 320px; }
+      .avatar-caption { margin: 0 0 2.2rem; }
+      .hero-copy { padding-bottom: 2rem; }
+      .hero-scroll { display: none; }
       .nav-links { gap: 1.5rem; }
-      .divider { margin: 0 1.5rem; }
       .tab-group-label { display: none; }
-      .tab-btn { padding: 0.75rem 0.7rem; font-size: 0.63rem; }
-      footer { flex-direction: column; align-items: center; text-align: center; }
+      footer { flex-direction: column; text-align: center; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0ms !important; transition-duration: 0.01ms !important; }
     }
   </style>
 </head>
@@ -518,34 +373,66 @@
 <div id="dim-overlay"></div>
 <canvas id="morph-canvas"></canvas>
 
+<nav>
+  <a href="#hero" class="nav-logo">.JGG</a>
+  <ul class="nav-links">
+    <li><a href="#projects">Work</a></li>
+    <li><a href="#experience">Experience</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- Modals au niveau du body : un parent avec transform casse position:fixed -->
 <div id="modal-overlay">
   <div id="modal-backdrop"></div>
   <div id="modal-box">
-    <button id="modal-close">✕</button>
-    <iframe id="modal-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+    <button id="modal-close" class="x-btn" aria-label="Close video">✕</button>
+    <iframe id="modal-iframe" title="Project video" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture"></iframe>
+  </div>
+</div>
+
+<div id="exp-modal-overlay" class="exp-modal-overlay" role="dialog" aria-modal="true">
+  <div class="exp-modal-box">
+    <button id="exp-modal-close" class="x-btn" aria-label="Close">✕</button>
+    <h3 id="exp-title" class="exp-modal-title"></h3>
+    <p id="exp-company" class="exp-modal-company"></p>
+    <p id="exp-duration" class="exp-modal-duration"></p>
+    <p id="exp-description" class="exp-modal-description"></p>
+    <div id="exp-tools" class="exp-modal-tools"></div>
   </div>
 </div>
 
 <div id="page-content">
-  <nav>
-    <span class="nav-logo">.JGG</span>
-    <ul class="nav-links">
-      <li><a href="#projects">My Work</a></li>
-      <li><a href="#contact">Contact</a></li>
-    </ul>
-  </nav>
 
   <section id="hero">
-    <p class="hero-tag">Animator</p>
-    <h1 class="hero-name">I <em>Animate</em><br>yes idk</h1>
-    <p class="hero-sub">PLACEHOLDER</p>
-    <div class="hero-cta">
-      <a href="#projects" class="btn btn-primary">See my work</a>
-      <a href="#contact" class="btn btn-ghost">Get in touch</a>
+    <div class="avatar-col">
+      <div class="avatar-stage" id="avatar-stage" title="click me">
+        <div class="avatar-loading" id="avatar-loading">loading avatar</div>
+      </div>
+      <p class="avatar-caption" id="avatar-caption">live from <b>Roblox</b></p>
     </div>
-    <div class="hero-scroll">
-      <span>Scroll</span>
-      <div class="scroll-line"></div>
+
+    <div class="hero-copy">
+      <p class="hero-tag">Roblox · Animation / VFX / Luau</p>
+      <h1 class="hero-name">I make Roblox<br><em>move.</em></h1>
+      <p class="hero-sub">Animation, VFX and Luau scripting for Roblox games, from custom rigs to motion that ships in-game.</p>
+
+      <div class="presence" id="presence" hidden>
+        <div class="presence-row">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.5 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4-2 1 1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>
+          <span id="presence-discord"></span>
+        </div>
+        <div class="presence-row" id="presence-spotify-row">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.7.7 0 0 1-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 1 1-.3-1.4c4.6-1 8.5-.6 11.6 1.3.4.2.5.7.3 1Zm1.5-3.3a.9.9 0 0 1-1.3.3c-3.2-2-8.1-2.6-11.9-1.4a.9.9 0 1 1-.5-1.7c4.3-1.3 9.7-.7 13.4 1.6.4.3.5.8.3 1.2Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 1 1-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 0 1-1.2 1.9Z"/></svg>
+          <span id="presence-spotify">Not listening to anything</span>
+        </div>
+      </div>
+
+      <div class="hero-cta">
+        <a href="#projects" class="btn btn-primary">See my work</a>
+        <a href="#contact" class="btn btn-ghost">Get in touch</a>
+      </div>
+      <div class="hero-scroll"><span>Scroll</span><div class="scroll-line"></div></div>
     </div>
   </section>
 
@@ -553,7 +440,8 @@
 
   <section id="projects">
     <div class="projects-header reveal">
-      <h2 class="projects-title">My Work</h2>
+      <p class="section-pre">Selected work</p>
+      <h2 class="section-title">My Work</h2>
     </div>
 
     <div class="tab-bar reveal">
@@ -570,23 +458,10 @@
     </div>
 
     <div class="grid-viewport" id="grid-viewport">
-
-      <div class="grid-panel current" id="panel-animation">
-        <div class="projects-grid"></div>
-      </div>
-
-      <div class="grid-panel" id="panel-vfx">
-        <div class="projects-grid"></div>
-      </div>
-
-      <div class="grid-panel" id="panel-scripts">
-        <div class="projects-grid"></div>
-      </div>
-
-      <div class="grid-panel" id="panel-models">
-        <div class="projects-grid"></div>
-      </div>
-
+      <div class="grid-panel current" id="panel-animation"><div class="projects-grid"></div></div>
+      <div class="grid-panel" id="panel-vfx"><div class="projects-grid"></div></div>
+      <div class="grid-panel" id="panel-scripts"><div class="projects-grid"></div></div>
+      <div class="grid-panel" id="panel-models"><div class="projects-grid"></div></div>
     </div>
   </section>
 
@@ -594,555 +469,350 @@
 
   <section id="experience">
     <div class="experience-header reveal">
-      <h2 class="experience-title">Experience</h2>
-      <p class="experience-subtitle">Scroll through the timeline</p>
+      <div>
+        <p class="section-pre">Timeline</p>
+        <h2 class="section-title">Experience</h2>
+      </div>
+      <p class="experience-hint">← drag →</p>
     </div>
-    
-    <div id="timeline-container">
-      <canvas id="timeline-canvas"></canvas>
-      
-      <!-- Timeline Year Markers -->
-      <div id="timeline-years">
-        <div class="timeline-year">2021</div>
-        <div class="timeline-year">2022</div>
-        <div class="timeline-year">2023</div>
-        <div class="timeline-year">2024</div>
-      </div>
-
-      <!-- Experience Modal -->
-      <div id="exp-modal-overlay" class="exp-modal-overlay">
-        <button id="exp-modal-close" class="exp-close">✕</button>
-        <div id="exp-modal-box">
-          <h3 id="exp-title" class="exp-modal-title">Experience</h3>
-          <p id="exp-company" class="exp-modal-company">Company</p>
-          <p id="exp-duration" class="exp-modal-duration">Duration</p>
-          <p id="exp-description" class="exp-modal-description">Description</p>
-          <div id="exp-tools" class="exp-modal-tools"></div>
-        </div>
-      </div>
+    <div class="tl reveal" id="tl">
+      <div class="tl-track" id="tl-track"><div class="tl-line"></div></div>
     </div>
   </section>
 
   <div class="divider"></div>
+
+  <section id="contact">
     <div class="reveal">
-      <p class="contact-pre">Let's talk</p>
+      <p class="section-pre">Let's talk</p>
       <h2 class="contact-heading">Got a project<br>in <em>mind?</em></h2>
       <div class="contact-links">
-        <a href="#projects" class="btn btn-ghost">See my work</a>
-        <button id="discord-btn" class="btn btn-primary" onclick="navigator.clipboard.writeText('.JGG').then(()=>{this.textContent='Copied!';spawnBurst(this);setTimeout(()=>this.textContent='Discord: .JGG',1800)})">Discord: .JGG</button>
+        <button id="discord-btn" class="btn btn-primary">Discord: .JGG</button>
+        <a id="roblox-link" class="btn btn-ghost" target="_blank" rel="noopener">Roblox profile ↗</a>
       </div>
     </div>
   </section>
 
   <footer>
-    <p>Made with love by JGG © 2026</p>
-    <div id="visit-counter">Visitors: <span>0</span></div>
+    <p>Made by .JGG © <span id="year">2026</span></p>
+    <p id="avatar-sync">Avatar synced from Roblox</p>
   </footer>
 </div>
 
 <script>
 /* ════════════════════════════════════════════════════════════════
-   PROJECT CONFIG — Add your projects here (easier!)
-   Just fill in: type, name, description, tags, videoUrl
+   CONFIG — tout ce que tu modifies est ici
 ════════════════════════════════════════════════════════════════ */
-
-const PROJECTS = {
-  animation: [
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    }
-  ],
-  vfx: [
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    },
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    }
-  ],
-  scripts: [
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    }
-  ],
-  models: [
-    {
-      name: "Placeholder",
-      description: "Placeholder",
-      tags: ["Placeholder"],
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
-    }
-  ]
+const CONFIG = {
+  robloxUserId: 1077832330,
+  discordTag: '.JGG',
+  // Ton ID Discord (clic droit sur ton profil > Copier l'identifiant, mode développeur activé).
+  // Pour que ça marche, rejoins le serveur Lanyard : https://discord.gg/lanyard
+  // Laisse vide pour cacher le bloc de statut.
+  discordId: '',
 };
 
-/* ────────────────────────────────────────────────────────────────
-   AUTO-GENERATES HTML FROM CONFIG (you don't touch the HTML!)
-────────────────────────────────────────────────────────────────── */
-function renderProjects() {
-  const tabs = ['animation', 'vfx', 'scripts', 'models'];
-  tabs.forEach(tab => {
-    const panel = document.getElementById(`panel-${tab}`);
-    const grid = panel.querySelector('.projects-grid');
-    grid.innerHTML = '';
-    
-    PROJECTS[tab].forEach(proj => {
-      const card = document.createElement('div');
-      card.className = 'project-card';
-      card.dataset.video = proj.videoUrl;
-      
-      const tagsHtml = proj.tags.map(t => `<span class="tag">${t}</span>`).join('');
-      
-      card.innerHTML = `
-        <p class="project-type">${tab.charAt(0).toUpperCase() + tab.slice(1)}</p>
-        <h3 class="project-name">${proj.name}</h3>
-        <p class="project-desc">${proj.description}</p>
-        <div class="project-tags">${tagsHtml}</div>
-        <p class="project-link">View project →</p>
-      `;
-      
-      grid.appendChild(card);
-    });
-  });
-  bindVideoCards();
-}
-renderProjects();
+/* PROJETS — videoUrl : lien YouTube (watch, youtu.be ou embed), la miniature se fait toute seule.
+   Optionnel : thumb (image perso), preview (mp4 court muet joué au survol, ex: "previews/combo.mp4").
+   Laisse videoUrl vide = carte "coming soon" non cliquable. */
+const PROJECTS = {
+  animation: [
+    { name: "Ton anim ici", description: "Décris le contexte : jeu, client, ce que tu as fait.", tags: ["Moon Animator", "R15"], videoUrl: "" },
+  ],
+  vfx: [
+    { name: "Ton VFX ici", description: "Particles, beams, timing…", tags: ["Particles"], videoUrl: "" },
+  ],
+  scripts: [
+    { name: "Ton système ici", description: "Ce que fait le système, en une phrase.", tags: ["Luau"], videoUrl: "" },
+  ],
+  models: [
+    { name: "Ton modèle ici", description: "Blender, low poly, etc.", tags: ["Blender"], videoUrl: "" },
+  ],
+};
 
-/* ════════════════════════════════════════════════════════════════
-   EXPERIENCE TIMELINE — DRAGGABLE CARDS
-════════════════════════════════════════════════════════════════ */
-
-const EXPERIENCE_DATA = [
+/* EXPÉRIENCE — que du vrai. Ajoute/retire librement. */
+const EXPERIENCE = [
   {
-    id: 'animator',
-    title: 'Lead Animator',
-    company: 'Studio Vibes',
-    duration: '2022–2024',
-    year: 2022,
-    description: 'Directed animation pipelines for 50+ projects. Character rigging, motion design, fluid transitions.',
-    tools: ['Moon Animator', 'Rigging', 'Animation'],
+    year: '2019', title: 'Joined Roblox', company: 'Roblox', duration: '2019 – present',
+    description: 'Created my account and started building. Account bio: "futur big dev".',
+    tools: ['Roblox Studio'],
   },
   {
-    id: 'vfx',
-    title: 'VFX Specialist',
-    company: 'Digital Dreams',
-    duration: '2021–2022',
-    year: 2021,
-    description: 'Real-time particle effects, optimized systems. 60fps guaranteed with Luau controllers.',
-    tools: ['Particles', 'Beams', 'Luau'],
+    year: '2026', title: 'Animation commissions', company: 'Freelance', duration: '2026 – present',
+    description: 'Custom animations for Roblox characters, including non-standard rigs (4-arm IK rig set up in Blender).',
+    tools: ['Blender', 'IK rigging', 'Animation'],
   },
   {
-    id: 'scripter',
-    title: 'Luau Developer',
-    company: 'Tech Studios',
-    duration: '2020–2021',
-    year: 2021,
-    description: 'Game systems, cutscene engines, state managers. Zero frame drops. Clean architecture.',
-    tools: ['Luau', 'Game Systems', 'Architecture'],
+    year: '2026', title: 'Shift at Robloxia', company: 'Personal game', duration: '2026',
+    description: 'Horror/shift game inspired by Shift at Midnight. Built the inventory and item-holding system.',
+    tools: ['Luau', 'Game systems', 'Roblox Studio'],
   },
   {
-    id: 'freelance',
-    title: 'Freelancer',
-    company: 'Various',
-    duration: '2019–Present',
-    year: 2023,
-    description: 'Full-stack work across animation, VFX, scripting. Client-focused, detail-oriented.',
-    tools: ['Full Stack', 'Problem Solving', 'Client Work'],
-  },
-  {
-    id: 'mentor',
-    title: 'Mentor & Educator',
-    company: 'Community',
-    duration: '2021–Present',
-    year: 2024,
-    description: 'Teaching animation and game dev. Published tutorials, led workshops. Passionate about sharing knowledge.',
-    tools: ['Teaching', 'Documentation', 'Community'],
+    year: '2026', title: 'Aftershift', company: 'Game project', duration: '2026',
+    description: 'Added console and controller support, with Xbox and PlayStation button prompts.',
+    tools: ['Luau', 'UserInputService', 'UI'],
   },
 ];
 
-class TimelineCard {
-  constructor(data, x) {
-    this.data = data;
-    this.x = x;
-    this.y = 100;
-    this.width = 120;
-    this.height = 140;
-    this.isDragging = false;
-    this.hovered = false;
-  }
-
-  update() {
-    // No snap-back! Just stay where dragged
-  }
-
-  draw(ctx) {
-    const x = this.x;
-    const y = this.y;
-
-    // Subtle glow on hover
-    if (this.hovered) {
-      ctx.fillStyle = 'rgba(196,80,26,0.12)';
-      ctx.roundRect(x - 6, y - 6, this.width + 12, this.height + 12, 8);
-      ctx.fill();
-    }
-
-    // Main card
-    ctx.fillStyle = this.hovered ? 'rgba(196,80,26,0.18)' : 'rgba(196,80,26,0.09)';
-    ctx.strokeStyle = 'rgba(196,80,26,0.4)';
-    ctx.lineWidth = 1.2;
-    ctx.roundRect(x, y, this.width, this.height, 6);
-    ctx.fill();
-    ctx.stroke();
-
-    // Year badge
-    ctx.fillStyle = 'rgba(196,80,26,0.3)';
-    ctx.roundRect(x + 6, y + 6, 40, 20, 3);
-    ctx.fill();
-
-    ctx.fillStyle = '#c4501a';
-    ctx.font = '600 11px "DM Mono"';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(this.data.year, x + 26, y + 16);
-
-    // Title
-    ctx.fillStyle = '#ede8df';
-    ctx.font = '500 11px "DM Serif Display"';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'top';
-    
-    const titleWords = this.data.title.split(' ');
-    let lineY = y + 32;
-    for (let word of titleWords) {
-      ctx.fillText(word, x + this.width/2, lineY);
-      lineY += 14;
-    }
-
-    // Company
-    ctx.fillStyle = 'rgba(196,80,26,0.7)';
-    ctx.font = '300 9px "DM Mono"';
-    ctx.fillText(this.data.company.substring(0, 12), x + this.width/2, y + 110);
-  }
-
-  contains(px, py) {
-    return px >= this.x - 6 && px <= this.x + this.width + 6 &&
-           py >= this.y - 6 && py <= this.y + this.height + 6;
-  }
+/* ════════════════════════════════════════════════════════════════
+   HELPERS
+════════════════════════════════════════════════════════════════ */
+const $ = (s, r = document) => r.querySelector(s);
+function el(tag, cls, text) {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text != null) n.textContent = text;
+  return n;
 }
-
-const tlCanvas = document.getElementById('timeline-canvas');
-const tlCtx = tlCanvas.getContext('2d');
-
-// Polyfill roundRect
-if (!tlCtx.roundRect) {
-  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
-    this.beginPath();
-    this.moveTo(x + r, y);
-    this.lineTo(x + w - r, y);
-    this.arcTo(x + w, y, x + w, y + r, r);
-    this.lineTo(x + w, y + h - r);
-    this.arcTo(x + w, y + h, x + w - r, y + h, r);
-    this.lineTo(x + r, y + h);
-    this.arcTo(x, y + h, x, y + h - r, r);
-    this.lineTo(x, y + r);
-    this.arcTo(x, y, x + r, y, r);
-    this.closePath();
-  };
+function ytId(url) {
+  if (!url) return null;
+  const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m ? m[1] : null;
 }
-
-function resizeTlCanvas() {
-  const container = document.getElementById('timeline-container');
-  tlCanvas.width = container.clientWidth;
-  tlCanvas.height = 280;
+function embedUrl(url) {
+  const id = ytId(url);
+  if (id) return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0`;
+  return url + (url.includes('?') ? '&' : '?') + 'autoplay=1';
 }
-resizeTlCanvas();
-window.addEventListener('resize', resizeTlCanvas);
+$('#year').textContent = new Date().getFullYear();
+$('#roblox-link').href = `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`;
 
-const cards = [];
-let dragCard = null;
-let dragOffsetX = 0;
-let scrollOffset = 0;
+/* ════════════════════════════════════════════════════════════════
+   PROJECTS
+════════════════════════════════════════════════════════════════ */
+function renderProjects() {
+  Object.keys(PROJECTS).forEach(tab => {
+    const grid = $(`#panel-${tab} .projects-grid`);
+    grid.innerHTML = '';
+    PROJECTS[tab].forEach(proj => {
+      const playable = !!proj.videoUrl;
+      const card = el('article', 'project-card' + (playable ? ' playable' : ''));
+      if (playable) { card.dataset.video = proj.videoUrl; card.tabIndex = 0; }
 
-// Init cards with spacing
-let cardX = 60;
-EXPERIENCE_DATA.forEach((data) => {
-  cards.push(new TimelineCard(data, cardX));
-  cardX += 160;
-});
+      const media = el('div', 'card-media');
+      const thumb = proj.thumb || (ytId(proj.videoUrl) ? `https://i.ytimg.com/vi/${ytId(proj.videoUrl)}/hqdefault.jpg` : null);
+      if (thumb) {
+        const img = el('img'); img.src = thumb; img.alt = ''; img.loading = 'lazy';
+        media.appendChild(img);
+      }
+      if (proj.preview) {
+        const v = el('video'); v.src = proj.preview; v.muted = true; v.loop = true; v.playsInline = true; v.preload = 'none';
+        media.appendChild(v);
+        card.addEventListener('pointerenter', () => { card.classList.add('previewing'); v.play().catch(() => {}); });
+        card.addEventListener('pointerleave', () => { card.classList.remove('previewing'); v.pause(); });
+      }
+      if (playable) media.appendChild(el('span', 'card-play', '▶'));
+      else if (!thumb) media.appendChild(el('span', 'card-soon', 'coming soon'));
 
-// Mouse events
-tlCanvas.addEventListener('mousedown', (e) => {
-  const rect = tlCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left + scrollOffset;
-  const y = e.clientY - rect.top;
+      const body = el('div', 'card-body');
+      body.appendChild(el('p', 'project-type', tab));
+      body.appendChild(el('h3', 'project-name', proj.name));
+      body.appendChild(el('p', 'project-desc', proj.description));
+      const tags = el('div', 'project-tags');
+      (proj.tags || []).forEach(t => tags.appendChild(el('span', 'tag', t)));
+      body.appendChild(tags);
 
-  for (let card of cards) {
-    if (card.contains(x, y)) {
-      dragCard = card;
-      card.isDragging = true;
-      dragOffsetX = x - card.x;
-      return;
-    }
-  }
-});
-
-document.addEventListener('mousemove', (e) => {
-  if (!tlCanvas.parentElement.contains(e.target) && !dragCard) return;
-
-  const rect = tlCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left + scrollOffset;
-  const y = e.clientY - rect.top;
-
-  for (let card of cards) {
-    card.hovered = card.contains(x, y) && !dragCard;
-  }
-
-  if (dragCard && e.buttons & 1) {
-    dragCard.x = x - dragOffsetX;
-  }
-});
-
-document.addEventListener('mouseup', () => {
-  if (dragCard) {
-    dragCard.isDragging = false;
-    dragCard = null;
-  }
-});
-
-tlCanvas.addEventListener('click', (e) => {
-  if (dragCard) return;
-
-  const rect = tlCanvas.getBoundingClientRect();
-  const x = e.clientX - rect.left + scrollOffset;
-  const y = e.clientY - rect.top;
-
-  for (let card of cards) {
-    if (card.contains(x, y)) {
-      openExpModal(card);
-      return;
-    }
-  }
-});
-
-// Scroll wheel for horizontal panning
-tlCanvas.addEventListener('wheel', (e) => {
-  e.preventDefault();
-  scrollOffset += e.deltaY * 0.5;
-  scrollOffset = Math.max(0, scrollOffset);
-}, { passive: false });
-
-// Modal
-const expModalOverlay = document.getElementById('exp-modal-overlay');
-const expModalClose = document.getElementById('exp-modal-close');
-
-function openExpModal(card) {
-  document.getElementById('exp-title').textContent = card.data.title;
-  document.getElementById('exp-company').textContent = card.data.company;
-  document.getElementById('exp-duration').textContent = card.data.duration;
-  document.getElementById('exp-description').textContent = card.data.description;
-
-  const toolsContainer = document.getElementById('exp-tools');
-  toolsContainer.innerHTML = card.data.tools
-    .map(t => `<span class="exp-tool-tag">${t}</span>`)
-    .join('');
-
-  expModalOverlay.classList.add('active');
-}
-
-function closeExpModal() {
-  expModalOverlay.classList.remove('active');
-}
-
-expModalClose.addEventListener('click', closeExpModal);
-expModalOverlay.addEventListener('click', (e) => {
-  if (e.target === expModalOverlay) closeExpModal();
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') closeExpModal();
-});
-
-// Animation loop
-function animateTl() {
-  tlCtx.clearRect(0, 0, tlCanvas.width, tlCanvas.height);
-
-  // Draw timeline line
-  tlCtx.strokeStyle = 'rgba(196,80,26,0.2)';
-  tlCtx.lineWidth = 1;
-  tlCtx.beginPath();
-  tlCtx.moveTo(-scrollOffset, 80);
-  tlCtx.lineTo(tlCanvas.width + 1000 - scrollOffset, 80);
-  tlCtx.stroke();
-
-  // Draw year markers on timeline
-  const years = [2021, 2022, 2023, 2024];
-  const yearSpacing = tlCanvas.width / 4;
-  
-  tlCtx.fillStyle = 'rgba(196,80,26,0.15)';
-  tlCtx.strokeStyle = 'rgba(196,80,26,0.25)';
-  tlCtx.lineWidth = 0.5;
-  
-  years.forEach((year, i) => {
-    const xPos = yearSpacing * i + yearSpacing/2 - scrollOffset;
-    if (xPos > -20 && xPos < tlCanvas.width + 20) {
-      tlCtx.beginPath();
-      tlCtx.arc(xPos, 80, 4, 0, Math.PI * 2);
-      tlCtx.fill();
-      tlCtx.stroke();
-    }
+      card.append(media, body);
+      grid.appendChild(card);
+    });
+    const btn = $(`.tab-btn[data-tab="${tab}"]`);
+    const n = PROJECTS[tab].filter(p => p.videoUrl).length;
+    if (btn && n) btn.insertAdjacentHTML('beforeend', `<span class="tab-count">${n}</span>`);
   });
-
-  // Update & draw cards
-  for (let card of cards) {
-    card.update();
-  }
-
-  tlCtx.save();
-  tlCtx.translate(-scrollOffset, 0);
-  
-  for (let card of cards) {
-    card.draw(tlCtx);
-  }
-
-  tlCtx.restore();
-
-  requestAnimationFrame(animateTl);
 }
-animateTl();
+renderProjects();
 
+const gridViewport = $('#grid-viewport');
+gridViewport.addEventListener('click', e => {
+  const card = e.target.closest('.project-card.playable');
+  if (card) openVideo(embedUrl(card.dataset.video));
+});
+gridViewport.addEventListener('keydown', e => {
+  const card = e.target.closest('.project-card.playable');
+  if (card && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openVideo(embedUrl(card.dataset.video)); }
+});
 
-async function initVisitCounter(){
+/* ── TABS ── */
+const TAB_ORDER = ['animation', 'vfx', 'scripts', 'models'];
+let currentTab = 'animation', tabAnimating = false;
+function switchTab(nextTab) {
+  if (nextTab === currentTab || tabAnimating) return;
+  tabAnimating = true;
+  const goRight = TAB_ORDER.indexOf(nextTab) > TAB_ORDER.indexOf(currentTab);
+  const fromPanel = $('#panel-' + currentTab), toPanel = $('#panel-' + nextTab);
+  gridViewport.style.height = fromPanel.offsetHeight + 'px';
+  fromPanel.classList.add(goRight ? 'slide-out-left' : 'slide-out-right');
+  toPanel.classList.add(goRight ? 'slide-in-left' : 'slide-in-right');
+  setTimeout(() => {
+    fromPanel.classList.remove('current', 'slide-out-left', 'slide-out-right');
+    toPanel.classList.remove('slide-in-left', 'slide-in-right');
+    toPanel.classList.add('current');
+    gridViewport.style.height = '';
+    currentTab = nextTab; tabAnimating = false;
+  }, 400);
+}
+document.querySelectorAll('.tab-btn').forEach(btn => btn.addEventListener('click', () => {
+  if (btn.dataset.tab === currentTab || tabAnimating) return;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  switchTab(btn.dataset.tab);
+}));
+
+/* ════════════════════════════════════════════════════════════════
+   EXPERIENCE TIMELINE
+════════════════════════════════════════════════════════════════ */
+const tl = $('#tl'), tlTrack = $('#tl-track');
+EXPERIENCE.forEach((exp, i) => {
+  const c = el('button', 'tl-card');
+  c.type = 'button';
+  c.append(el('span', 'tl-year', exp.year), el('span', 'tl-title', exp.title), el('span', 'tl-sub', exp.company));
+  c.addEventListener('click', () => { if (!tlDragged) openExpModal(exp); });
+  tlTrack.appendChild(c);
+});
+
+// drag-to-scroll à la souris (le tactile scrolle nativement)
+let tlDown = false, tlDragged = false, tlStartX = 0, tlStartScroll = 0;
+tl.addEventListener('pointerdown', e => {
+  if (e.pointerType !== 'mouse') return;
+  tlDown = true; tlDragged = false; tlStartX = e.clientX; tlStartScroll = tl.scrollLeft;
+});
+window.addEventListener('pointermove', e => {
+  if (!tlDown) return;
+  const dx = e.clientX - tlStartX;
+  if (Math.abs(dx) > 5) { tlDragged = true; tl.classList.add('dragging'); }
+  if (tlDragged) tl.scrollLeft = tlStartScroll - dx;
+});
+window.addEventListener('pointerup', () => {
+  if (!tlDown) return;
+  tlDown = false; tl.classList.remove('dragging');
+  setTimeout(() => { tlDragged = false; }, 0);
+});
+
+const expOverlay = $('#exp-modal-overlay');
+function openExpModal(exp) {
+  $('#exp-title').textContent = exp.title;
+  $('#exp-company').textContent = exp.company;
+  $('#exp-duration').textContent = exp.duration;
+  $('#exp-description').textContent = exp.description;
+  const tools = $('#exp-tools'); tools.innerHTML = '';
+  exp.tools.forEach(t => tools.appendChild(el('span', 'tag', t)));
+  expOverlay.classList.add('active');
+  $('#exp-modal-close').focus();
+}
+function closeExpModal() { expOverlay.classList.remove('active'); }
+$('#exp-modal-close').addEventListener('click', closeExpModal);
+expOverlay.addEventListener('click', e => { if (e.target === expOverlay) closeExpModal(); });
+
+/* ════════════════════════════════════════════════════════════════
+   DISCORD (copy) + LANYARD PRESENCE
+════════════════════════════════════════════════════════════════ */
+const discordBtn = $('#discord-btn');
+discordBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(CONFIG.discordTag).then(() => {
+    discordBtn.textContent = 'Copied!';
+    spawnBurst(discordBtn);
+    setTimeout(() => discordBtn.textContent = 'Discord: ' + CONFIG.discordTag, 1800);
+  }).catch(() => {});
+});
+
+const STATUS_LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
+async function updatePresence() {
   try {
-    const res = await fetch('https://api.countapi.com/hit/jgg-portfolio/visits');
-    const data = await res.json();
-    document.querySelector('#visit-counter span').textContent = data.value.toLocaleString();
-  } catch (err) {
-    console.log('Counter unavailable, showing fallback');
-    document.querySelector('#visit-counter span').textContent = '∞';
-  }
+    const res = await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`);
+    const json = await res.json();
+    if (!json.success) return;
+    const d = json.data;
+    const status = d.discord_status || 'offline';
+    const game = (d.activities || []).find(a => a.type === 0);
+    const discordEl = $('#presence-discord');
+    discordEl.innerHTML = '';
+    const s = el('span', 'presence-status ' + status);
+    s.prepend(el('span', 'presence-dot'));
+    s.append(STATUS_LABEL[status] || status);
+    discordEl.append(s);
+    if (game) discordEl.append(document.createTextNode('  ·  Playing ' + game.name));
+    $('#presence-spotify').textContent = d.listening_to_spotify && d.spotify
+      ? `${d.spotify.song} — ${d.spotify.artist.split(';')[0]}`
+      : 'Not listening to anything';
+    $('#presence').hidden = false;
+  } catch (_) { /* Lanyard down : on garde le bloc caché */ }
 }
-initVisitCounter();
+if (CONFIG.discordId) { updatePresence(); setInterval(updatePresence, 30000); }
 
-/* ── SNOW ── */
-const canvas = document.getElementById('snow');
-const ctx    = canvas.getContext('2d');
-let W = canvas.width  = window.innerWidth;
+/* ════════════════════════════════════════════════════════════════
+   SNOW
+════════════════════════════════════════════════════════════════ */
+const canvas = $('#snow');
+const ctx = canvas.getContext('2d');
+let W = canvas.width = window.innerWidth;
 let H = canvas.height = window.innerHeight;
 window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
-
 function rand(a, b) { return a + Math.random() * (b - a); }
 
 class Flake {
   constructor() { this.reset(true); }
   reset(init) {
-    this.x = rand(0, W);
-    this.y = init ? rand(0, H) : -10;
+    this.x = rand(0, W); this.y = init ? rand(0, H) : -10;
     const t = Math.random();
-    this.r  = t < 0.5 ? rand(0.6,1.2) : t < 0.85 ? rand(1.2,2.2) : rand(2.2,3.5);
-    this.vy = rand(0.4,1.1) * (this.r/1.5);
-    this.vx = rand(0.1,0.35);
-    this.swayAmp   = rand(0.2,0.8);
-    this.swaySpeed = rand(0.003,0.009);
-    this.swayOff   = rand(0,Math.PI*2);
-    this.turbX     = 0;
-    this.turbDecay = rand(0.92,0.97);
-    this.alpha     = this.r<1.2 ? rand(0.2,0.45) : this.r<2.2 ? rand(0.45,0.7) : rand(0.65,0.9);
-    this.frozen    = false;
+    this.r = t < 0.5 ? rand(0.6, 1.2) : t < 0.85 ? rand(1.2, 2.2) : rand(2.2, 3.5);
+    this.vy = rand(0.4, 1.1) * (this.r / 1.5); this.vx = rand(0.1, 0.35);
+    this.swayAmp = rand(0.2, 0.8); this.swaySpeed = rand(0.003, 0.009); this.swayOff = rand(0, Math.PI * 2);
+    this.turbX = 0; this.turbDecay = rand(0.92, 0.97);
+    this.alpha = this.r < 1.2 ? rand(0.2, 0.45) : this.r < 2.2 ? rand(0.45, 0.7) : rand(0.65, 0.9);
+    this.frozen = false;
   }
-  isOnScreen() { return this.x>=-10 && this.x<=W+10 && this.y>=-10 && this.y<=H+10; }
+  isOnScreen() { return this.x >= -10 && this.x <= W + 10 && this.y >= -10 && this.y <= H + 10; }
   draw() {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
-    ctx.fillStyle = `rgba(240,225,210,${this.alpha})`;
-    ctx.fill();
+    ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
+    ctx.fillStyle = `rgba(240,225,210,${this.alpha})`; ctx.fill();
   }
 }
-
 class BurstFlake extends Flake {
   constructor(ox, oy) {
     super();
     this.x = ox; this.y = oy;
-    const angle = rand(0, Math.PI*2), speed = rand(2.5,7);
-    this.bvx = Math.cos(angle)*speed; this.bvy = Math.sin(angle)*speed;
+    const angle = rand(0, Math.PI * 2), speed = rand(2.5, 7);
+    this.bvx = Math.cos(angle) * speed; this.bvy = Math.sin(angle) * speed;
     const t = Math.random();
-    this.r = t<0.4?rand(1,1.8):t<0.8?rand(1.8,2.8):rand(2.8,3.5);
-    this.alpha = rand(0.7,1);
-    this.burst = 1; this.burstDecay = rand(0.88,0.94);
+    this.r = t < 0.4 ? rand(1, 1.8) : t < 0.8 ? rand(1.8, 2.8) : rand(2.8, 3.5);
+    this.alpha = rand(0.7, 1); this.burst = 1; this.burstDecay = rand(0.88, 0.94);
+    this.temp = true; // les flocons de burst disparaissent au lieu de s'accumuler
   }
   update(windY, tick) {
     this.burst *= this.burstDecay;
-    const bx=this.bvx*this.burst, by=this.bvy*this.burst;
-    const sway=Math.sin(tick*this.swaySpeed+this.swayOff)*this.swayAmp;
-    if(Math.random()<0.001) this.turbX=rand(-1.5,1.5);
-    this.turbX*=this.turbDecay;
-    this.x+=bx+(this.vx+sway+this.turbX)*(1-this.burst);
-    this.y+=by+(this.vy-windY*(this.r/1.5))*(1-this.burst);
-    this.vx+=rand(-0.008,0.008); this.vx=Math.max(-0.6,Math.min(0.6,this.vx));
-    if(this.x<-10) this.x=W+10; if(this.x>W+10) this.x=-10;
-    if(this.y>H+10) this.reset(false); if(this.y<-10) this.y=H+10;
+    const bx = this.bvx * this.burst, by = this.bvy * this.burst;
+    const sway = Math.sin(tick * this.swaySpeed + this.swayOff) * this.swayAmp;
+    this.x += bx + (this.vx + sway) * (1 - this.burst);
+    this.y += by + (this.vy - windY * (this.r / 1.5)) * (1 - this.burst);
+    if (this.y > H + 10 || this.x < -10 || this.x > W + 10) this.dead = true;
   }
 }
-
-function spawnBurst(btn) {
-  const rect=btn.getBoundingClientRect();
-  const ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
-  for(let i=0;i<22;i++) flakes.push(new BurstFlake(ox,oy));
+const flakes = Array.from({ length: 160 }, () => new Flake());
+function spawnBurst(target, count = 22) {
+  const rect = target.getBoundingClientRect();
+  const ox = rect.left + rect.width / 2, oy = rect.top + rect.height / 2;
+  for (let i = 0; i < count; i++) flakes.push(new BurstFlake(ox, oy));
 }
-
-const flakes = Array.from({length:160}, ()=>new Flake());
-let lastScrollY=window.scrollY, windY=0, tick=0;
-window.addEventListener('scroll',()=>{
-  const d=window.scrollY-lastScrollY; lastScrollY=window.scrollY; windY+=d*0.08;
-},{passive:true});
+let lastScrollY = window.scrollY, windY = 0, tick = 0;
+window.addEventListener('scroll', () => {
+  const d = window.scrollY - lastScrollY; lastScrollY = window.scrollY; windY += d * 0.08;
+}, { passive: true });
 
 function snowLoop() {
-  windY*=0.88; ctx.clearRect(0,0,W,H); tick++;
-  for(const f of flakes){
-    if(f.frozen) continue;
-    if(f instanceof BurstFlake){ f.update(windY,tick); }
-    else{
-      const sway=Math.sin(tick*f.swaySpeed+f.swayOff)*f.swayAmp;
-      if(Math.random()<0.001) f.turbX=rand(-1.5,1.5);
-      f.turbX*=f.turbDecay;
-      f.x+=f.vx+sway+f.turbX; f.y+=f.vy-windY*(f.r/2);
-      f.vx+=rand(-0.008,0.008); f.vx=Math.max(-0.6,Math.min(0.6,f.vx));
-      if(f.x<-10) f.x=W+10; if(f.x>W+10) f.x=-10;
-      if(f.y>H+10) f.reset(false); if(f.y<-10) f.y=H+10;
+  windY *= 0.88; ctx.clearRect(0, 0, W, H); tick++;
+  for (let i = flakes.length - 1; i >= 0; i--) {
+    const f = flakes[i];
+    if (f.dead) { flakes.splice(i, 1); continue; }
+    if (f.frozen) continue;
+    if (f instanceof BurstFlake) f.update(windY, tick);
+    else {
+      const sway = Math.sin(tick * f.swaySpeed + f.swayOff) * f.swayAmp;
+      if (Math.random() < 0.001) f.turbX = rand(-1.5, 1.5);
+      f.turbX *= f.turbDecay;
+      f.x += f.vx + sway + f.turbX; f.y += f.vy - windY * (f.r / 2);
+      f.vx += rand(-0.008, 0.008); f.vx = Math.max(-0.6, Math.min(0.6, f.vx));
+      if (f.x < -10) f.x = W + 10; if (f.x > W + 10) f.x = -10;
+      if (f.y > H + 10) f.reset(false); if (f.y < -10) f.y = H + 10;
     }
     f.draw();
   }
@@ -1150,196 +820,316 @@ function snowLoop() {
 }
 snowLoop();
 
-/* ── TABS ── */
-const TAB_ORDER = ['animation','vfx','scripts','models'];
-let currentTab = 'animation';
-let isAnimating = false;
-const viewport = document.getElementById('grid-viewport');
+/* ════════════════════════════════════════════════════════════════
+   MORPH flocon → VIDEO
+════════════════════════════════════════════════════════════════ */
+const mc = $('#morph-canvas'), mctx = mc.getContext('2d');
+mc.width = window.innerWidth; mc.height = window.innerHeight;
+window.addEventListener('resize', () => { mc.width = window.innerWidth; mc.height = window.innerHeight; });
 
-function switchTab(nextTab) {
-  if(nextTab===currentTab||isAnimating) return;
-  isAnimating = true;
+const overlay = $('#modal-overlay'), modalBox = $('#modal-box'), iframeEl = $('#modal-iframe');
+const closeBtn = $('#modal-close'), backdrop = $('#modal-backdrop');
+const pageContent = $('#page-content'), dimOverlay = $('#dim-overlay');
+let morphRAF = null, trackedFlake = null, videoOpen = false;
 
-  const fromIdx=TAB_ORDER.indexOf(currentTab), toIdx=TAB_ORDER.indexOf(nextTab);
-  const goRight=toIdx>fromIdx;
-  const fromPanel=document.getElementById('panel-'+currentTab);
-  const toPanel=document.getElementById('panel-'+nextTab);
-
-  viewport.style.height = fromPanel.offsetHeight+'px';
-
-  toPanel.style.display='block';
-  fromPanel.classList.add(goRight?'slide-out-left':'slide-out-right');
-  toPanel.classList.add(goRight?'slide-in-left':'slide-in-right');
-
-  setTimeout(()=>{
-    fromPanel.classList.remove('current','slide-out-left','slide-out-right');
-    fromPanel.style.display='';
-    toPanel.classList.remove('slide-in-left','slide-in-right');
-    toPanel.classList.add('current');
-    viewport.style.height='';
-    currentTab=nextTab;
-    isAnimating=false;
-    bindVideoCards();
-  }, 400);
-}
-
-document.querySelectorAll('.tab-btn').forEach(btn=>{
-  btn.addEventListener('click',()=>{
-    if(btn.dataset.tab===currentTab) return;
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    switchTab(btn.dataset.tab);
-  });
-});
-
-/* ── MORPH / VIDEO ── */
-const mc=document.getElementById('morph-canvas');
-const mctx=mc.getContext('2d');
-mc.width=window.innerWidth; mc.height=window.innerHeight;
-window.addEventListener('resize',()=>{ mc.width=window.innerWidth; mc.height=window.innerHeight; });
-
-const overlay=document.getElementById('modal-overlay');
-const modalBox=document.getElementById('modal-box');
-const iframeEl=document.getElementById('modal-iframe');
-const closeBtn=document.getElementById('modal-close');
-const backdrop=document.getElementById('modal-backdrop');
-const pageContent=document.getElementById('page-content');
-const dimOverlay=document.getElementById('dim-overlay');
-
-let morphRAF=null, trackedFlake=null;
-
-function ease(p){ return p<0.5?2*p*p:-1+(4-2*p)*p; }
-
-function rrect(c,x,y,w,h,r){
-  r=Math.max(0,Math.min(r,w/2,h/2));
+function ease(p) { return p < 0.5 ? 2 * p * p : -1 + (4 - 2 * p) * p; }
+function rrect(c, x, y, w, h, r) {
+  r = Math.max(0, Math.min(r, w / 2, h / 2));
   c.beginPath();
-  c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);
-  c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);
-  c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);
-  c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);
+  c.moveTo(x + r, y); c.lineTo(x + w - r, y); c.arcTo(x + w, y, x + w, y + r, r);
+  c.lineTo(x + w, y + h - r); c.arcTo(x + w, y + h, x + w - r, y + h, r);
+  c.lineTo(x + r, y + h); c.arcTo(x, y + h, x, y + h - r, r);
+  c.lineTo(x, y + r); c.arcTo(x, y, x + r, y, r);
   c.closePath();
 }
-
-function getTarget(){
-  const tw=Math.min(860,window.innerWidth*0.85), th=tw*(9/16);
-  return{tx:(window.innerWidth-tw)/2,ty:(window.innerHeight-th)/2,tw,th};
+function getTarget() {
+  const tw = Math.min(900, window.innerWidth * 0.9, (window.innerHeight * 0.85) * 16 / 9), th = tw * 9 / 16;
+  return { tx: (window.innerWidth - tw) / 2, ty: (window.innerHeight - th) / 2, tw, th };
 }
-
-const EDGE=0.22;
-function isEdgeFlake(f){ return f.y<H*EDGE||f.y>H*(1-EDGE); }
-
-function pickFlake(){
-  const edgeBig=flakes.filter(f=>!f.frozen&&f.r>2&&f.isOnScreen()&&isEdgeFlake(f));
-  if(edgeBig.length) return edgeBig[Math.floor(Math.random()*edgeBig.length)];
-  const edge=flakes.filter(f=>!f.frozen&&f.isOnScreen()&&isEdgeFlake(f));
-  if(edge.length) return edge[Math.floor(Math.random()*edge.length)];
-  const any=flakes.filter(f=>!f.frozen&&f.isOnScreen());
-  return any.length?any[Math.floor(Math.random()*any.length)]:flakes[0];
+const EDGE = 0.22;
+const baseFlakes = () => flakes.filter(f => !(f instanceof BurstFlake) && !f.frozen && f.isOnScreen());
+function isEdgeFlake(f) { return f.y < H * EDGE || f.y > H * (1 - EDGE); }
+function pickFlake() {
+  const pool = baseFlakes();
+  const edgeBig = pool.filter(f => f.r > 2 && isEdgeFlake(f));
+  if (edgeBig.length) return edgeBig[Math.floor(Math.random() * edgeBig.length)];
+  const edge = pool.filter(isEdgeFlake);
+  if (edge.length) return edge[Math.floor(Math.random() * edge.length)];
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : flakes[0];
 }
-
-function getTrackedOrSwap(){
-  if(!trackedFlake||!trackedFlake.isOnScreen()){
-    if(trackedFlake) trackedFlake.frozen=false;
-    trackedFlake=pickFlake(); trackedFlake.frozen=true;
+function getTrackedOrSwap() {
+  if (!trackedFlake || !trackedFlake.isOnScreen()) {
+    if (trackedFlake) trackedFlake.frozen = false;
+    trackedFlake = pickFlake(); trackedFlake.frozen = true;
   }
   return trackedFlake;
 }
 
-function openVideo(url){
-  cancelAnimationFrame(morphRAF); mctx.clearRect(0,0,mc.width,mc.height);
-  if(trackedFlake) trackedFlake.frozen=false;
-  trackedFlake=pickFlake(); trackedFlake.frozen=true;
-  const sr=trackedFlake.r, sa=trackedFlake.alpha;
+function openVideo(url) {
+  videoOpen = true;
+  cancelAnimationFrame(morphRAF); mctx.clearRect(0, 0, mc.width, mc.height);
+  if (trackedFlake) trackedFlake.frozen = false;
+  trackedFlake = pickFlake(); trackedFlake.frozen = true;
+  const sr = trackedFlake.r, sa = trackedFlake.alpha;
   overlay.classList.add('active');
   modalBox.classList.remove('visible'); closeBtn.classList.remove('visible');
   pageContent.classList.add('zoomed'); dimOverlay.classList.add('active');
-  const t0=performance.now(),dur=700;
-  function step(now){
-    const f=getTrackedOrSwap(), sx=f.x, sy=f.y;
-    const p=ease(Math.min((now-t0)/dur,1));
-    const{tx,ty,tw,th}=getTarget();
-    mctx.clearRect(0,0,mc.width,mc.height);
-    const cx=sx+(tx+tw/2-sx)*p, cy=sy+(ty+th/2-sy)*p;
-    const cw=sr*2+(tw-sr*2)*p, ch=sr*2+(th-sr*2)*p, cr=sr*(1-p);
-    const r=Math.round(240-240*p),g=Math.round(225-225*p),b=Math.round(210-210*p),a=sa+(1-sa)*p;
-    mctx.fillStyle=`rgba(${r},${g},${b},${a})`;
-    rrect(mctx,cx-cw/2,cy-ch/2,cw,ch,cr); mctx.fill();
-    if(p<1){morphRAF=requestAnimationFrame(step);return;}
-    mctx.clearRect(0,0,mc.width,mc.height);
-    const{tx:tx2,ty:ty2,tw:tw2,th:th2}=getTarget();
-    modalBox.style.cssText=`left:${tx2}px;top:${ty2}px;width:${tw2}px;height:${th2}px;`;
-    iframeEl.src=url+'?autoplay=1';
+  const t0 = performance.now(), dur = 700;
+  function step(now) {
+    const f = getTrackedOrSwap(), sx = f.x, sy = f.y;
+    const p = ease(Math.min((now - t0) / dur, 1));
+    const { tx, ty, tw, th } = getTarget();
+    mctx.clearRect(0, 0, mc.width, mc.height);
+    const cx = sx + (tx + tw / 2 - sx) * p, cy = sy + (ty + th / 2 - sy) * p;
+    const cw = sr * 2 + (tw - sr * 2) * p, ch = sr * 2 + (th - sr * 2) * p, cr = sr * (1 - p);
+    const r = Math.round(240 - 240 * p), g = Math.round(225 - 225 * p), b = Math.round(210 - 210 * p), a = sa + (1 - sa) * p;
+    mctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+    rrect(mctx, cx - cw / 2, cy - ch / 2, cw, ch, cr); mctx.fill();
+    if (p < 1) { morphRAF = requestAnimationFrame(step); return; }
+    mctx.clearRect(0, 0, mc.width, mc.height);
+    const t = getTarget();
+    modalBox.style.cssText = `left:${t.tx}px;top:${t.ty}px;width:${t.tw}px;height:${t.th}px;`;
+    iframeEl.src = url;
     modalBox.classList.add('visible'); closeBtn.classList.add('visible');
   }
-  morphRAF=requestAnimationFrame(step);
+  morphRAF = requestAnimationFrame(step);
 }
 
-function pickOppositeFlake(fromFlake){
-  const fromTop=fromFlake?fromFlake.y<H*0.5:true;
-  const candidates=flakes.filter(f=>!f.frozen&&f.r>2&&f.isOnScreen()&&isEdgeFlake(f));
-  const pool=candidates.length
-    ?candidates
-    :flakes.filter(f=>!f.frozen&&f.r>2&&f.isOnScreen()).concat(flakes.filter(f=>!f.frozen&&f.isOnScreen())).slice(0,20);
-  if(!pool.length) return pickFlake();
-  pool.sort((a,b)=>{
-    const ax=fromFlake?Math.abs(a.x-fromFlake.x)/W+(fromTop?(a.y/H):(1-a.y/H)):0;
-    const bx=fromFlake?Math.abs(b.x-fromFlake.x)/W+(fromTop?(b.y/H):(1-b.y/H)):0;
-    return bx-ax;
+function pickOppositeFlake(fromFlake) {
+  const fromTop = fromFlake ? fromFlake.y < H * 0.5 : true;
+  const all = baseFlakes();
+  const candidates = all.filter(f => f.r > 2 && isEdgeFlake(f));
+  const pool = candidates.length ? candidates : all.slice(0, 20);
+  if (!pool.length) return pickFlake();
+  pool.sort((a, b) => {
+    const sa = fromFlake ? Math.abs(a.x - fromFlake.x) / W + (fromTop ? a.y / H : 1 - a.y / H) : 0;
+    const sb = fromFlake ? Math.abs(b.x - fromFlake.x) / W + (fromTop ? b.y / H : 1 - b.y / H) : 0;
+    return sb - sa;
   });
-  return pool[Math.floor(Math.random()*Math.max(1,Math.floor(pool.length/3)))];
+  return pool[Math.floor(Math.random() * Math.max(1, Math.floor(pool.length / 3)))];
 }
 
-function closeVideo(){
+function closeVideo() {
+  if (!videoOpen) return;
+  videoOpen = false;
   cancelAnimationFrame(morphRAF);
-  iframeEl.src=''; modalBox.classList.remove('visible'); closeBtn.classList.remove('visible');
+  iframeEl.src = ''; modalBox.classList.remove('visible'); closeBtn.classList.remove('visible');
   pageContent.classList.remove('zoomed'); dimOverlay.classList.remove('active');
-  const openFlake=trackedFlake;
-  if(trackedFlake){trackedFlake.frozen=false;trackedFlake=null;}
-  const destFlake=pickOppositeFlake(openFlake);
-  destFlake.frozen=true; trackedFlake=destFlake;
-  const er=destFlake.r, ea=destFlake.alpha;
-  const{tx,ty,tw,th}=getTarget();
-  const t0=performance.now(),dur=620;
-  function step(now){
-    if(destFlake&&!destFlake.isOnScreen()){destFlake.frozen=false;trackedFlake=null;}
-    const lx=destFlake.isOnScreen()?destFlake.x:W*0.5;
-    const ly=destFlake.isOnScreen()?destFlake.y:H*0.1;
-    const p=ease(Math.min((now-t0)/dur,1));
-    mctx.clearRect(0,0,mc.width,mc.height);
-    const cx=(tx+tw/2)+(lx-(tx+tw/2))*p, cy=(ty+th/2)+(ly-(ty+th/2))*p;
-    const cw=tw+(er*2-tw)*p, ch=th+(er*2-th)*p, cr=er*p;
-    const r=Math.round(240*p),g=Math.round(225*p),b=Math.round(210*p),a=1-(1-ea)*p;
-    mctx.fillStyle=`rgba(${r},${g},${b},${a})`;
-    rrect(mctx,cx-cw/2,cy-ch/2,cw,ch,cr); mctx.fill();
-    if(p<1){morphRAF=requestAnimationFrame(step);return;}
-    mctx.clearRect(0,0,mc.width,mc.height);
-    if(trackedFlake){trackedFlake.frozen=false;trackedFlake=null;}
+  const openFlake = trackedFlake;
+  if (trackedFlake) { trackedFlake.frozen = false; trackedFlake = null; }
+  const destFlake = pickOppositeFlake(openFlake);
+  destFlake.frozen = true; trackedFlake = destFlake;
+  const er = destFlake.r, ea = destFlake.alpha;
+  const { tx, ty, tw, th } = getTarget();
+  const t0 = performance.now(), dur = 620;
+  function step(now) {
+    const on = destFlake.isOnScreen();
+    const lx = on ? destFlake.x : W * 0.5, ly = on ? destFlake.y : H * 0.1;
+    const p = ease(Math.min((now - t0) / dur, 1));
+    mctx.clearRect(0, 0, mc.width, mc.height);
+    const cx = (tx + tw / 2) + (lx - (tx + tw / 2)) * p, cy = (ty + th / 2) + (ly - (ty + th / 2)) * p;
+    const cw = tw + (er * 2 - tw) * p, ch = th + (er * 2 - th) * p, cr = er * p;
+    const r = Math.round(240 * p), g = Math.round(225 * p), b = Math.round(210 * p), a = 1 - (1 - ea) * p;
+    mctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+    rrect(mctx, cx - cw / 2, cy - ch / 2, cw, ch, cr); mctx.fill();
+    if (p < 1) { morphRAF = requestAnimationFrame(step); return; }
+    mctx.clearRect(0, 0, mc.width, mc.height);
+    if (trackedFlake) { trackedFlake.frozen = false; trackedFlake = null; }
     overlay.classList.remove('active');
   }
-  morphRAF=requestAnimationFrame(step);
+  morphRAF = requestAnimationFrame(step);
 }
+backdrop.addEventListener('click', closeVideo);
+closeBtn.addEventListener('click', closeVideo);
 
-function bindVideoCards(){
-  document.querySelectorAll('.project-card[data-video]').forEach(card=>{
-    const clone=card.cloneNode(true);
-    card.parentNode.replaceChild(clone,card);
-  });
-  document.querySelectorAll('.project-card[data-video]').forEach(card=>{
-    card.addEventListener('click',()=>openVideo(card.dataset.video));
-  });
-}
-bindVideoCards();
-
-backdrop.addEventListener('click',closeVideo);
-closeBtn.addEventListener('click',closeVideo);
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeVideo();});
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (expOverlay.classList.contains('active')) closeExpModal();
+  else closeVideo();
+});
 
 /* ── REVEALS ── */
-const obs=new IntersectionObserver(
-  es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),
-  {threshold:0.15}
+const revealObs = new IntersectionObserver(
+  es => es.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObs.unobserve(e.target); } }),
+  { threshold: 0.15 }
 );
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+document.querySelectorAll('.reveal').forEach(n => revealObs.observe(n));
+</script>
+
+<!-- ════════════════════════════════════════════════════════════════
+     AVATAR 3D — charge avatar/avatar.json (mis à jour par la GitHub Action)
+     Fallback : image 2D live depuis l'API Roblox si le 3D n'est pas dispo.
+════════════════════════════════════════════════════════════════ -->
+<script type="module">
+const stage = document.getElementById('avatar-stage');
+const loadingEl = document.getElementById('avatar-loading');
+const USER_ID = CONFIG.robloxUserId;
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// Pointeur normalisé par rapport au centre du perso (-1..1)
+const pointer = { x: 0, y: 0, lastMove: -1e9 };
+window.addEventListener('pointermove', e => {
+  const r = stage.getBoundingClientRect();
+  pointer.x = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (window.innerWidth * 0.5)));
+  pointer.y = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height * 0.35)) / (window.innerHeight * 0.5)));
+  pointer.lastMove = performance.now();
+}, { passive: true });
+
+function setCaption(meta) {
+  const cap = document.getElementById('avatar-caption');
+  const sync = document.getElementById('avatar-sync');
+  if (meta && meta.updatedAt) {
+    const d = new Date(meta.updatedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+    sync.textContent = `Avatar synced from Roblox · ${d}`;
+  }
+  cap.innerHTML = 'live from <b>Roblox</b> · click me';
+}
+
+async function init3D() {
+  const res = await fetch('avatar/avatar.json', { cache: 'no-cache' });
+  if (!res.ok) throw new Error('no avatar.json');
+  const meta = await res.json();
+
+  const THREE = await import('three');
+  const { OBJLoader } = await import('three/addons/loaders/OBJLoader.js');
+  const { MTLLoader } = await import('three/addons/loaders/MTLLoader.js');
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 1.15;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
+
+  // Éclairage : key chaude, fill froide douce, rim orange (couleur du site)
+  scene.add(new THREE.HemisphereLight(0xfff1e6, 0x1a1410, 1.4));
+  const key = new THREE.DirectionalLight(0xffe2cc, 2.2); key.position.set(3, 5, 6); scene.add(key);
+  const fill = new THREE.DirectionalLight(0x9fb4ff, 0.5); fill.position.set(-5, 2, 3); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xc4501a, 3.2); rim.position.set(-2, 3, -6); scene.add(rim);
+  const rim2 = new THREE.DirectionalLight(0xff8a4c, 1.6); rim2.position.set(4, 1, -5); scene.add(rim2);
+
+  const v = meta.signature || meta.updatedAt || '';
+  const mtlLoader = new MTLLoader();
+  mtlLoader.setResourcePath('avatar/');
+  mtlLoader.setMaterialOptions({ side: THREE.DoubleSide });
+  const materials = await mtlLoader.loadAsync(`avatar/${meta.mtl}?v=${v}`);
+  materials.preload();
+  for (const name in materials.materials) {
+    const m = materials.materials[name];
+    // Les exports Roblox ont un alpha map qui rend tout semi-transparent : on passe en "cutout"
+    m.transparent = false;
+    m.alphaTest = 0.05;
+    m.shininess = Math.min(m.shininess ?? 10, 12);
+    if (m.map) { m.map.colorSpace = THREE.SRGBColorSpace; m.map.anisotropy = renderer.capabilities.getMaxAnisotropy(); }
+  }
+  const objLoader = new OBJLoader();
+  objLoader.setMaterials(materials);
+  const obj = await objLoader.loadAsync(`avatar/${meta.obj}?v=${v}`);
+
+  // Hiérarchie : pivot (souris, spin, bob) > facing (orientation de base) > scaler > obj (centré)
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3());
+  const center = box.getCenter(new THREE.Vector3());
+  obj.position.sub(center);
+  const scaler = new THREE.Group(); scaler.add(obj);
+  const HEIGHT = 4;
+  scaler.scale.setScalar(HEIGHT / size.y);
+  const facing = new THREE.Group(); facing.add(scaler);
+  // Tourne le perso vers notre caméra, d'après la caméra de la miniature Roblox
+  if (meta.camera && meta.camera.position) {
+    const dx = meta.camera.position.x - center.x, dz = meta.camera.position.z - center.z;
+    facing.rotation.y = -Math.atan2(dx, dz);
+  }
+  facing.rotation.y += (meta.yawOffset || 0);
+  const pivot = new THREE.Group(); pivot.add(facing);
+  scene.add(pivot);
+
+  const aspectH = Math.max(size.y, size.x * 0.8) / size.y; // marge si accessoires larges
+  function fitCamera() {
+    const w = stage.clientWidth, h = stage.clientHeight;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    const halfH = (HEIGHT * aspectH * 0.5) * 1.18;
+    const halfW = halfH * Math.max(1, 0.62 / camera.aspect);
+    const dist = Math.max(halfH, halfW) / Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+    camera.position.set(0, 0.15, dist);
+    camera.lookAt(0, 0.1, 0);
+    camera.updateProjectionMatrix();
+  }
+
+  stage.appendChild(renderer.domElement);
+  loadingEl.remove();
+  fitCamera();
+  new ResizeObserver(fitCamera).observe(stage);
+
+  // Clic = spin 360 + burst de neige
+  let spinStart = -1;
+  stage.addEventListener('click', () => {
+    if (spinStart >= 0) return;
+    spinStart = performance.now();
+    if (window.spawnBurst) spawnBurst(stage, 30);
+  });
+  const easeOutBack = t => { const c1 = 1.4, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); };
+
+  let visible = true;
+  new IntersectionObserver(([e]) => { visible = e.isIntersecting; }).observe(stage);
+
+  let yaw = 0, pitch = 0, last = performance.now();
+  const touchOnly = matchMedia('(hover: none)').matches;
+  function frame(now) {
+    requestAnimationFrame(frame);
+    if (!visible || document.hidden) { last = now; return; }
+    const dt = Math.min((now - last) / 1000, 0.05); last = now;
+    const t = now / 1000;
+
+    // Cible : la souris, ou un balancement idle si pas de souris depuis 3s
+    const idle = touchOnly || now - pointer.lastMove > 3000;
+    let ty = pointer.x * 0.85, tp = pointer.y * 0.32;
+    if (idle) { ty = reduceMotion ? 0 : Math.sin(t * 0.5) * 0.35; tp = 0; }
+    const k = 1 - Math.exp(-dt * (idle ? 2 : 7));
+    yaw += (ty - yaw) * k;
+    pitch += (tp - pitch) * k;
+
+    let spin = 0;
+    if (spinStart >= 0) {
+      const p = Math.min((now - spinStart) / 900, 1);
+      spin = easeOutBack(p) * Math.PI * 2;
+      if (p >= 1) spinStart = -1;
+    }
+    pivot.rotation.set(pitch, yaw + spin, 0);
+    pivot.position.y = reduceMotion ? 0 : Math.sin(t * 1.6) * 0.05;
+    renderer.render(scene, camera);
+  }
+  requestAnimationFrame(frame);
+  setCaption(meta);
+}
+
+// Fallback 2D : rendu Roblox live (via roproxy, qui autorise CORS) avec tilt 3D en CSS
+async function init2D() {
+  const r = await fetch(`https://thumbnails.roproxy.com/v1/users/avatar?userIds=${USER_ID}&size=720x720&format=Png&isCircular=false`);
+  const j = await r.json();
+  const url = j.data && j.data[0] && j.data[0].imageUrl;
+  if (!url) throw new Error('no thumbnail');
+  const img = new Image();
+  img.className = 'avatar-2d'; img.alt = 'My Roblox avatar'; img.src = url;
+  await img.decode();
+  stage.appendChild(img);
+  loadingEl.remove();
+  stage.style.perspective = '900px';
+  (function tilt() {
+    requestAnimationFrame(tilt);
+    img.style.transform = `rotateY(${pointer.x * 18}deg) rotateX(${-pointer.y * 8}deg)`;
+  })();
+  stage.addEventListener('click', () => window.spawnBurst && spawnBurst(stage, 30));
+  setCaption(null);
+}
+
+init3D().catch(err => {
+  console.warn('[avatar] 3D indisponible, fallback 2D :', err.message);
+  init2D().catch(() => { loadingEl.textContent = 'avatar unavailable'; });
+});
 </script>
 </body>
 </html>
