@@ -320,7 +320,7 @@ function renderPresence(d) {
   const deco = u?.avatar_decoration_data?.asset;
   if (deco && !$('.pfp-deco')) { const di = el('img', 'pfp-deco'); di.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=240&passthrough=true`; di.alt = ''; $('#pfp-wrap').append(di); }
   if (u?.avatar) {
-    const src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=256`;
+    const src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=2048`;
     if ($('#pfp').src !== src) $('#pfp').src = src;   // suit aussi un changement de pp
     pfpSet = true;
   } else robloxPfp();
