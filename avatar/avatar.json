@@ -1,0 +1,40 @@
+{
+  "userId": 1077832330,
+  "updatedAt": "2026-10-29T08:32:19.086Z",
+  "signature": "5c69f9d227c3",
+  "obj": "avatar.obj",
+  "mtl": "avatar.mtl",
+  "textures": [
+    "5c69f9d227c3_tex0.png",
+    "5c69f9d227c3_tex1.png",
+    "5c69f9d227c3_tex2.png",
+    "5c69f9d227c3_tex3.png",
+    "5c69f9d227c3_tex4.png"
+  ],
+  "camera": {
+    "position": {
+      "x": -0.297739,
+      "y": 106.742,
+      "z": -13.5479
+    },
+    "direction": {
+      "x": -0.020942,
+      "y": 0.258762,
+      "z": -0.965714
+    },
+    "fov": 26.5812
+  },
+  "aabb": {
+    "min": {
+      "x": -1.55787,
+      "y": 100.01,
+      "z": -0.727729
+    },
+    "max": {
+      "x": 1.55787,
+      "y": 105.997,
+      "z": 0.984239
+    }
+  },
+  "yawOffset": 0
+}
