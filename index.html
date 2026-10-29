@@ -46,7 +46,8 @@
     :focus-visible { outline: 1px solid var(--text); outline-offset: 3px; }
     ::selection { background: #cfe3ff; }
 
-    main { max-width: 1000px; margin: 0 auto; padding: 4rem 1.5rem 3rem; }
+    body { display: flex; flex-direction: column; }
+    main { width: 100%; max-width: 1000px; margin: 0 auto; padding: 3rem 1.5rem; flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
     /* ── TOP : avatar 3D + profil ── */
     .top { display: grid; grid-template-columns: 340px 1fr; gap: 2.5rem; align-items: center; }
@@ -84,6 +85,28 @@
     .row .st.offline { color: var(--dim); }
     .row .act { color: var(--dim); }
 
+    /* ── WHAT I'M WORKING ON ── */
+    .wip { margin: 1.6rem 0 0 calc(120px + 1.6rem); }
+    .wip-toggle { display: inline-flex; align-items: center; gap: 0.5rem; color: var(--dim); padding: 0.2rem 0; }
+    .wip-toggle:hover { color: var(--text); }
+    .chev { display: inline-block; transition: transform 0.25s cubic-bezier(.2,.8,.2,1); font-size: 15px; line-height: 1; }
+    .wip-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+    .wip-drawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.2,.8,.2,1); }
+    .wip-drawer.open { grid-template-rows: 1fr; }
+    .wip-list { overflow: hidden; list-style: none; }
+    .wip-list li { opacity: 0; transform: translateY(-4px); transition: opacity 0.25s, transform 0.25s; }
+    .wip-drawer.open .wip-list li { opacity: 1; transform: none; }
+    .wip-drawer.open .wip-list li:nth-child(2) { transition-delay: 0.05s; }
+    .wip-drawer.open .wip-list li:nth-child(3) { transition-delay: 0.1s; }
+    .wip-drawer.open .wip-list li:nth-child(4) { transition-delay: 0.15s; }
+    .game { display: flex; align-items: center; gap: 0.8rem; padding: 0.45rem 0.5rem; margin: 0 -0.5rem; border-radius: 6px; }
+    .wip-list li:first-child .game { margin-top: 0.6rem; }
+    a.game:hover { background: var(--surface); }
+    .game img, .game .noicon { width: 38px; height: 38px; border-radius: 8px; flex: none; background: var(--surface); object-fit: cover; }
+    .game b { font-weight: 600; display: block; }
+    .game small { color: var(--faint); font-size: 12px; }
+    .game .playing { color: var(--online); }
+
     /* ── WORK ── */
     .work { margin-top: 4rem; }
     .work-soon { display: flex; align-items: center; gap: 1.2rem; color: var(--faint); }
@@ -107,7 +130,7 @@
     .badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .badges img { display: block; width: 88px; height: 31px; image-rendering: pixelated; }
 
-    footer { max-width: 1000px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--faint); font-size: 12px; }
+    footer { width: 100%; max-width: 1000px; margin: 0 auto; padding: 1rem 1.5rem 2.5rem; color: var(--faint); font-size: 12px; }
 
     /* ── PLAYER ── */
     .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(20,22,26,0.85); }
@@ -126,7 +149,7 @@
       main { padding-top: 2rem; }
       .top { grid-template-columns: 1fr; gap: 1rem; }
       .stage { height: 340px; }
-      .presence { margin-left: 0; }
+      .presence, .wip { margin-left: 0; }
       .work-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 480px) {
@@ -164,6 +187,15 @@
           <span id="spotify">not listening to anything</span>
         </div>
       </div>
+
+      <div class="wip" id="wip" hidden>
+        <button class="wip-toggle" id="wip-toggle" aria-expanded="false" aria-controls="wip-list">
+          <span class="chev">›</span> what i'm working on
+        </button>
+        <div class="wip-drawer" id="wip-drawer">
+          <ul class="wip-list" id="wip-list"></ul>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -194,6 +226,13 @@ const CONFIG = {
   youtube: '',
   x: 'https://x.com/JGG5694',
 };
+
+/* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
+   Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
+const GAMES = [
+  { name: "Aftershift", role: "scripting · controller support", url: "" },
+  { name: "Shift at Robloxia", role: "my game · in development", url: "" },
+];
 
 /* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
 const PROJECTS = [
@@ -294,6 +333,36 @@ function play(url) {
 function closePlayer() { player.classList.remove('open'); frame.innerHTML = ''; }
 player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
+
+/* what i'm working on */
+if (GAMES.length) {
+  $('#wip').hidden = false;
+  const list = $('#wip-list'), toggle = $('#wip-toggle'), drawer = $('#wip-drawer');
+  toggle.addEventListener('click', () => {
+    const open = toggle.getAttribute('aria-expanded') !== 'true';
+    toggle.setAttribute('aria-expanded', open); drawer.classList.toggle('open', open);
+  });
+  GAMES.forEach(g => {
+    const li = el('li');
+    const row = el(g.url ? 'a' : 'div', 'game');
+    if (g.url) { row.href = g.url; row.target = '_blank'; row.rel = 'noopener'; }
+    const icon = el('span', 'noicon');
+    const info = el('span'); const b = el('b', null, g.name); const sm = el('small', null, g.role || (g.url ? '' : 'not public yet'));
+    info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
+    // icône + nombre de joueurs en live depuis Roblox
+    const placeId = (g.url.match(/games\/(\d+)/) || [])[1];
+    if (!placeId) return;
+    fetch(`https://apis.roproxy.com/universes/v1/places/${placeId}/universe`).then(r => r.json()).then(({ universeId }) => {
+      if (!universeId) return;
+      fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${universeId}&size=150x150&format=Png&isCircular=false`)
+        .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u) { const img = el('img'); img.src = u; img.alt = ''; icon.replaceWith(img); } });
+      fetch(`https://games.roproxy.com/v1/games?universeIds=${universeId}`).then(r => r.json()).then(j => {
+        const n = j.data?.[0]?.playing;
+        if (n > 0) { sm.append(' · '); sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
+      });
+    }).catch(() => {});
+  });
+}
 
 /* badges */
 const badges = $('#badges');
