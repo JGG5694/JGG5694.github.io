@@ -73,6 +73,7 @@
 
     .presence { margin: 2rem 0 0 calc(120px + 1.6rem); display: flex; flex-direction: column; gap: 0.35rem; color: var(--faint); }
     .row { display: flex; align-items: center; gap: 0.8rem; }
+    .row[hidden] { display: none; }
     .row svg { width: 14px; height: 14px; flex: none; color: var(--dim); }
     .row .st { font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; }
     .row .st .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s ease-out infinite; }
@@ -85,6 +86,9 @@
 
     /* ── WORK ── */
     .work { margin-top: 4rem; }
+    .work-soon { display: flex; align-items: center; gap: 1.2rem; color: var(--faint); }
+    .work-soon::before, .work-soon::after { content: ''; flex: 1; height: 1px; background: var(--surface); }
+    .work-soon[hidden] { display: none; }
     .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem 1rem; }
     .clip { text-align: left; }
     .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: 6px; overflow: hidden; transition: transform 0.25s cubic-bezier(.2,.8,.2,1), box-shadow 0.25s; }
@@ -165,6 +169,7 @@
 
   <section class="work" aria-label="Work">
     <div class="work-grid" id="work"></div>
+    <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
   </section>
 
   <section class="bottom" id="bottom" hidden>
@@ -192,9 +197,7 @@ const CONFIG = {
 
 /* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
 const PROJECTS = [
-  { title: "ton anim ici", type: "animation", videoUrl: "" },
-  { title: "ton vfx ici", type: "vfx", videoUrl: "" },
-  { title: "ton système ici", type: "luau", videoUrl: "" },
+  // { title: "sword combo", type: "animation", videoUrl: "https://youtu.be/..." },
 ];
 
 /* Boutons 88x31 de potes (vide = caché). Ex : { img: "buttons/pote.gif", url: "https://..." } */
@@ -253,6 +256,7 @@ const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|em
 const stId = u => ((u || '').match(/streamable\.com\/(?:e\/)?(\w+)/) || [])[1];
 const isMp4 = u => /\.(mp4|webm)(\?|$)/i.test(u || '');
 const work = $('#work');
+if (!PROJECTS.length) { work.remove(); $('#work-soon').hidden = false; }
 PROJECTS.forEach(p => {
   const playable = !!p.videoUrl;
   const c = el(playable ? 'button' : 'div', 'clip' + (playable ? ' playable' : ''));
