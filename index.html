@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>jgg@roblox:~$</title>
-  <meta name="description" content="Roblox animator. VFX and Luau on the side." />
+  <meta name="description" content="Roblox animator &amp; a bit of everything else." />
   <meta property="og:title" content="hi, i'm JGG" />
-  <meta property="og:description" content="Roblox animator. VFX and Luau on the side." />
+  <meta property="og:description" content="Roblox animator &amp; a bit of everything else." />
   <meta property="og:url" content="https://JGG5694.github.io/" />
   <meta property="og:type" content="website" />
   <meta property="og:image" content="https://JGG5694.github.io/avatar/avatar.png" />
@@ -51,7 +51,9 @@
     /* ── TOP : avatar 3D + profil ── */
     .top { display: grid; grid-template-columns: 340px 1fr; gap: 2.5rem; align-items: center; }
     .stage { position: relative; height: 400px; cursor: grab; }
-    .stage::after { content: ''; position: absolute; left: 50%; bottom: 4%; width: 46%; height: 22px; transform: translateX(-50%); background: radial-gradient(ellipse at center, rgba(0,0,0,0.16), transparent 70%); }
+    .stage::after { content: ''; position: absolute; left: 50%; bottom: 4%; width: 46%; height: 22px; transform: translateX(-50%) scale(0.3); opacity: 0; background: radial-gradient(ellipse at center, rgba(0,0,0,0.18), transparent 70%); transition: transform 0.6s cubic-bezier(.2,.8,.2,1), opacity 0.4s; }
+    .stage.falling::after { transform: translateX(-50%) scale(0.6); opacity: 0.5; transition-duration: 0.55s; }
+    .stage.landed::after { transform: translateX(-50%) scale(1); opacity: 1; }
     .stage canvas { z-index: 1; position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
     .stage img.avatar-2d { position: absolute; inset: 0; margin: auto; width: 100%; height: 100%; object-fit: contain; }
     .stage-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); }
@@ -61,7 +63,8 @@
     .hi { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
     .hi .name { display: inline-block; }
     .hi .name:hover { animation: glitch 0.3s steps(2) 2; }
-    .sub { color: var(--dim); margin-top: 0.2rem; }
+    .sub { color: var(--dim); margin-top: 0.2rem; min-height: 1.6em; }
+    .caret { display: inline-block; width: 0.55em; height: 1.05em; margin-left: 2px; vertical-align: -0.18em; background: var(--dim); animation: blink 1s steps(1) infinite; }
     .socials { display: flex; gap: 0.9rem; margin-top: 0.8rem; }
     .socials a, .socials button { color: var(--dim); display: flex; transition: color 0.15s; position: relative; }
     .socials a:hover, .socials button:hover { color: var(--text); }
@@ -71,7 +74,9 @@
     .presence { margin: 2rem 0 0 calc(120px + 1.6rem); display: flex; flex-direction: column; gap: 0.35rem; color: var(--faint); }
     .row { display: flex; align-items: center; gap: 0.8rem; }
     .row svg { width: 14px; height: 14px; flex: none; color: var(--dim); }
-    .row .st { font-weight: 600; }
+    .row .st { font-weight: 600; display: inline-flex; align-items: center; gap: 0.45rem; }
+    .row .st .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s ease-out infinite; }
+    .row .st.offline .dot { animation: none; }
     .row .st.online { color: var(--online); }
     .row .st.idle { color: var(--idle); }
     .row .st.dnd { color: var(--dnd); }
@@ -82,7 +87,10 @@
     .work { margin-top: 4rem; }
     .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem 1rem; }
     .clip { text-align: left; }
-    .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: 6px; overflow: hidden; }
+    .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: 6px; overflow: hidden; transition: transform 0.25s cubic-bezier(.2,.8,.2,1), box-shadow 0.25s; }
+    .clip.playable:hover .clip-media { transform: translateY(-3px); box-shadow: 0 10px 24px rgba(20,22,26,0.14); }
+    .clip-play { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255,255,255,0.92); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: 13px; padding-left: 3px; opacity: 0; transform: scale(0.8); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1); }
+    .clip.playable:hover .clip-play, .clip.playable:focus-visible .clip-play { opacity: 1; transform: scale(1); }
     .clip-media img, .clip-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter 0.2s; }
     .clip.playable { cursor: pointer; }
     .clip.playable:hover img { filter: brightness(1.08); }
@@ -103,6 +111,8 @@
     .player-frame { width: min(960px, 100%, calc((100vh - 4rem) * 16 / 9)); aspect-ratio: 16 / 9; background: #000; border-radius: 4px; overflow: hidden; }
     .player-frame iframe, .player-frame video { display: block; width: 100%; height: 100%; border: 0; }
 
+    @keyframes blink { 50% { opacity: 0; } }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
     @keyframes glitch {
       0% { transform: translate(1px, 0); text-shadow: -2px 0 #ff6b6b, 2px 0 #4dabf7; }
       100% { transform: translate(-1px, 0); text-shadow: 2px 0 #ff6b6b, -2px 0 #4dabf7; }
@@ -135,7 +145,7 @@
         <img class="pfp" id="pfp" alt="" />
         <div>
           <h1 class="hi">hi, i'm <span class="name">JGG</span></h1>
-          <p class="sub">roblox animator. vfx and luau on the side.</p>
+          <p class="sub" id="sub">roblox animator &amp; a bit of everything else.</p>
           <div class="socials" id="socials"></div>
         </div>
       </div>
@@ -195,6 +205,15 @@ const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
 $('#foot').textContent = `jgg © ${new Date().getFullYear()}`;
 
+/* sous-titre tapé une fois au chargement */
+(() => {
+  const sub = $('#sub'), text = sub.textContent;
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sub.append(el('span', 'caret')); return; }
+  sub.textContent = ''; const caret = el('span', 'caret'); sub.append(caret);
+  let i = 0;
+  setTimeout(function type() { caret.before(text[i++]); if (i < text.length) setTimeout(type, 28 + Math.random() * 40); }, 700);
+})();
+
 /* pfp : headshot Roblox live */
 fetch(`https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=${CONFIG.robloxUserId}&size=150x150&format=Png&isCircular=false`)
   .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u) $('#pfp').src = u; }).catch(() => {});
@@ -221,7 +240,7 @@ async function presence() {
     if (!j.success) return;
     const d = j.data, s = d.discord_status || 'offline';
     const game = (d.activities || []).find(a => a.type === 0);
-    const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s;
+    const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
     $('#act').textContent = game ? `Playing ${game.name}` : '';
     $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
     $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
@@ -241,7 +260,8 @@ PROJECTS.forEach(p => {
   const thumb = p.thumb || (ytId(p.videoUrl) && `https://i.ytimg.com/vi/${ytId(p.videoUrl)}/hqdefault.jpg`);
   if (thumb) { const i = el('img'); i.src = thumb; i.alt = ''; i.loading = 'lazy'; m.append(i); }
   else if (isMp4(p.videoUrl)) { const v = el('video'); v.src = p.videoUrl + '#t=0.5'; v.muted = true; v.preload = 'metadata'; m.append(v); }
-  else m.append(el('span', 'clip-empty', playable ? '▶' : 'soon'));
+  else if (!playable) m.append(el('span', 'clip-empty', 'soon'));
+  if (playable) m.append(el('span', 'clip-play', '▶'));
   c.append(m, el('p', 'clip-title', p.title), el('p', 'clip-type', p.type));
   if (playable) c.addEventListener('click', () => play(p.videoUrl));
   work.append(c);
@@ -329,31 +349,37 @@ async function init3D() {
   const loader = new OBJLoader(); loader.setMaterials(materials);
   const obj = await loader.loadAsync(`avatar/${meta.obj}?v=${v}`);
 
+  // pieds à y=0 pour que le squash & stretch se fasse depuis le sol
   const box = new THREE.Box3().setFromObject(obj);
   const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
-  obj.position.sub(center);
+  obj.position.set(-center.x, -box.min.y, -center.z);
   const H = 4;
   const scaler = new THREE.Group(); scaler.add(obj); scaler.scale.setScalar(H / size.y);
   const facing = new THREE.Group(); facing.add(scaler);
   if (meta.camera?.position) facing.rotation.y = -Math.atan2(meta.camera.position.x - center.x, meta.camera.position.z - center.z);
   facing.rotation.y += meta.yawOffset || 0;
-  const pivot = new THREE.Group(); pivot.add(facing); scene.add(pivot);
+  const pivot = new THREE.Group(); pivot.add(facing);
+  const root = new THREE.Group(); root.add(pivot); scene.add(root);
 
   function fit() {
     const w = stage.clientWidth, h = stage.clientHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
-    const half = H * 0.5 * 1.12;
+    const half = H * 0.5 * 1.2;
     const dist = Math.max(half, half * 0.62 / camera.aspect) / Math.tan(THREE.MathUtils.degToRad(13));
-    camera.position.set(0, 0.2, dist); camera.lookAt(0, 0.05, 0);
+    camera.position.set(0, H / 2 + 0.35, dist); camera.lookAt(0, H / 2 + 0.2, 0);
     camera.updateProjectionMatrix();
   }
   stage.append(renderer.domElement); loading.remove(); fit();
   new ResizeObserver(fit).observe(stage);
 
-  let spin = -1;
-  stage.addEventListener('click', () => { if (spin < 0) spin = performance.now(); });
-  const back = t => 1 + 2.4 * (t - 1) ** 3 + 1.4 * (t - 1) ** 2;
+  // Entrée : le perso tombe et atterrit (squash & stretch). Clic : anticipation, saut, vrille.
+  let drop = reduce ? null : { t0: performance.now() + 150 };
+  let hop = null, landAt = -1;
+  if (drop) stage.classList.add('falling'); else stage.classList.add('landed');
+  stage.addEventListener('click', () => { if (!hop && !drop) hop = { t0: performance.now() }; });
+  const inOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
   let vis = true; new IntersectionObserver(([e]) => vis = e.isIntersecting).observe(stage);
   const touch = matchMedia('(hover: none)').matches;
   let yaw = 0, pitch = 0, last = performance.now();
@@ -366,9 +392,32 @@ async function init3D() {
     const tp = idle ? 0 : pointer.y * 0.25;
     const k = 1 - Math.exp(-dt * (idle ? 2 : 7));
     yaw += (ty - yaw) * k; pitch += (tp - pitch) * k;
-    let s = 0;
-    if (spin >= 0) { const p = Math.min((now - spin) / 900, 1); s = back(p) * Math.PI * 2; if (p >= 1) spin = -1; }
-    pivot.rotation.set(pitch, yaw + s, 0);
+
+    let y = 0, sx = 1, sy = 1, spin = 0;
+    if (drop) {
+      const p = Math.max(0, Math.min((now - drop.t0) / 550, 1));
+      y = 8 * (1 - p * p); sy = 1.1; sx = 0.95;
+      if (p >= 1) { drop = null; landAt = now; stage.classList.replace('falling', 'landed'); }
+    } else if (hop) {
+      const e = (now - hop.t0) / 1000;
+      if (e < 0.13) { const c = Math.sin(e / 0.13 * Math.PI / 2); sy = 1 - 0.15 * c; sx = 1 + 0.08 * c; }
+      else {
+        const p = Math.min((e - 0.13) / 0.62, 1);
+        y = 0.55 * 4 * p * (1 - p); spin = inOut(p) * Math.PI * 2;
+        sy = 1 + 0.1 * (1 - p); sx = 1 - 0.05 * (1 - p);
+        if (p >= 1) { hop = null; landAt = now; }
+      }
+    }
+    if (landAt >= 0) {
+      const e = (now - landAt) / 1000, s = 0.2 * Math.exp(-7 * e) * Math.cos(15 * e);
+      sy *= 1 - s; sx *= 1 + s * 0.55;
+      if (e > 1.2) landAt = -1;
+    }
+    if (!reduce && !drop && !hop) sy *= 1 + 0.007 * Math.sin(now / 650); // respiration
+
+    root.position.y = y;
+    root.scale.set(sx, sy, sx);
+    pivot.rotation.set(pitch, yaw + spin, 0);
     renderer.render(scene, camera);
   })(performance.now());
 }
