@@ -487,7 +487,7 @@ async function init3D() {
   const { MTLLoader } = await import('three/addons/loaders/MTLLoader.js');
 
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 3));
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 300));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1.1;
