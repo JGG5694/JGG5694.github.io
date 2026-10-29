@@ -39,7 +39,7 @@
     body {
       background: var(--bg); color: var(--text);
       font: 13px/1.6 'JetBrains Mono', ui-monospace, Consolas, monospace;
-      min-height: 100vh; -webkit-font-smoothing: antialiased;
+      min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden;
     }
     a { color: inherit; text-decoration: none; }
     button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
@@ -52,7 +52,7 @@
     /* ── TOP : avatar 3D + profil ── */
     .top { display: grid; grid-template-columns: 340px 1fr; gap: 2.5rem; align-items: center; }
     .stage { position: relative; height: 400px; cursor: grab; }
-    .stage canvas { z-index: 1; position: absolute; inset: 0; width: 100% !important; height: 100% !important; }
+    .stage canvas { z-index: 1; position: absolute; top: -110px; bottom: -110px; left: -40px; right: -40px; width: calc(100% + 80px) !important; height: calc(100% + 220px) !important; pointer-events: none; }
     .stage img.avatar-2d { position: absolute; inset: 0; margin: auto; width: 100%; height: 100%; object-fit: contain; }
     .stage-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); }
 
@@ -282,23 +282,30 @@ const link = (key, url, label) => { const a = el('a'); a.href = url; a.target = 
 link('discord', `https://discord.com/users/${CONFIG.discordId}`, 'Discord');
 link('roblox', `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`, 'Roblox profile');
 if (CONFIG.youtube) link('youtube', CONFIG.youtube, 'YouTube');
-if (CONFIG.x) {
-  link('x', CONFIG.x, 'X');
-  // X : écran noir en fondu, puis ouverture une fois le noir complet
-  const xa = socials.lastElementChild, fade = $('#fade');
-  xa.addEventListener('click', e => {
+if (CONFIG.x) link('x', CONFIG.x, 'X');
+
+// Transition : fondu de couleur, puis ouverture dans un nouvel onglet une fois l'écran couvert
+const FADES = { discord: 'rgb(57, 57, 59)', x: '#000' };
+const fade = $('#fade');
+function fadeOpen(url, color) {
+  fade.style.background = color;
+  fade.classList.add('on');
+  setTimeout(() => {
+    const w = window.open(url, '_blank');
+    if (w) w.opener = null; else location.href = url;     // nouvel onglet ; même onglet seulement si bloqué
+    setTimeout(() => fade.classList.remove('on'), 350);
+  }, 520);
+}
+socials.querySelectorAll('a').forEach(a => {
+  const key = Object.keys(FADES).find(k => a.getAttribute('aria-label').toLowerCase() === k);
+  if (!key) return;
+  a.addEventListener('click', e => {
     if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
     e.preventDefault();
-    fade.classList.add('on');
-    fade.addEventListener('transitionend', function go() {
-      fade.removeEventListener('transitionend', go);
-      const w = window.open(CONFIG.x, '_blank', 'noopener');
-      if (!w && !document.hidden) location.href = CONFIG.x;    // si le popup est bloqué
-      setTimeout(() => fade.classList.remove('on'), 400);
-    });
+    fadeOpen(a.href, FADES[key]);
   });
-  addEventListener('pageshow', () => fade.classList.remove('on'));
-}
+});
+addEventListener('pageshow', () => fade.classList.remove('on'));
 
 /* discord + spotify live (Lanyard) */
 /* Texte selon l'appli détectée par Discord (ajoute les tiennes ici) */
@@ -540,12 +547,16 @@ async function init3D() {
   }
   const qY = new THREE.Quaternion(), qX = new THREE.Quaternion();
 
+  // Le canvas déborde du cadre (110px en haut/bas, 40px sur les côtés) pour que le saut,
+  // la couronne et l'ombre ne soient jamais coupés ; le perso garde la taille du cadre.
   function fit() {
-    const w = stage.clientWidth, h = stage.clientHeight;
+    const sw = stage.clientWidth, sh = stage.clientHeight;
+    const w = sw + 80, h = sh + 220;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     const half = H * 0.5 * 1.2;
-    const dist = Math.max(half, half * 0.62 / camera.aspect) / Math.tan(THREE.MathUtils.degToRad(13));
+    const fitH = Math.max(half, half * 0.62 / (sw / sh));
+    const dist = fitH * (h / sh) / Math.tan(THREE.MathUtils.degToRad(13));
     camera.position.set(0, H / 2 + 1.6, dist); camera.lookAt(0, H / 2 + 0.05, 0);
     camera.updateProjectionMatrix();
   }
