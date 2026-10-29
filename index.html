@@ -135,8 +135,6 @@
     .badges { display: flex; flex-wrap: wrap; gap: 6px; }
     .badges img { display: block; width: 88px; height: 31px; image-rendering: pixelated; }
 
-    .fade { position: fixed; inset: 0; z-index: 50; background: #000; opacity: 0; pointer-events: none; transition: opacity 0.5s ease-in; }
-    .fade.on { opacity: 1; pointer-events: auto; }
 
     /* ── PLAYER ── */
     .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: 1rem; background: rgba(20,22,26,0.85); }
@@ -216,7 +214,6 @@
   </section>
 </main>
 
-<div class="fade" id="fade"></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video">
   <div class="player-frame" id="player-frame"></div>
@@ -284,28 +281,6 @@ link('roblox', `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`, 'R
 if (CONFIG.youtube) link('youtube', CONFIG.youtube, 'YouTube');
 if (CONFIG.x) link('x', CONFIG.x, 'X');
 
-// Transition : fondu de couleur, puis ouverture dans un nouvel onglet une fois l'écran couvert
-const FADES = { discord: 'rgb(57, 57, 59)', x: '#000' };
-const fade = $('#fade');
-function fadeOpen(url, color) {
-  fade.style.background = color;
-  fade.classList.add('on');
-  setTimeout(() => {
-    const w = window.open(url, '_blank');
-    if (w) w.opener = null; else location.href = url;     // nouvel onglet ; même onglet seulement si bloqué
-    setTimeout(() => fade.classList.remove('on'), 350);
-  }, 520);
-}
-socials.querySelectorAll('a').forEach(a => {
-  const key = Object.keys(FADES).find(k => a.getAttribute('aria-label').toLowerCase() === k);
-  if (!key) return;
-  a.addEventListener('click', e => {
-    if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
-    e.preventDefault();
-    fadeOpen(a.href, FADES[key]);
-  });
-});
-addEventListener('pageshow', () => fade.classList.remove('on'));
 
 /* discord + spotify live (Lanyard) */
 /* Texte selon l'appli détectée par Discord (ajoute les tiennes ici) */
