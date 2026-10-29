@@ -6,12 +6,12 @@
   <title>.JGG — Roblox Animator & VFX</title>
   <meta name="description" content="Roblox animation, VFX and Luau scripting by .JGG." />
 
-  <!-- Discord / social embed — remplace TON-PSEUDO-GITHUB par ton pseudo GitHub -->
+  <!-- Discord / social embed -->
   <meta property="og:title" content=".JGG — Roblox Animator & VFX" />
   <meta property="og:description" content="Animation, VFX and Luau scripting for Roblox. Click to see my work." />
-  <meta property="og:url" content="https://TON-PSEUDO-GITHUB.github.io/" />
+  <meta property="og:url" content="https://JGG5694.github.io/" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://TON-PSEUDO-GITHUB.github.io/avatar/avatar.png" />
+  <meta property="og:image" content="https://JGG5694.github.io/avatar/avatar.png" />
   <meta name="twitter:card" content="summary" />
   <meta name="theme-color" content="#c4501a" />
 
@@ -997,18 +997,18 @@ async function init3D() {
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.15;
+  renderer.toneMapping = THREE.NeutralToneMapping; // garde les vraies couleurs Roblox
+  renderer.toneMappingExposure = 1.0;
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
 
   // Éclairage : key chaude, fill froide douce, rim orange (couleur du site)
-  scene.add(new THREE.HemisphereLight(0xfff1e6, 0x1a1410, 1.4));
-  const key = new THREE.DirectionalLight(0xffe2cc, 2.2); key.position.set(3, 5, 6); scene.add(key);
-  const fill = new THREE.DirectionalLight(0x9fb4ff, 0.5); fill.position.set(-5, 2, 3); scene.add(fill);
-  const rim = new THREE.DirectionalLight(0xc4501a, 3.2); rim.position.set(-2, 3, -6); scene.add(rim);
-  const rim2 = new THREE.DirectionalLight(0xff8a4c, 1.6); rim2.position.set(4, 1, -5); scene.add(rim2);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x3a332c, 1.9));
+  const key = new THREE.DirectionalLight(0xfff6ee, 1.9); key.position.set(3, 5, 6); scene.add(key);
+  const fill = new THREE.DirectionalLight(0xdfe6ff, 0.7); fill.position.set(-5, 2, 4); scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xc4501a, 1.4); rim.position.set(-2, 3, -6); scene.add(rim);
+  const rim2 = new THREE.DirectionalLight(0xff8a4c, 0.7); rim2.position.set(4, 1, -5); scene.add(rim2);
 
   const v = meta.signature || meta.updatedAt || '';
   const mtlLoader = new MTLLoader();
@@ -1018,10 +1018,14 @@ async function init3D() {
   materials.preload();
   for (const name in materials.materials) {
     const m = materials.materials[name];
-    // Les exports Roblox ont un alpha map qui rend tout semi-transparent : on passe en "cutout"
+    // Les exports Roblox ont un alpha map faux (il effaçait le torse) : on rend tout opaque
     m.transparent = false;
-    m.alphaTest = 0.05;
-    m.shininess = Math.min(m.shininess ?? 10, 12);
+    m.alphaMap = null;
+    m.alphaTest = 0;
+    m.opacity = 1;
+    m.shininess = 6;
+    if (m.specular) m.specular.setHex(0x111111);
+    m.needsUpdate = true;
     if (m.map) { m.map.colorSpace = THREE.SRGBColorSpace; m.map.anisotropy = renderer.capabilities.getMaxAnisotropy(); }
   }
   const objLoader = new OBJLoader();
