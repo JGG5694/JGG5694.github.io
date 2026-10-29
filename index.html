@@ -68,9 +68,9 @@
     .hi { font-size: 22px; font-weight: 600; letter-spacing: -0.01em; }
     .hi .name { display: inline-block; }
     .hi .name span { display: inline-block; transform-origin: 50% 100%; }
-    .hi .name:hover span { animation: hop 0.55s cubic-bezier(.3,.7,.4,1) both; }
-    .hi .name:hover span:nth-child(2) { animation-delay: 0.07s; }
-    .hi .name:hover span:nth-child(3) { animation-delay: 0.14s; }
+    .hi .name.jump span { animation: hop 0.85s cubic-bezier(.45,0,.25,1) both; }
+    .hi .name.jump span:nth-child(2) { animation-delay: 0.1s; }
+    .hi .name.jump span:nth-child(3) { animation-delay: 0.2s; }
     .sub { color: var(--dim); margin-top: 0.2rem; min-height: 1.6em; }
     .caret { display: inline-block; width: 0.55em; height: 1.05em; margin-left: 2px; vertical-align: -0.18em; background: var(--dim); animation: blink 1s steps(1) infinite; }
     .socials { display: flex; gap: 0.9rem; margin-top: 0.8rem; }
@@ -150,9 +150,10 @@
     @keyframes pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 6px transparent; } }
     @keyframes hop {   /* chaque lettre saute avec anticipation et squash, comme le perso */
       0%   { transform: none; }
-      15%  { transform: scale(1.15, 0.82); }
-      45%  { transform: translateY(-7px) scale(0.92, 1.1); }
-      75%  { transform: translateY(0) scale(1.1, 0.9); }
+      18%  { transform: scale(1.1, 0.88); }
+      46%  { transform: translateY(-6px) scale(0.95, 1.07); }
+      70%  { transform: translateY(0) scale(1.07, 0.93); }
+      85%  { transform: scale(0.98, 1.02); }
       100% { transform: none; }
     }
 
@@ -255,6 +256,13 @@ const BADGES = [];
 /* ═══════════════════════════════════════════════════ */
 const $ = s => document.querySelector(s);
 const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
+
+/* JGG : l'anim se joue en entier au survol, même si la souris repart (pas de snap) */
+(() => {
+  const n = $('.hi .name');
+  n.addEventListener('mouseenter', () => { if (!n.classList.contains('jump')) n.classList.add('jump'); });
+  n.lastElementChild.addEventListener('animationend', () => n.classList.remove('jump'));
+})();
 
 /* sous-titre tapé une fois au chargement */
 (() => {
