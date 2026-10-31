@@ -160,7 +160,18 @@
     .work-soon::before, .work-soon::after { content: ''; flex: 1; height: calc(1px * var(--s)); background: var(--surface); }
     .work-soon[hidden] { display: none; }
     .work-head { display: flex; align-items: center; gap: calc(1.2rem * var(--s)); margin-bottom: calc(0.4rem * var(--s)); }
-    .work-head::after { content: ''; flex: 1; height: 1px; background: var(--surface); }
+    .work-head::after { content: ''; flex: 1; height: 1px; background: var(--surface); order: 1; }
+    .sorter { display: flex; align-items: center; gap: calc(0.3rem * var(--s)); order: 2; user-select: none; }
+    .sort-arrow { width: calc(26px * var(--s)); height: calc(26px * var(--s)); border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      color: var(--faint); font-size: calc(15px * var(--s)); transition: color 0.2s, background-color 0.25s; }
+    .sort-arrow:hover { color: var(--text); background: var(--surface); }
+    .sort-label { position: relative; display: inline-block; min-width: calc(7.5em); height: 1.6em; overflow: hidden; text-align: center; }
+    .sort-label span { position: absolute; inset: 0; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.3s; }
+    .work-list li { transition: opacity 0.3s; }
+    .work-list li.out { opacity: 0; }
+    .work-list li[hidden] { display: none; }
+    .work-empty { color: var(--faint); padding: calc(0.8rem * var(--s)) 0; }
+    .work-empty[hidden] { display: none; }
     .work-title { font-weight: 600; }
     .showreel { aspect-ratio: 16 / 9; border-radius: calc(8px * var(--s)); overflow: hidden; background: #000; margin: calc(0.8rem * var(--s)) 0; }
     .showreel iframe { display: block; width: 100%; height: 100%; border: 0; }
@@ -281,7 +292,8 @@
   </section>
 
   <section class="work" aria-label="Work">
-    <div class="work-head" id="work-head"><span class="work-title">my work</span></div>
+    <div class="work-head" id="work-head"><span class="work-title">my work</span><div class="sorter" id="sorter" role="tablist" aria-label="Sort work"></div></div>
+    <p class="work-empty" id="work-empty" hidden>nothing here yet</p>
     <div class="showreel" id="showreel" hidden></div>
     <div class="work-body">
       <ul class="work-list" id="work"></ul>
@@ -328,6 +340,14 @@ const GAMES = [
    where : optionnel, jeu ou client
    ⚠️ TEMPLATES : les lignes avec demo: true sont des exemples animés, supprime-les quand tu mets tes vrais clips. */
 const SHOWREEL = '';   // optionnel : lien YouTube de ton showreel, s'affiche en grand en haut de la section
+/* TRIEUR : catégories affichées au-dessus de « my work ».
+   Un clip va dans une catégorie si son "type" contient le mot-clé (ex : "animation & vfx" apparaît dans animations ET vfx). */
+const SORTS = [
+  { label: 'animations', match: /anim/i },
+  { label: 'vfx',        match: /vfx/i },
+  { label: 'builds',     match: /build/i },
+  { label: 'models',     match: /model/i },
+];
 const PROJECTS = [
 { title: "miner commission", type: "animation", where: "World Invasion", clip: "PortofolioVideos/World-Invasion-Miner.mp4" },
 { title: "muscular zombie commission", type: "animation", where: "World Invasion", clip: "PortofolioVideos/World-Invasion-MuscularZombie.mp4" },
@@ -562,6 +582,44 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
   // ne tourne que si la section est visible
   new IntersectionObserver(([e]) => { const m = peekMedia[viewIdx]; if (!m || reduceMo) return; if (e.isIntersecting) { const r = m.play(); if (r && r.catch) r.catch(() => {}); } else m.pause(); }).observe(view);
 }
+
+/* trieur : ‹ catégorie › — les flèches font défiler les catégories */
+(() => {
+  const bar = $('#sorter'); if (!bar || !PROJECTS.length) return;
+  const items = [...work.children];
+  const cats = ['all', ...SORTS.map(x => x.label)];
+  let ci = 0;
+  const prev = el('button', 'sort-arrow', '‹'); prev.setAttribute('aria-label', 'Previous category');
+  const next = el('button', 'sort-arrow', '›'); next.setAttribute('aria-label', 'Next category');
+  const label = el('span', 'sort-label'); label.setAttribute('aria-live', 'polite');
+  let cur = el('span', null, cats[0]); label.append(cur);
+  bar.append(prev, label, next);
+
+  const apply = (dir) => {
+    const cat = cats[ci];
+    // le texte glisse dans le sens de la flèche
+    const nu = el('span', null, cat);
+    nu.style.transform = `translateX(${dir * 60}%)`; nu.style.opacity = '0';
+    label.append(nu);
+    const old = cur; cur = nu;
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      nu.style.transform = ''; nu.style.opacity = '';
+      old.style.transform = `translateX(${-dir * 60}%)`; old.style.opacity = '0';
+    }));
+    setTimeout(() => old.remove(), 380);
+
+    const shown = [];
+    items.forEach((li, i) => {
+      const ok = cat === 'all' || SORTS.find(x => x.label === cat).match.test(PROJECTS[i].type || '');
+      if (ok) { li.hidden = false; requestAnimationFrame(() => li.classList.remove('out')); shown.push(i); }
+      else { li.classList.add('out'); setTimeout(() => { if (li.classList.contains('out')) li.hidden = true; }, 300); }
+    });
+    $('#work-empty').hidden = shown.length > 0;
+    if (view && !(touchUI || smallUI)) { view.style.display = shown.length ? '' : 'none'; if (shown.length && !shown.includes(viewIdx)) showView(shown[0]); }
+  };
+  prev.addEventListener('click', () => { ci = (ci - 1 + cats.length) % cats.length; apply(-1); });
+  next.addEventListener('click', () => { ci = (ci + 1) % cats.length; apply(1); });
+})();
 
 /* showreel */
 if (SHOWREEL && ytId(SHOWREEL)) {
