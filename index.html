@@ -150,6 +150,7 @@
     .work-row { display: flex; flex-direction: column; gap: calc(0.1rem * var(--s)); width: 100%; text-align: left;
       padding: calc(0.7rem * var(--s)) 0; border-bottom: 1px solid var(--surface); }
     .work-row .w-title { flex: 1; color: var(--faint); transition: color 0.3s; }
+    @media (hover: hover) and (min-width: 821px) { .work-row { cursor: default; } }
     .work-row .w-meta { color: var(--faint); font-size: calc(12px * var(--s)); white-space: nowrap; opacity: 0.7; transition: opacity 0.3s; }
     .work-row.active .w-title { color: var(--text); }
     .work-row.active .w-meta { opacity: 1; }
@@ -494,7 +495,9 @@ PROJECTS.forEach((p, idx) => {
     row.addEventListener('mouseenter', () => showView(idx));
     row.addEventListener('focus', () => showView(idx));
   }
-  row.addEventListener('click', () => openWork(p, idx));
+  // PC : clic sur une ligne = juste afficher le clip dans la vignette ; plein écran = clic sur la vignette.
+  // Téléphone (pas de vignette) : clic = plein écran.
+  row.addEventListener('click', () => (touchUI || smallUI) ? openWork(p, idx) : showView(idx));
   li.append(row); work.append(li);
 });
 
