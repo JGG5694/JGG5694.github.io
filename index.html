@@ -500,7 +500,7 @@ PROJECTS.forEach((p, idx) => {
 });
 
 /* aperçu flottant qui suit le curseur avec un léger retard (ressort) */
-let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0, pScale = 0.8;
+let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0, pScale = 0.8, pSide = 0, pFlip = false;
 addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
 // Chaque clip a son calque dans la boîte : en passant d'une ligne à l'autre, la boîte reste
 // et les clips se fondent l'un dans l'autre (crossfade) au lieu de se réinitialiser.
@@ -527,7 +527,7 @@ function showPeek(idx) {
     const prev = peekIdx; peekIdx = idx;
     if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (peekIdx !== prev) peekMedia[prev].pause(); }, 320);
   }
-  if (!peekOn && !peek.classList.contains('on') && pScale < 0.82) { px = tx; py = ty; pvx = pvy = 0; prot = 0; }
+  if (!peekOn && !peek.classList.contains('on') && pScale < 0.82) { px = tx; py = ty; pvx = pvy = 0; prot = 0; pFlip = tx + 24 + peek.offsetWidth > innerWidth - 12; pSide = pFlip ? 1 : 0; }
   peekOn = true; peek.classList.add('on');
   if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }
 }
@@ -546,16 +546,20 @@ function peekLoop(now) {
   pvx += ((tx - px) * k - pvx * c) * dt; pvy += ((ty - py) * k - pvy * c) * dt;
   px += pvx * dt; py += pvy * dt;
   const w = peek.offsetWidth, h = peek.offsetHeight, gap = 24;
-  let x = px + gap, y = py - h / 2;
-  if (x + w > innerWidth - 12) x = px - w - gap;             // passe à gauche du curseur près du bord
+  // près du bord droit, la boîte glisse de l'autre côté du curseur (en douceur, avec une marge pour éviter les allers-retours)
+  if (!pFlip && px + gap + w > innerWidth - 12) pFlip = true;
+  else if (pFlip && px + gap + w < innerWidth - 80) pFlip = false;
+  pSide += ((pFlip ? 1 : 0) - pSide) * (1 - Math.exp(-dt * 9));
+  const sm = pSide * pSide * (3 - 2 * pSide);
+  let x = (px + gap) * (1 - sm) + (px - w - gap) * sm, y = py - h / 2;
   y = Math.max(12, Math.min(innerHeight - h - 12, y));
   prot += (Math.max(-6, Math.min(6, pvx * 0.012)) - prot) * 0.2;   // s'incline selon la vitesse
   // apparition / disparition : la boîte grandit depuis le curseur et rétrécit en partant (pas de saut)
   const sTarget = peekOn ? 1 : 0.8;
   pScale += (sTarget - pScale) * (1 - Math.exp(-dt * (peekOn ? 10 : 8)));
-  peek.style.transformOrigin = (x < px ? '100%' : '0%') + ' 50%';
+  peek.style.transformOrigin = `${sm * 100}% 50%`;
   peek.style.transform = `translate(${x}px, ${y}px) rotate(${reduceMo ? 0 : prot}deg) scale(${reduceMo ? 1 : pScale})`;
-  if (peekOn || Math.abs(pvx) + Math.abs(pvy) > 1 || Math.abs(pScale - sTarget) > 0.002) pRaf = requestAnimationFrame(peekLoop); else pRaf = 0;
+  if (peekOn || Math.abs(pvx) + Math.abs(pvy) > 1 || Math.abs(pScale - sTarget) > 0.002 || Math.abs(pSide - (pFlip ? 1 : 0)) > 0.002) pRaf = requestAnimationFrame(peekLoop); else pRaf = 0;
 }
 
 /* showreel */
