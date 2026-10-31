@@ -160,7 +160,7 @@
     .peek { position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; width: min(calc(420px * var(--s)), 42vw); aspect-ratio: 16 / 9;
       border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface);
       box-shadow: 0 calc(18px * var(--s)) calc(40px * var(--s)) rgba(20,22,26,0.18);
-      opacity: 0; transition: opacity 0.25s ease; will-change: transform; }
+      opacity: 0; transition: opacity 0.3s ease; will-change: transform, opacity; }
     .peek.on { opacity: 1; }
     .peek-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s ease; }
     .peek-layer.on { opacity: 1; }
@@ -500,7 +500,7 @@ PROJECTS.forEach((p, idx) => {
 });
 
 /* aperçu flottant qui suit le curseur avec un léger retard (ressort) */
-let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0;
+let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0, pScale = 0.8;
 addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
 // Chaque clip a son calque dans la boîte : en passant d'une ligne à l'autre, la boîte reste
 // et les clips se fondent l'un dans l'autre (crossfade) au lieu de se réinitialiser.
@@ -527,7 +527,7 @@ function showPeek(idx) {
     const prev = peekIdx; peekIdx = idx;
     if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (peekIdx !== prev) peekMedia[prev].pause(); }, 320);
   }
-  if (!peekOn && !peek.classList.contains('on')) { px = tx; py = ty; pvx = pvy = 0; }
+  if (!peekOn && !peek.classList.contains('on') && pScale < 0.82) { px = tx; py = ty; pvx = pvy = 0; prot = 0; }
   peekOn = true; peek.classList.add('on');
   if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }
 }
@@ -535,7 +535,8 @@ function hidePeek() {
   clearTimeout(hideTimer);
   hideTimer = setTimeout(() => {
     peekOn = false; peek.classList.remove('on');
-    setTimeout(() => { if (!peekOn && peekMedia[peekIdx]) peekMedia[peekIdx].pause(); }, 260);
+    if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }   // anime la sortie
+    setTimeout(() => { if (!peekOn && peekMedia[peekIdx]) peekMedia[peekIdx].pause(); }, 320);
   }, 60);
 }
 work.addEventListener('mouseleave', hidePeek);
@@ -549,8 +550,12 @@ function peekLoop(now) {
   if (x + w > innerWidth - 12) x = px - w - gap;             // passe à gauche du curseur près du bord
   y = Math.max(12, Math.min(innerHeight - h - 12, y));
   prot += (Math.max(-6, Math.min(6, pvx * 0.012)) - prot) * 0.2;   // s'incline selon la vitesse
-  peek.style.transform = `translate(${x}px, ${y}px) rotate(${reduceMo ? 0 : prot}deg) scale(${peekOn ? 1 : 0.92})`;
-  if (peekOn || Math.abs(pvx) + Math.abs(pvy) > 1) pRaf = requestAnimationFrame(peekLoop); else pRaf = 0;
+  // apparition / disparition : la boîte grandit depuis le curseur et rétrécit en partant (pas de saut)
+  const sTarget = peekOn ? 1 : 0.8;
+  pScale += (sTarget - pScale) * (1 - Math.exp(-dt * (peekOn ? 10 : 8)));
+  peek.style.transformOrigin = (x < px ? '100%' : '0%') + ' 50%';
+  peek.style.transform = `translate(${x}px, ${y}px) rotate(${reduceMo ? 0 : prot}deg) scale(${reduceMo ? 1 : pScale})`;
+  if (peekOn || Math.abs(pvx) + Math.abs(pvy) > 1 || Math.abs(pScale - sTarget) > 0.002) pRaf = requestAnimationFrame(peekLoop); else pRaf = 0;
 }
 
 /* showreel */
