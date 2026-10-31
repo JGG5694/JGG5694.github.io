@@ -144,31 +144,27 @@
     .showreel iframe { display: block; width: 100%; height: 100%; border: 0; }
     .showreel[hidden] { display: none; }
 
-    /* liste de travaux : une ligne par clip, aperçu flottant au survol */
+    /* liste de travaux à gauche, vignette fixe à droite : survoler une ligne change le clip (fondu), rien ne bouge */
+    .work-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: calc(2.5rem * var(--s)); align-items: start; margin-top: calc(0.4rem * var(--s)); }
     .work-list { list-style: none; }
-    .work-row { display: flex; align-items: center; gap: calc(1rem * var(--s)); width: 100%; text-align: left;
-      padding: calc(0.75rem * var(--s)) 0; border-bottom: 1px solid var(--surface); color: var(--text); }
-    .work-row .w-title { flex: 1; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), color 0.25s; }
-    .work-row .w-meta { color: var(--faint); font-size: calc(12px * var(--s)); transition: color 0.25s; white-space: nowrap; }
-    .work-row .w-arrow { color: var(--faint); width: 1em; opacity: 0; transform: translateX(-6px); transition: opacity 0.25s, transform 0.35s cubic-bezier(.2,.8,.2,1); }
-    .work-list:hover .work-row .w-title { color: var(--faint); }
-    .work-list .work-row:hover .w-title { color: var(--text); transform: translateX(calc(8px * var(--s))); }
-    .work-row:hover .w-meta { color: var(--dim); }
-    .work-row:hover .w-arrow { opacity: 1; transform: none; }
+    .work-row { display: flex; flex-direction: column; gap: calc(0.1rem * var(--s)); width: 100%; text-align: left;
+      padding: calc(0.7rem * var(--s)) 0; border-bottom: 1px solid var(--surface); }
+    .work-row .w-title { flex: 1; color: var(--faint); transition: color 0.3s; }
+    .work-row .w-meta { color: var(--faint); font-size: calc(12px * var(--s)); white-space: nowrap; opacity: 0.7; transition: opacity 0.3s; }
+    .work-row.active .w-title { color: var(--text); }
+    .work-row.active .w-meta { opacity: 1; }
     .w-thumb { display: none; }
-
-    .peek { position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; width: min(calc(420px * var(--s)), 42vw); aspect-ratio: 16 / 9;
-      border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface);
-      box-shadow: 0 calc(18px * var(--s)) calc(40px * var(--s)) rgba(20,22,26,0.18);
-      opacity: 0; transition: opacity 0.3s ease; will-change: transform, opacity; }
-    .peek.on { opacity: 1; }
-    .peek-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s ease; }
-    .peek-layer.on { opacity: 1; }
-    .peek video, .peek canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-    .peek .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
+    .work-view { position: sticky; top: calc(1.5rem * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface); cursor: pointer; }
+    .view-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s ease; }
+    .view-layer.on { opacity: 1; }
+    .work-view video, .work-view canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .work-view .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
 
     /* tactile : pas de survol, on montre une mini vignette dans la ligne */
-    @media (hover: none) {
+    @media (hover: none), (max-width: 820px) {
+      .work-body { grid-template-columns: 1fr; }
+      .work-view { display: none; }
+      .work-row .w-title { color: var(--text); }
       .w-thumb { display: block; position: relative; flex: none; width: calc(92px * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(6px * var(--s)); overflow: hidden; background: var(--surface); }
       .w-thumb video, .w-thumb canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       .work-row .w-meta { display: block; }
@@ -259,7 +255,10 @@
   <section class="work" aria-label="Work">
     <div class="work-head" id="work-head"><span class="work-title">my work</span></div>
     <div class="showreel" id="showreel" hidden></div>
-    <ul class="work-list" id="work"></ul>
+    <div class="work-body">
+      <ul class="work-list" id="work"></ul>
+      <div class="work-view" id="work-view" aria-hidden="true"></div>
+    </div>
     <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
   </section>
 
@@ -268,8 +267,6 @@
   </section>
 </main>
 
-
-<div class="peek" id="peek" aria-hidden="true"></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video">
   <div class="player-frame" id="player-frame"></div>
@@ -478,7 +475,7 @@ function makeMedia(p, idx) {
 }
 
 const touchUI = matchMedia('(hover: none)').matches;
-const peek = $('#peek');
+const smallUI = matchMedia('(max-width: 820px)').matches;
 const peekMedia = [];
 
 if (!PROJECTS.length) { work.remove(); $('#work-head').remove(); $('#work-soon').hidden = false; }
@@ -486,81 +483,40 @@ PROJECTS.forEach((p, idx) => {
   const li = el('li');
   const row = el('button', 'work-row');
   const meta = el('span', 'w-meta', [p.type, p.where].filter(Boolean).join(' · '));
-  if (touchUI) {
+  if (touchUI || smallUI) {
     const th = el('span', 'w-thumb'); const m = makeMedia(p, idx);
     if (m) { th.append(m); autoplay.observe(m); }
     const tx = el('span', 'w-text'); tx.append(el('span', 'w-title', p.title), meta);
     row.append(th, tx);
   } else {
-    row.append(el('span', 'w-title', p.title), meta, el('span', 'w-arrow', '↗'));
+    row.append(el('span', 'w-title', p.title), meta);
     peekMedia[idx] = makeMedia(p, idx);
-    row.addEventListener('mouseenter', () => showPeek(idx));
+    row.addEventListener('mouseenter', () => showView(idx));
+    row.addEventListener('focus', () => showView(idx));
   }
-  row.addEventListener('click', () => { hidePeek(); openWork(p, idx); });
+  row.addEventListener('click', () => openWork(p, idx));
   li.append(row); work.append(li);
 });
 
-/* aperçu flottant qui suit le curseur avec un léger retard (ressort) */
-let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0, pScale = 0.8, pSide = 0, pFlip = false;
-addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
-// Chaque clip a son calque dans la boîte : en passant d'une ligne à l'autre, la boîte reste
-// et les clips se fondent l'un dans l'autre (crossfade) au lieu de se réinitialiser.
-const peekLayers = [];
-function layerFor(idx) {
-  if (peekLayers[idx] !== undefined) return peekLayers[idx];
-  const m = peekMedia[idx];
-  if (!m) return (peekLayers[idx] = null);
-  const l = el('div', 'peek-layer'); l.append(m);
-  if (PROJECTS[idx].demo) l.append(el('span', 'clip-demo', 'template'));
-  peek.append(l);
-  return (peekLayers[idx] = l);
+/* vignette fixe : un calque par clip, fondu entre eux ; seul le clip affiché tourne */
+const view = $('#work-view'), viewLayers = [];
+let viewIdx = -1;
+function showView(idx) {
+  if (idx === viewIdx || !view) return;
+  const m = peekMedia[idx]; if (!m) return;
+  let l = viewLayers[idx];
+  if (!l) { l = viewLayers[idx] = el('div', 'view-layer'); l.append(m); if (PROJECTS[idx].demo) l.append(el('span', 'clip-demo', 'template')); view.append(l); }
+  viewLayers.forEach((x, i) => x && x.classList.toggle('on', i === idx));
+  work.querySelectorAll('.work-row').forEach((r, i) => r.classList.toggle('active', i === idx));
+  if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
+  const prev = viewIdx; viewIdx = idx;
+  if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (viewIdx !== prev) peekMedia[prev].pause(); }, 420);
 }
-let hideTimer = 0;
-function showPeek(idx) {
-  clearTimeout(hideTimer);
-  const l = layerFor(idx);
-  if (!l) return;
-  if (peekIdx !== idx) {
-    peekLayers.forEach((x, i) => { if (x && i !== idx) x.classList.remove('on'); });
-    l.classList.add('on');
-    const m = peekMedia[idx];
-    if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
-    const prev = peekIdx; peekIdx = idx;
-    if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (peekIdx !== prev) peekMedia[prev].pause(); }, 320);
-  }
-  if (!peekOn && !peek.classList.contains('on') && pScale < 0.82) { px = tx; py = ty; pvx = pvy = 0; prot = 0; pFlip = tx + 24 + peek.offsetWidth > innerWidth - 12; pSide = pFlip ? 1 : 0; }
-  peekOn = true; peek.classList.add('on');
-  if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }
-}
-function hidePeek() {
-  clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => {
-    peekOn = false; peek.classList.remove('on');
-    if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }   // anime la sortie
-    setTimeout(() => { if (!peekOn && peekMedia[peekIdx]) peekMedia[peekIdx].pause(); }, 320);
-  }, 60);
-}
-work.addEventListener('mouseleave', hidePeek);
-function peekLoop(now) {
-  const dt = Math.min((now - pLast) / 1000, 0.05); pLast = now;
-  const k = 90, c = 2 * Math.sqrt(k) * 0.8;                 // ressort un peu "souple" : léger retard + petit overshoot
-  pvx += ((tx - px) * k - pvx * c) * dt; pvy += ((ty - py) * k - pvy * c) * dt;
-  px += pvx * dt; py += pvy * dt;
-  const w = peek.offsetWidth, h = peek.offsetHeight, gap = 24;
-  // près du bord droit, la boîte glisse de l'autre côté du curseur (en douceur, avec une marge pour éviter les allers-retours)
-  if (!pFlip && px + gap + w > innerWidth - 12) pFlip = true;
-  else if (pFlip && px + gap + w < innerWidth - 80) pFlip = false;
-  pSide += ((pFlip ? 1 : 0) - pSide) * (1 - Math.exp(-dt * 9));
-  const sm = pSide * pSide * (3 - 2 * pSide);
-  let x = (px + gap) * (1 - sm) + (px - w - gap) * sm, y = py - h / 2;
-  y = Math.max(12, Math.min(innerHeight - h - 12, y));
-  prot += (Math.max(-6, Math.min(6, pvx * 0.012)) - prot) * 0.2;   // s'incline selon la vitesse
-  // apparition / disparition : la boîte grandit depuis le curseur et rétrécit en partant (pas de saut)
-  const sTarget = peekOn ? 1 : 0.8;
-  pScale += (sTarget - pScale) * (1 - Math.exp(-dt * (peekOn ? 10 : 8)));
-  peek.style.transformOrigin = `${sm * 100}% 50%`;
-  peek.style.transform = `translate(${x}px, ${y}px) rotate(${reduceMo ? 0 : prot}deg) scale(${reduceMo ? 1 : pScale})`;
-  if (peekOn || Math.abs(pvx) + Math.abs(pvy) > 1 || Math.abs(pScale - sTarget) > 0.002 || Math.abs(pSide - (pFlip ? 1 : 0)) > 0.002) pRaf = requestAnimationFrame(peekLoop); else pRaf = 0;
+if (view && !(touchUI || smallUI) && PROJECTS.length) {
+  showView(0);
+  view.addEventListener('click', () => openWork(PROJECTS[viewIdx], viewIdx));
+  // ne tourne que si la section est visible
+  new IntersectionObserver(([e]) => { const m = peekMedia[viewIdx]; if (!m || reduceMo) return; if (e.isIntersecting) { const r = m.play(); if (r && r.catch) r.catch(() => {}); } else m.pause(); }).observe(view);
 }
 
 /* showreel */
