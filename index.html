@@ -129,16 +129,30 @@
     .work-soon { display: flex; align-items: center; gap: calc(1.2rem * var(--s)); color: var(--faint); }
     .work-soon::before, .work-soon::after { content: ''; flex: 1; height: calc(1px * var(--s)); background: var(--surface); }
     .work-soon[hidden] { display: none; }
+    .work-head { display: flex; align-items: baseline; gap: calc(1.2rem * var(--s)); margin-bottom: calc(1.2rem * var(--s)); }
+    .work-head::after { content: ''; flex: 1; height: 1px; background: var(--surface); align-self: center; order: 1; }
+    .work-title { font-weight: 600; }
+    .filters { display: flex; gap: calc(0.2rem * var(--s)); order: 2; }
+    .filter { padding: calc(0.15rem * var(--s)) calc(0.55rem * var(--s)); border-radius: calc(5px * var(--s)); color: var(--faint); transition: color 0.2s, background-color 0.25s; }
+    .filter:hover { color: var(--text); }
+    .filter[aria-selected="true"] { color: var(--text); background: var(--surface); }
+    .showreel { aspect-ratio: 16 / 9; border-radius: calc(8px * var(--s)); overflow: hidden; background: #000; margin-bottom: calc(1.4rem * var(--s)); }
+    .showreel iframe { display: block; width: 100%; height: 100%; border: 0; }
+    .showreel[hidden] { display: none; }
     .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(1.4rem * var(--s)) calc(1rem * var(--s)); }
-    .clip { text-align: left; }
-    .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: calc(6px * var(--s)); overflow: hidden; transition: transform 0.25s cubic-bezier(.2,.8,.2,1), box-shadow 0.25s; }
-    .clip.playable:hover .clip-media { transform: translateY(-3px); box-shadow: 0 calc(10px * var(--s)) calc(24px * var(--s)) rgba(20,22,26,0.14); }
-    .clip-play { position: absolute; left: 50%; top: 50%; width: calc(44px * var(--s)); height: calc(44px * var(--s)); margin: -22px 0 0 -22px; border-radius: 50%; background: rgba(255,255,255,0.92); color: var(--text); display: flex; align-items: center; justify-content: center; font-size: calc(13px * var(--s)); padding-left: calc(3px * var(--s)); opacity: 0; transform: scale(0.8); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1); }
-    .clip.playable:hover .clip-play, .clip.playable:focus-visible .clip-play { opacity: 1; transform: scale(1); }
-    .clip-media img, .clip-media video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: filter 0.2s; }
-    .clip.playable { cursor: pointer; }
-    .clip.playable:hover img { filter: brightness(1.08); }
-    .clip-empty { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: calc(12px * var(--s)); }
+    .clip { text-align: left; display: block; width: 100%; cursor: pointer; transition: opacity 0.3s, transform 0.35s cubic-bezier(.2,.8,.2,1); }
+    .clip.out { opacity: 0; transform: scale(0.97); }
+    .clip[hidden] { display: none; }
+    .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: calc(8px * var(--s)); overflow: hidden;
+      transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s; }
+    .clip:hover .clip-media { transform: translateY(-3px); box-shadow: 0 calc(10px * var(--s)) calc(24px * var(--s)) rgba(20,22,26,0.12); }
+    .clip-media video, .clip-media canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .clip-expand { position: absolute; right: calc(0.5rem * var(--s)); bottom: calc(0.5rem * var(--s)); padding: calc(0.15rem * var(--s)) calc(0.45rem * var(--s));
+      border-radius: calc(5px * var(--s)); font-size: calc(11px * var(--s)); background: rgba(255,255,255,0.9); color: var(--text);
+      opacity: 0; transform: translateY(4px); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1); }
+    .clip:hover .clip-expand, .clip:focus-visible .clip-expand { opacity: 1; transform: none; }
+    .clip-demo { position: absolute; left: calc(0.5rem * var(--s)); top: calc(0.5rem * var(--s)); font-size: calc(10px * var(--s)); color: var(--faint);
+      background: rgba(255,255,255,0.85); padding: 0 calc(0.35rem * var(--s)); border-radius: calc(4px * var(--s)); }
     .clip-title { margin-top: calc(0.55rem * var(--s)); }
     .clip-type { color: var(--faint); font-size: calc(12px * var(--s)); }
 
@@ -152,7 +166,9 @@
     .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: calc(1rem * var(--s)); background: rgba(20,22,26,0.85); }
     .player.open { display: flex; }
     .player-frame { width: min(calc(960px * var(--s)), 100%, calc((100vh - calc(4rem * var(--s))) * 16 / 9)); aspect-ratio: 16 / 9; background: #000; border-radius: calc(4px * var(--s)); overflow: hidden; }
-    .player-frame iframe, .player-frame video { display: block; width: 100%; height: 100%; border: 0; }
+    .player-frame iframe, .player-frame video, .player-frame canvas { display: block; width: 100%; height: 100%; border: 0; }
+    .player { opacity: 0; transition: opacity 0.25s; }
+    .player.show { opacity: 1; }
 
     @keyframes blink { 50% { opacity: 0; } }
     @keyframes ring { to { --angle: 360deg; } }
@@ -222,6 +238,11 @@
   </section>
 
   <section class="work" aria-label="Work">
+    <div class="work-head" id="work-head">
+      <span class="work-title">my work</span>
+      <div class="filters" id="filters" role="tablist" aria-label="Filter work"></div>
+    </div>
+    <div class="showreel" id="showreel" hidden></div>
     <div class="work-grid" id="work"></div>
     <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
   </section>
@@ -257,9 +278,21 @@ const GAMES = [
   // discord: "https://discord.gg/..."  -> optionnel, bouton Discord au survol
 ];
 
-/* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
+/* MY WORK
+   clip : petit .mp4 muet de 3-8 s qui tourne en boucle dans la grille (mets-le dans un dossier work/ du repo)
+   full : optionnel, version longue/avec son ouverte au clic (.mp4, YouTube ou Streamable). Sinon le clip s'ouvre en grand.
+   type : animation / vfx / scripting / modeling… (sert aux filtres)
+   where : optionnel, jeu ou client
+   ⚠️ TEMPLATES : les lignes avec demo: true sont des exemples animés, supprime-les quand tu mets tes vrais clips. */
+const SHOWREEL = '';   // optionnel : lien YouTube de ton showreel, s'affiche en grand en haut de la section
 const PROJECTS = [
-  // { title: "sword combo", type: "animation", videoUrl: "https://youtu.be/..." },
+  { title: "sword combo",       type: "animation", where: "elder gate", demo: true },
+  { title: "idle cycle",        type: "animation", where: "aftershift", demo: true },
+  { title: "fireball",          type: "vfx",       where: "commission", demo: true },
+  { title: "victory emote",     type: "animation", where: "elder gate", demo: true },
+  { title: "door interaction",  type: "scripting", where: "aftershift", demo: true },
+  { title: "hit sparks",        type: "vfx",       where: "elder gate", demo: true },
+  // { title: "sword combo", type: "animation", where: "elder gate", clip: "work/sword-combo.mp4", full: "https://youtu.be/..." },
 ];
 
 /* Boutons 88x31 de potes (vide = caché). Ex : { img: "buttons/pote.gif", url: "https://..." } */
@@ -381,33 +414,104 @@ const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|em
 const stId = u => ((u || '').match(/streamable\.com\/(?:e\/)?(\w+)/) || [])[1];
 const isMp4 = u => /\.(mp4|webm)(\?|$)/i.test(u || '');
 const work = $('#work');
-if (!PROJECTS.length) { work.remove(); $('#work-soon').hidden = false; }
-PROJECTS.forEach(p => {
-  const playable = !!p.videoUrl;
-  const c = el(playable ? 'button' : 'div', 'clip' + (playable ? ' playable' : ''));
+const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* Template animé (demo: true) : l'exercice de base de l'animateur, la balle qui rebondit, avec squash & stretch */
+const DEMO_COLORS = ['#2f6fed', '#e8590c', '#2f9e44', '#c2255c', '#7048e8', '#0c8599'];
+function demoCanvas(seed) {
+  const cv = el('canvas'); const ctx = cv.getContext('2d');
+  const col = DEMO_COLORS[seed % DEMO_COLORS.length], period = 1.1 + (seed % 3) * 0.18, phase = seed * 0.37;
+  let running = false, raf = 0;
+  function draw(t) {
+    const W = cv.width = cv.clientWidth * devicePixelRatio, H = cv.height = cv.clientHeight * devicePixelRatio;
+    if (!W) return;
+    ctx.fillStyle = '#eceef1'; ctx.fillRect(0, 0, W, H);
+    const ground = H * 0.82, r = H * 0.09;
+    ctx.fillStyle = '#dfe2e7'; ctx.fillRect(0, ground, W, H - ground);
+    const u = ((t / 1000 + phase) / period) % 1;                   // 0..1 sur un rebond
+    const x = W * (0.12 + 0.76 * (((t / 1000 + phase) / (period * 4)) % 1));
+    const h = 4 * u * (1 - u);                                      // arc
+    let sy = 1 + 0.25 * Math.abs(1 - 2 * u) * (h < 0.25 ? 1 : 0.4);  // étiré en vitesse
+    const contact = Math.min(u, 1 - u);
+    if (contact < 0.06) sy = 0.62 + contact / 0.06 * 0.38;           // squash au contact
+    const sx = 1 / Math.sqrt(sy);
+    const y = ground - r * sy - h * (H * 0.55);
+    ctx.fillStyle = 'rgba(0,0,0,' + (0.18 * (1 - h * 0.8)) + ')';
+    ctx.beginPath(); ctx.ellipse(x, ground + 2, r * (1.1 - h * 0.5), r * 0.22, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, y, r * sx, r * sy, 0, 0, 7); ctx.fill();
+  }
+  function loop(t) { draw(t); if (running) raf = requestAnimationFrame(loop); }
+  cv.play = () => { if (!running) { running = true; raf = requestAnimationFrame(loop); } };
+  cv.pause = () => { running = false; cancelAnimationFrame(raf); };
+  requestAnimationFrame(t => draw(reduceMo ? 300 : t));
+  return cv;
+}
+
+/* lecture auto uniquement quand le clip est visible (économise la batterie) */
+const autoplay = new IntersectionObserver(es => es.forEach(e => {
+  const m = e.target; if (reduceMo) return;
+  if (e.isIntersecting) { const p = m.play(); if (p && p.catch) p.catch(() => {}); } else m.pause();
+}), { threshold: 0.25 });
+
+if (!PROJECTS.length) { work.remove(); $('#work-head').remove(); $('#work-soon').hidden = false; }
+PROJECTS.forEach((p, idx) => {
+  const c = el('button', 'clip'); c.dataset.type = p.type || '';
   const m = el('div', 'clip-media');
-  const thumb = p.thumb || (ytId(p.videoUrl) && `https://i.ytimg.com/vi/${ytId(p.videoUrl)}/hqdefault.jpg`);
-  if (thumb) { const i = el('img'); i.src = thumb; i.alt = ''; i.loading = 'lazy'; m.append(i); }
-  else if (isMp4(p.videoUrl)) { const v = el('video'); v.src = p.videoUrl + '#t=0.5'; v.muted = true; v.preload = 'metadata'; m.append(v); }
-  else if (!playable) m.append(el('span', 'clip-empty', 'soon'));
-  if (playable) m.append(el('span', 'clip-play', '▶'));
-  c.append(m, el('p', 'clip-title', p.title), el('p', 'clip-type', p.type));
-  if (playable) c.addEventListener('click', () => play(p.videoUrl));
+  let media;
+  if (p.demo) { media = demoCanvas(idx); m.append(el('span', 'clip-demo', 'template')); }
+  else if (p.clip) {
+    media = el('video'); media.src = p.clip; media.muted = true; media.loop = true; media.playsInline = true;
+    media.preload = 'metadata'; media.setAttribute('muted', ''); if (p.poster) media.poster = p.poster;
+  }
+  if (media) { m.prepend(media); autoplay.observe(media); }
+  m.append(el('span', 'clip-expand', p.full ? '▶ watch' : '⤢ open'));
+  c.append(m, el('p', 'clip-title', p.title), el('p', 'clip-type', [p.type, p.where].filter(Boolean).join(' · ')));
+  c.addEventListener('click', () => openWork(p, idx));
   work.append(c);
 });
 
+/* filtres : seulement s'il y a plusieurs types et au moins 4 clips */
+const types = [...new Set(PROJECTS.map(p => p.type).filter(Boolean))];
+if (types.length > 1 && PROJECTS.length >= 4) {
+  const bar = $('#filters');
+  ['all', ...types].forEach(t => {
+    const f = el('button', 'filter', t); f.setAttribute('role', 'tab'); f.setAttribute('aria-selected', t === 'all');
+    f.addEventListener('click', () => {
+      bar.querySelectorAll('.filter').forEach(x => x.setAttribute('aria-selected', x === f));
+      work.querySelectorAll('.clip').forEach(c => {
+        const show = t === 'all' || c.dataset.type === t;
+        if (show) { c.hidden = false; requestAnimationFrame(() => c.classList.remove('out')); }
+        else { c.classList.add('out'); setTimeout(() => { if (c.classList.contains('out')) c.hidden = true; }, 300); }
+      });
+    });
+    bar.append(f);
+  });
+}
+
+/* showreel */
+if (SHOWREEL && ytId(SHOWREEL)) {
+  const sr = $('#showreel'); sr.hidden = false;
+  const f = el('iframe'); f.src = `https://www.youtube.com/embed/${ytId(SHOWREEL)}?rel=0`; f.allow = 'encrypted-media; fullscreen'; f.allowFullscreen = true; f.loading = 'lazy';
+  sr.append(f);
+}
+
 const player = $('#player'), frame = $('#player-frame');
-function play(url) {
+function openWork(p, idx) {
   frame.innerHTML = '';
-  if (isMp4(url)) { const v = el('video'); v.src = url; v.controls = v.autoplay = v.playsInline = true; frame.append(v); }
+  const url = p.full || p.clip;
+  if (p.demo && !url) { const cv = demoCanvas(idx); frame.append(cv); requestAnimationFrame(() => cv.play()); }
+  else if (isMp4(url)) { const v = el('video'); v.src = url; v.controls = v.autoplay = v.playsInline = true; v.loop = !p.full; frame.append(v); }
   else {
     const f = el('iframe'); f.allow = 'autoplay; encrypted-media; fullscreen'; f.allowFullscreen = true;
     f.src = ytId(url) ? `https://www.youtube.com/embed/${ytId(url)}?autoplay=1&rel=0` : stId(url) ? `https://streamable.com/e/${stId(url)}?autoplay=1` : url;
     frame.append(f);
   }
-  player.classList.add('open');
+  player.classList.add('open'); requestAnimationFrame(() => player.classList.add('show'));
 }
-function closePlayer() { player.classList.remove('open'); frame.innerHTML = ''; }
+function closePlayer() {
+  player.classList.remove('show');
+  setTimeout(() => { player.classList.remove('open'); frame.innerHTML = ''; }, 250);
+}
 player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
 
