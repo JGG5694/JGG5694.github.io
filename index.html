@@ -94,13 +94,21 @@
     .row .act { color: var(--dim); }
 
     /* ── WHAT I'M WORKING ON ── */
-    .wip { margin: calc(1.6rem * var(--s)) 0 0 calc(calc(120px * var(--s)) + calc(1.6rem * var(--s))); }
+    .wip { position: relative; margin: calc(1.6rem * var(--s)) 0 0 calc(calc(120px * var(--s)) + calc(1.6rem * var(--s))); }
     .wip-toggle { display: inline-flex; align-items: center; gap: calc(0.5rem * var(--s)); color: var(--dim); padding: calc(0.2rem * var(--s)) 0; }
     .wip-toggle:hover { color: var(--text); }
     .chev { display: inline-block; transition: transform 0.25s cubic-bezier(.2,.8,.2,1); font-size: calc(15px * var(--s)); line-height: 1; }
     .wip-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
     .wip-drawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.2,.8,.2,1); }
     .wip-drawer.open { grid-template-rows: 1fr; }
+    /* sur PC : la liste se déroule par-dessus (hors du flux), donc le profil ne bouge pas */
+    @media (min-width: 821px) {
+      .wip-drawer { position: absolute; left: calc(-0.6rem * var(--s)); top: 100%; z-index: 5; min-width: calc(100% + 1.2rem * var(--s));
+        width: max-content; max-width: calc(460px * var(--s)); padding: 0 calc(0.6rem * var(--s)); border-radius: calc(10px * var(--s));
+        background: var(--bg); box-shadow: 0 calc(12px * var(--s)) calc(30px * var(--s)) rgba(20,22,26,0); transition: grid-template-rows 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s, padding 0.35s; }
+      .wip-drawer.open { box-shadow: 0 calc(12px * var(--s)) calc(30px * var(--s)) rgba(20,22,26,0.08); padding-bottom: calc(0.5rem * var(--s)); }
+      .wip-list { min-width: calc(300px * var(--s)); }
+    }
     .wip-list { overflow: hidden; list-style: none; }
     .wip-list li { opacity: 0; transform: translateY(-4px); transition: opacity 0.25s, transform 0.25s; }
     .wip-drawer.open .wip-list li { opacity: 1; transform: none; }
@@ -129,32 +137,43 @@
     .work-soon { display: flex; align-items: center; gap: calc(1.2rem * var(--s)); color: var(--faint); }
     .work-soon::before, .work-soon::after { content: ''; flex: 1; height: calc(1px * var(--s)); background: var(--surface); }
     .work-soon[hidden] { display: none; }
-    .work-head { display: flex; align-items: baseline; gap: calc(1.2rem * var(--s)); margin-bottom: calc(1.2rem * var(--s)); }
-    .work-head::after { content: ''; flex: 1; height: 1px; background: var(--surface); align-self: center; order: 1; }
+    .work-head { display: flex; align-items: center; gap: calc(1.2rem * var(--s)); margin-bottom: calc(0.4rem * var(--s)); }
+    .work-head::after { content: ''; flex: 1; height: 1px; background: var(--surface); }
     .work-title { font-weight: 600; }
-    .filters { display: flex; gap: calc(0.2rem * var(--s)); order: 2; }
-    .filter { padding: calc(0.15rem * var(--s)) calc(0.55rem * var(--s)); border-radius: calc(5px * var(--s)); color: var(--faint); transition: color 0.2s, background-color 0.25s; }
-    .filter:hover { color: var(--text); }
-    .filter[aria-selected="true"] { color: var(--text); background: var(--surface); }
-    .showreel { aspect-ratio: 16 / 9; border-radius: calc(8px * var(--s)); overflow: hidden; background: #000; margin-bottom: calc(1.4rem * var(--s)); }
+    .showreel { aspect-ratio: 16 / 9; border-radius: calc(8px * var(--s)); overflow: hidden; background: #000; margin: calc(0.8rem * var(--s)) 0; }
     .showreel iframe { display: block; width: 100%; height: 100%; border: 0; }
     .showreel[hidden] { display: none; }
-    .work-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: calc(1.4rem * var(--s)) calc(1rem * var(--s)); }
-    .clip { text-align: left; display: block; width: 100%; cursor: pointer; transition: opacity 0.3s, transform 0.35s cubic-bezier(.2,.8,.2,1); }
-    .clip.out { opacity: 0; transform: scale(0.97); }
-    .clip[hidden] { display: none; }
-    .clip-media { position: relative; aspect-ratio: 16 / 9; background: var(--surface); border-radius: calc(8px * var(--s)); overflow: hidden;
-      transition: transform 0.3s cubic-bezier(.2,.8,.2,1), box-shadow 0.3s; }
-    .clip:hover .clip-media { transform: translateY(-3px); box-shadow: 0 calc(10px * var(--s)) calc(24px * var(--s)) rgba(20,22,26,0.12); }
-    .clip-media video, .clip-media canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-    .clip-expand { position: absolute; right: calc(0.5rem * var(--s)); bottom: calc(0.5rem * var(--s)); padding: calc(0.15rem * var(--s)) calc(0.45rem * var(--s));
-      border-radius: calc(5px * var(--s)); font-size: calc(11px * var(--s)); background: rgba(255,255,255,0.9); color: var(--text);
-      opacity: 0; transform: translateY(4px); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1); }
-    .clip:hover .clip-expand, .clip:focus-visible .clip-expand { opacity: 1; transform: none; }
-    .clip-demo { position: absolute; left: calc(0.5rem * var(--s)); top: calc(0.5rem * var(--s)); font-size: calc(10px * var(--s)); color: var(--faint);
-      background: rgba(255,255,255,0.85); padding: 0 calc(0.35rem * var(--s)); border-radius: calc(4px * var(--s)); }
-    .clip-title { margin-top: calc(0.55rem * var(--s)); }
-    .clip-type { color: var(--faint); font-size: calc(12px * var(--s)); }
+
+    /* liste de travaux : une ligne par clip, aperçu flottant au survol */
+    .work-list { list-style: none; }
+    .work-row { display: flex; align-items: center; gap: calc(1rem * var(--s)); width: 100%; text-align: left;
+      padding: calc(0.75rem * var(--s)) 0; border-bottom: 1px solid var(--surface); color: var(--text); }
+    .work-row .w-title { flex: 1; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), color 0.25s; }
+    .work-row .w-meta { color: var(--faint); font-size: calc(12px * var(--s)); transition: color 0.25s; white-space: nowrap; }
+    .work-row .w-arrow { color: var(--faint); width: 1em; opacity: 0; transform: translateX(-6px); transition: opacity 0.25s, transform 0.35s cubic-bezier(.2,.8,.2,1); }
+    .work-list:hover .work-row .w-title { color: var(--faint); }
+    .work-list .work-row:hover .w-title { color: var(--text); transform: translateX(calc(8px * var(--s))); }
+    .work-row:hover .w-meta { color: var(--dim); }
+    .work-row:hover .w-arrow { opacity: 1; transform: none; }
+    .w-thumb { display: none; }
+
+    .peek { position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; width: calc(300px * var(--s)); aspect-ratio: 16 / 9;
+      border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface);
+      box-shadow: 0 calc(18px * var(--s)) calc(40px * var(--s)) rgba(20,22,26,0.18);
+      opacity: 0; transition: opacity 0.25s ease; will-change: transform; }
+    .peek.on { opacity: 1; }
+    .peek video, .peek canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .peek .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
+
+    /* tactile : pas de survol, on montre une mini vignette dans la ligne */
+    @media (hover: none) {
+      .w-thumb { display: block; position: relative; flex: none; width: calc(92px * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(6px * var(--s)); overflow: hidden; background: var(--surface); }
+      .w-thumb video, .w-thumb canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .work-row .w-meta { display: block; }
+      .w-text { flex: 1; display: flex; flex-direction: column; }
+      .work-row .w-arrow { display: none; }
+    }
+    .clip-demo { font-size: calc(10px * var(--s)); color: var(--faint); background: rgba(255,255,255,0.85); padding: 0 calc(0.35rem * var(--s)); border-radius: calc(4px * var(--s)); }
 
     /* ── BOUTONS 88x31 ── */
     .bottom { margin-top: calc(4rem * var(--s)); }
@@ -188,10 +207,8 @@
       .top { grid-template-columns: 1fr; gap: calc(0.5rem * var(--s)); }
       .stage { height: calc(290px * var(--s)); }
       .presence, .wip { margin-left: 0; }
-      .work-grid { grid-template-columns: 1fr 1fr; }
     }
     @media (max-width: 480px) {
-      .work-grid { grid-template-columns: 1fr; }
       .pfp-wrap { width: calc(84px * var(--s)); height: calc(84px * var(--s)); }
     }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
@@ -238,12 +255,9 @@
   </section>
 
   <section class="work" aria-label="Work">
-    <div class="work-head" id="work-head">
-      <span class="work-title">my work</span>
-      <div class="filters" id="filters" role="tablist" aria-label="Filter work"></div>
-    </div>
+    <div class="work-head" id="work-head"><span class="work-title">my work</span></div>
     <div class="showreel" id="showreel" hidden></div>
-    <div class="work-grid" id="work"></div>
+    <ul class="work-list" id="work"></ul>
     <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
   </section>
 
@@ -252,6 +266,8 @@
   </section>
 </main>
 
+
+<div class="peek" id="peek" aria-hidden="true"></div>
 
 <div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video">
   <div class="player-frame" id="player-frame"></div>
@@ -447,45 +463,74 @@ function demoCanvas(seed) {
   return cv;
 }
 
-/* lecture auto uniquement quand le clip est visible (économise la batterie) */
+/* lecture auto uniquement quand le média est visible (économise la batterie) */
 const autoplay = new IntersectionObserver(es => es.forEach(e => {
   const m = e.target; if (reduceMo) return;
   if (e.isIntersecting) { const p = m.play(); if (p && p.catch) p.catch(() => {}); } else m.pause();
-}), { threshold: 0.25 });
+}), { threshold: 0.1 });
+function makeMedia(p, idx) {
+  if (p.demo) return demoCanvas(idx);
+  if (!p.clip) return null;
+  const v = el('video'); v.src = p.clip; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('muted', '');
+  v.preload = 'metadata'; if (p.poster) v.poster = p.poster; return v;
+}
+
+const touchUI = matchMedia('(hover: none)').matches;
+const peek = $('#peek');
+const peekMedia = [];
 
 if (!PROJECTS.length) { work.remove(); $('#work-head').remove(); $('#work-soon').hidden = false; }
 PROJECTS.forEach((p, idx) => {
-  const c = el('button', 'clip'); c.dataset.type = p.type || '';
-  const m = el('div', 'clip-media');
-  let media;
-  if (p.demo) { media = demoCanvas(idx); m.append(el('span', 'clip-demo', 'template')); }
-  else if (p.clip) {
-    media = el('video'); media.src = p.clip; media.muted = true; media.loop = true; media.playsInline = true;
-    media.preload = 'metadata'; media.setAttribute('muted', ''); if (p.poster) media.poster = p.poster;
+  const li = el('li');
+  const row = el('button', 'work-row');
+  const meta = el('span', 'w-meta', [p.type, p.where].filter(Boolean).join(' · '));
+  if (touchUI) {
+    const th = el('span', 'w-thumb'); const m = makeMedia(p, idx);
+    if (m) { th.append(m); autoplay.observe(m); }
+    const tx = el('span', 'w-text'); tx.append(el('span', 'w-title', p.title), meta);
+    row.append(th, tx);
+  } else {
+    row.append(el('span', 'w-title', p.title), meta, el('span', 'w-arrow', '↗'));
+    peekMedia[idx] = makeMedia(p, idx);
+    row.addEventListener('mouseenter', () => showPeek(idx));
+    row.addEventListener('mouseleave', hidePeek);
   }
-  if (media) { m.prepend(media); autoplay.observe(media); }
-  m.append(el('span', 'clip-expand', p.full ? '▶ watch' : '⤢ open'));
-  c.append(m, el('p', 'clip-title', p.title), el('p', 'clip-type', [p.type, p.where].filter(Boolean).join(' · ')));
-  c.addEventListener('click', () => openWork(p, idx));
-  work.append(c);
+  row.addEventListener('click', () => { hidePeek(); openWork(p, idx); });
+  li.append(row); work.append(li);
 });
 
-/* filtres : seulement s'il y a plusieurs types et au moins 4 clips */
-const types = [...new Set(PROJECTS.map(p => p.type).filter(Boolean))];
-if (types.length > 1 && PROJECTS.length >= 4) {
-  const bar = $('#filters');
-  ['all', ...types].forEach(t => {
-    const f = el('button', 'filter', t); f.setAttribute('role', 'tab'); f.setAttribute('aria-selected', t === 'all');
-    f.addEventListener('click', () => {
-      bar.querySelectorAll('.filter').forEach(x => x.setAttribute('aria-selected', x === f));
-      work.querySelectorAll('.clip').forEach(c => {
-        const show = t === 'all' || c.dataset.type === t;
-        if (show) { c.hidden = false; requestAnimationFrame(() => c.classList.remove('out')); }
-        else { c.classList.add('out'); setTimeout(() => { if (c.classList.contains('out')) c.hidden = true; }, 300); }
-      });
-    });
-    bar.append(f);
-  });
+/* aperçu flottant qui suit le curseur avec un léger retard (ressort) */
+let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0;
+addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
+function showPeek(idx) {
+  const m = peekMedia[idx];
+  if (peekIdx !== idx) {
+    peek.querySelectorAll('video, canvas').forEach(x => x.pause && x.pause());
+    peek.innerHTML = '';
+    if (m) { peek.append(m); if (PROJECTS[idx].demo) peek.append(el('span', 'clip-demo', 'template')); if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); } }
+    peekIdx = idx;
+  } else if (m && !reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
+  if (!m) return;
+  if (!peekOn) { px = tx; py = ty; pvx = pvy = 0; }
+  peekOn = true; peek.classList.add('on');
+  if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }
+}
+function hidePeek() {
+  peekOn = false; peek.classList.remove('on');
+  setTimeout(() => { if (!peekOn) peek.querySelectorAll('video, canvas').forEach(x => x.pause && x.pause()); }, 260);
+}
+function peekLoop(now) {
+  const dt = Math.min((now - pLast) / 1000, 0.05); pLast = now;
+  const k = 90, c = 2 * Math.sqrt(k) * 0.8;                 // ressort un peu "souple" : léger retard + petit overshoot
+  pvx += ((tx - px) * k - pvx * c) * dt; pvy += ((ty - py) * k - pvy * c) * dt;
+  px += pvx * dt; py += pvy * dt;
+  const w = peek.offsetWidth, h = peek.offsetHeight, gap = 24;
+  let x = px + gap, y = py - h / 2;
+  if (x + w > innerWidth - 12) x = px - w - gap;             // passe à gauche du curseur près du bord
+  y = Math.max(12, Math.min(innerHeight - h - 12, y));
+  prot += (Math.max(-6, Math.min(6, pvx * 0.012)) - prot) * 0.2;   // s'incline selon la vitesse
+  peek.style.transform = `translate(${x}px, ${y}px) rotate(${reduceMo ? 0 : prot}deg) scale(${peekOn ? 1 : 0.92})`;
+  if (peekOn || Math.abs(pvx) + Math.abs(pvy) > 1) pRaf = requestAnimationFrame(peekLoop); else pRaf = 0;
 }
 
 /* showreel */
