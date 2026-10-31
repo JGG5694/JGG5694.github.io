@@ -191,7 +191,7 @@
     .work-view { position: sticky; top: calc(1.5rem * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface); cursor: pointer; }
     .view-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s ease; }
     .view-layer.on { opacity: 1; }
-    .work-view video, .work-view canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+    .work-view video, .work-view canvas, .work-view img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
     .work-view .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
 
     /* tactile : pas de survol, on montre une mini vignette dans la ligne */
@@ -200,7 +200,7 @@
       .work-view { display: none; }
       .work-row .w-title { color: var(--text); }
       .w-thumb { display: block; position: relative; flex: none; width: calc(92px * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(6px * var(--s)); overflow: hidden; background: var(--surface); }
-      .w-thumb video, .w-thumb canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .w-thumb video, .w-thumb canvas, .w-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
       .work-row .w-meta { display: block; }
       .w-text { flex: 1; display: flex; flex-direction: column; }
       .work-row .w-arrow { display: none; }
@@ -217,7 +217,8 @@
     .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: calc(1rem * var(--s)); background: rgba(20,22,26,0.85); }
     .player.open { display: flex; }
     .player-frame { width: min(calc(960px * var(--s)), 100%, calc((100vh - calc(4rem * var(--s))) * 16 / 9)); aspect-ratio: 16 / 9; background: #000; border-radius: calc(4px * var(--s)); overflow: hidden; }
-    .player-frame iframe, .player-frame video, .player-frame canvas { display: block; width: 100%; height: 100%; border: 0; }
+    .player-frame iframe, .player-frame video, .player-frame canvas, .player-frame img { display: block; width: 100%; height: 100%; border: 0; }
+    .player-frame img { object-fit: contain; }
     .player { opacity: 0; transition: opacity 0.25s; }
     .player.show { opacity: 1; }
 
@@ -490,6 +491,7 @@ if (CONFIG.discordId) { pollPresence(); connectLanyard(); } else robloxPfp();
 const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/) || [])[1];
 const stId = u => ((u || '').match(/streamable\.com\/(?:e\/)?(\w+)/) || [])[1];
 const isMp4 = u => /\.(mp4|webm)(\?|$)/i.test(u || '');
+const isImg = u => /\.(png|jpe?g|webp|gif|avif)(\?|$)/i.test(u || '');
 const work = $('#work');
 const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
@@ -532,6 +534,10 @@ const autoplay = new IntersectionObserver(es => es.forEach(e => {
 function makeMedia(p, idx) {
   if (p.demo) return demoCanvas(idx);
   if (!p.clip) return null;
+  if (isImg(p.clip)) {   // image (png/jpg/webp/gif) : pour les builds, models, etc.
+    const im = el('img'); im.src = p.clip; im.alt = p.title || ''; im.loading = 'lazy'; im.decoding = 'async';
+    im.play = () => {}; im.pause = () => {}; return im;
+  }
   const v = el('video'); v.src = p.clip; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('muted', '');
   v.preload = 'metadata'; if (p.poster) v.poster = p.poster; return v;
 }
@@ -633,6 +639,7 @@ function openWork(p, idx) {
   frame.innerHTML = '';
   const url = p.full || p.clip;
   if (p.demo && !url) { const cv = demoCanvas(idx); frame.append(cv); requestAnimationFrame(() => cv.play()); }
+  else if (isImg(url)) { const im = el('img'); im.src = url; im.alt = p.title || ''; frame.append(im); }
   else if (isMp4(url)) { const v = el('video'); v.src = url; v.controls = v.autoplay = v.playsInline = true; v.loop = !p.full; frame.append(v); }
   else {
     const f = el('iframe'); f.allow = 'autoplay; encrypted-media; fullscreen'; f.allowFullscreen = true;
