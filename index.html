@@ -626,6 +626,21 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
     $('#work-empty').hidden = shown.length > 0;
     if (view && !(touchUI || smallUI)) { view.style.display = shown.length ? '' : 'none'; if (shown.length && !shown.includes(viewIdx)) showView(shown[0]); }
   };
+  // hauteur verrouillée sur celle de « all » : changer de catégorie ne fait jamais remonter la page
+  const body = work.closest('.work-body') || work.parentElement, empty = $('#work-empty');
+  const lock = () => {
+    if (ci !== 0) return;
+    body.style.minHeight = '';
+    const h = body.offsetHeight;
+    if (h) body.style.minHeight = h + 'px';
+  };
+  requestAnimationFrame(lock);
+  addEventListener('load', lock);
+  addEventListener('resize', lock);   // recalcule si on redimensionne pendant qu'on est sur « all »
+  empty.style.position = 'absolute';
+  body.style.position = 'relative';
+  if (empty.parentElement !== body) body.prepend(empty);
+
   prev.addEventListener('click', () => { ci = (ci - 1 + cats.length) % cats.length; apply(-1); });
   next.addEventListener('click', () => { ci = (ci + 1) % cats.length; apply(1); });
 })();
