@@ -162,6 +162,8 @@
       box-shadow: 0 calc(18px * var(--s)) calc(40px * var(--s)) rgba(20,22,26,0.18);
       opacity: 0; transition: opacity 0.25s ease; will-change: transform; }
     .peek.on { opacity: 1; }
+    .peek-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.3s ease; }
+    .peek-layer.on { opacity: 1; }
     .peek video, .peek canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
     .peek .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
 
@@ -493,7 +495,6 @@ PROJECTS.forEach((p, idx) => {
     row.append(el('span', 'w-title', p.title), meta, el('span', 'w-arrow', '↗'));
     peekMedia[idx] = makeMedia(p, idx);
     row.addEventListener('mouseenter', () => showPeek(idx));
-    row.addEventListener('mouseleave', hidePeek);
   }
   row.addEventListener('click', () => { hidePeek(); openWork(p, idx); });
   li.append(row); work.append(li);
@@ -502,23 +503,43 @@ PROJECTS.forEach((p, idx) => {
 /* aperçu flottant qui suit le curseur avec un léger retard (ressort) */
 let peekIdx = -1, peekOn = false, px = 0, py = 0, tx = 0, ty = 0, pvx = 0, pvy = 0, prot = 0, pRaf = 0, pLast = 0;
 addEventListener('pointermove', e => { tx = e.clientX; ty = e.clientY; }, { passive: true });
-function showPeek(idx) {
+// Chaque clip a son calque dans la boîte : en passant d'une ligne à l'autre, la boîte reste
+// et les clips se fondent l'un dans l'autre (crossfade) au lieu de se réinitialiser.
+const peekLayers = [];
+function layerFor(idx) {
+  if (peekLayers[idx] !== undefined) return peekLayers[idx];
   const m = peekMedia[idx];
+  if (!m) return (peekLayers[idx] = null);
+  const l = el('div', 'peek-layer'); l.append(m);
+  if (PROJECTS[idx].demo) l.append(el('span', 'clip-demo', 'template'));
+  peek.append(l);
+  return (peekLayers[idx] = l);
+}
+let hideTimer = 0;
+function showPeek(idx) {
+  clearTimeout(hideTimer);
+  const l = layerFor(idx);
+  if (!l) return;
   if (peekIdx !== idx) {
-    peek.querySelectorAll('video, canvas').forEach(x => x.pause && x.pause());
-    peek.innerHTML = '';
-    if (m) { peek.append(m); if (PROJECTS[idx].demo) peek.append(el('span', 'clip-demo', 'template')); if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); } }
-    peekIdx = idx;
-  } else if (m && !reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
-  if (!m) return;
-  if (!peekOn) { px = tx; py = ty; pvx = pvy = 0; }
+    peekLayers.forEach((x, i) => { if (x && i !== idx) x.classList.remove('on'); });
+    l.classList.add('on');
+    const m = peekMedia[idx];
+    if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
+    const prev = peekIdx; peekIdx = idx;
+    if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (peekIdx !== prev) peekMedia[prev].pause(); }, 320);
+  }
+  if (!peekOn && !peek.classList.contains('on')) { px = tx; py = ty; pvx = pvy = 0; }
   peekOn = true; peek.classList.add('on');
   if (!pRaf) { pLast = performance.now(); pRaf = requestAnimationFrame(peekLoop); }
 }
 function hidePeek() {
-  peekOn = false; peek.classList.remove('on');
-  setTimeout(() => { if (!peekOn) peek.querySelectorAll('video, canvas').forEach(x => x.pause && x.pause()); }, 260);
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => {
+    peekOn = false; peek.classList.remove('on');
+    setTimeout(() => { if (!peekOn && peekMedia[peekIdx]) peekMedia[peekIdx].pause(); }, 260);
+  }, 60);
 }
+work.addEventListener('mouseleave', hidePeek);
 function peekLoop(now) {
   const dt = Math.min((now - pLast) / 1000, 0.05); pLast = now;
   const k = 90, c = 2 * Math.sqrt(k) * 0.8;                 // ressort un peu "souple" : léger retard + petit overshoot
