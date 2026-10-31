@@ -3,979 +3,1343 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>JGG</title>
-  <meta name="description" content="Roblox animator &amp; a bit of everything else." />
-  <meta property="og:title" content="hi, i'm JGG" />
-  <meta property="og:description" content="Roblox animator &amp; a bit of everything else." />
-  <meta property="og:url" content="https://JGG5694.github.io/" />
+  <title>Portofolio - Wip</title>
+  <!-- Discord Embed -->
+  <meta property="og:title" content=".JGG — Animator & VFX Artist" />
+  <meta property="og:description" content="Animation, VFX, and Roblox scripting. Click to see my work." />
+  <meta property="og:url" content="https://yourusername.github.io" />
   <meta property="og:type" content="website" />
-  <meta property="og:image" content="https://JGG5694.github.io/avatar/avatar.png" />
-  <meta name="twitter:card" content="summary" />
-  <meta name="theme-color" content="#f4f5f7" />
-  <script>
-    // thème sauvegardé appliqué avant l'affichage (évite un flash blanc en mode sombre)
-    try { if (localStorage.getItem('theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (_) {}
-  </script>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet" />
-
-  <script type="importmap">
-  { "imports": {
-      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
-  } }
-  </script>
-
+  <meta property="og:image" content="https://via.placeholder.com/1200x630/0e0d0b/c4501a?text=.JGG+Portfolio" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="theme-color" content="#c4501a" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet" />
   <style>
-    :root {
-      --s: 1.5;   /* échelle globale du site (1 = taille d'origine) */
-      --bg: #f4f5f7;
-      --text: #1f2125;
-      --dim: #62666e;
-      --faint: #8d929a;
-      --surface: #e7e9ed;
-      --online: #2f9e44;
-      --idle: #b7860b;
-      --dnd: #d14343;
-    }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0e0d0b;
+      --surface: #161410;
+      --border: rgba(220,130,80,0.1);
+      --text: #ede8df;
+      --muted: #7a7168;
+      --accent: #c4501a;
+    }
+
+    html { scroll-behavior: smooth; }
+
     body {
-      background: var(--bg); color: var(--text);
-      font: calc(13px * var(--s))/1.6 'JetBrains Mono', ui-monospace, Consolas, monospace;
-      min-height: 100vh; -webkit-font-smoothing: antialiased; overflow-x: hidden;
-    }
-    a { color: inherit; text-decoration: none; }
-    button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
-    :focus-visible { outline: calc(1px * var(--s)) solid var(--text); outline-offset: calc(3px * var(--s)); }
-    ::selection { background: var(--sel); }
-    :root { --sel: #cfe3ff; --chip: rgba(255,255,255,0.85); }
-    :root[data-theme="dark"] {
-      --bg: #121315; --text: #ececee; --dim: #a6a9b0; --faint: #6f737b; --surface: #222428;
-      --online: #57d36a; --idle: #f0c24b; --dnd: #ff6b6b; --sel: #2c3f5c; --chip: rgba(18,19,21,0.8);
-      color-scheme: dark;
-    }
-    body { transition: background-color 0.35s ease, color 0.35s ease; }
-
-    /* bouton thème, en haut à droite */
-    .theme-btn { position: fixed; top: calc(1.1rem * var(--s)); right: calc(1.2rem * var(--s)); z-index: 9;
-      width: calc(34px * var(--s)); height: calc(34px * var(--s)); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      color: var(--dim); transition: color 0.2s, background-color 0.25s; }
-    .theme-btn:hover { color: var(--text); background: var(--surface); }
-    .theme-btn svg { width: calc(17px * var(--s)); height: calc(17px * var(--s)); position: absolute; transition: opacity 0.3s, transform 0.45s cubic-bezier(.2,.8,.2,1); }
-    .theme-btn .moon { opacity: 1; transform: none; }
-    .theme-btn .sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
-    :root[data-theme="dark"] .theme-btn .moon { opacity: 0; transform: rotate(90deg) scale(0.6); }
-    :root[data-theme="dark"] .theme-btn .sun { opacity: 1; transform: none; }
-
-    body { display: flex; flex-direction: column; }
-    main { width: 100%; max-width: calc(1000px * var(--s)); margin: 0 auto; padding: calc(3rem * var(--s)) calc(1.5rem * var(--s)); flex: 1; display: flex; flex-direction: column; justify-content: center; }
-
-    /* ── TOP : avatar 3D + profil ── */
-    .top { display: grid; grid-template-columns: calc(340px * var(--s)) 1fr; gap: calc(2.5rem * var(--s)); align-items: center; }
-    .stage { position: relative; height: calc(400px * var(--s)); cursor: grab; }
-    .stage canvas { z-index: 1; position: absolute; top: -110px; bottom: -110px; left: -40px; right: -40px; width: calc(100% + calc(80px * var(--s))) !important; height: calc(100% + calc(220px * var(--s))) !important; pointer-events: none; }
-    .stage img.avatar-2d { position: absolute; inset: 0; margin: auto; width: 100%; height: 100%; object-fit: contain; }
-    .stage-msg { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--faint); }
-
-    .profile { display: flex; align-items: center; gap: calc(1.6rem * var(--s)); }
-    @property --angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
-    .pfp-wrap { --ring: var(--faint); position: relative; flex: none; width: calc(120px * var(--s)); height: calc(120px * var(--s)); }
-    .pfp-wrap::before, .pfp-wrap::after { content: ''; position: absolute; inset: -5px; border-radius: calc(13px * var(--s)); padding: calc(3px * var(--s)); pointer-events: none;
-      -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
-    .pfp-wrap::after { background: var(--ring); opacity: 0.22; }
-    .pfp-wrap::before { background: conic-gradient(from var(--angle), transparent 0 45%, var(--ring) 78%, transparent 100%); animation: ring 9s linear infinite; z-index: 1; }
-    .pfp { display: block; width: 100%; height: 100%; border-radius: calc(8px * var(--s)); background: var(--surface); object-fit: cover; }
-    .pfp-deco { position: absolute; inset: -12%; width: 124%; height: 124%; pointer-events: none; z-index: 2; }
-    .hi { font-size: calc(22px * var(--s)); font-weight: 600; letter-spacing: -0.01em; }
-    .hi .name { display: inline-block; }
-    .hi .name span { display: inline-block; transform-origin: 50% 100%; }
-    .hi .name.jump span { animation: hop 0.85s cubic-bezier(.45,0,.25,1) both; }
-    .hi .name.jump span:nth-child(2) { animation-delay: 0.1s; }
-    .hi .name.jump span:nth-child(3) { animation-delay: 0.2s; }
-    .sub { color: var(--dim); margin-top: calc(0.2rem * var(--s)); min-height: 1.6em; }
-    .caret { display: inline-block; width: 0.55em; height: 1.05em; margin-left: calc(2px * var(--s)); vertical-align: -0.18em; background: var(--dim); animation: blink 1s steps(1) infinite; }
-    .socials { display: flex; gap: calc(0.9rem * var(--s)); margin-top: calc(0.8rem * var(--s)); }
-    .socials a, .socials button { color: var(--dim); display: flex; transition: color 0.15s; position: relative; }
-    .socials a:hover, .socials button:hover { color: var(--text); }
-    .socials svg { width: calc(17px * var(--s)); height: calc(17px * var(--s)); }
-    .tip { position: absolute; left: 50%; top: -1.9rem; transform: translateX(-50%); white-space: nowrap; font-size: calc(11px * var(--s)); color: var(--text); background: var(--text); color: var(--bg); padding: calc(0.15rem * var(--s)) calc(0.45rem * var(--s)); border-radius: calc(3px * var(--s)); pointer-events: none; }
-
-    .presence { margin: calc(2rem * var(--s)) 0 0 calc(calc(120px * var(--s)) + calc(1.6rem * var(--s))); display: flex; flex-direction: column; gap: calc(0.35rem * var(--s)); color: var(--faint); }
-    .row { display: flex; align-items: center; gap: calc(0.8rem * var(--s)); }
-    .row[hidden] { display: none; }
-    .row svg { width: calc(14px * var(--s)); height: calc(14px * var(--s)); flex: none; color: var(--dim); }
-    .row .st { font-weight: 600; display: inline-flex; align-items: center; gap: calc(0.45rem * var(--s)); }
-    .row .st .dot { width: calc(7px * var(--s)); height: calc(7px * var(--s)); border-radius: 50%; background: currentColor; animation: pulse 2s ease-out infinite; }
-    .row .st.offline .dot { animation: none; }
-    .row .st.online { color: var(--online); }
-    .row .st.idle { color: var(--idle); }
-    .row .st.dnd { color: var(--dnd); }
-    .row .st.offline { color: var(--dim); }
-    .row .act { color: var(--dim); }
-
-    /* ── WHAT I'M WORKING ON ── */
-    .wip { position: relative; margin: calc(1.6rem * var(--s)) 0 0 calc(calc(120px * var(--s)) + calc(1.6rem * var(--s))); }
-    .wip-toggle { display: inline-flex; align-items: center; gap: calc(0.5rem * var(--s)); color: var(--dim); padding: calc(0.2rem * var(--s)) 0; }
-    .wip-toggle:hover { color: var(--text); }
-    .chev { display: inline-block; transition: transform 0.25s cubic-bezier(.2,.8,.2,1); font-size: calc(15px * var(--s)); line-height: 1; }
-    .wip-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
-    .wip-drawer { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.35s cubic-bezier(.2,.8,.2,1); }
-    .wip-drawer.open { grid-template-rows: 1fr; }
-    /* sur PC : la liste se déroule par-dessus (hors du flux), donc le profil ne bouge pas */
-    @media (min-width: 821px) {
-      .wip-drawer { position: absolute; left: calc(-0.6rem * var(--s)); top: 100%; z-index: 5; min-width: calc(100% + 1.2rem * var(--s));
-        width: max-content; max-width: calc(460px * var(--s)); padding: 0 calc(0.6rem * var(--s)); border-radius: calc(10px * var(--s));
-        background: var(--bg); box-shadow: 0 calc(12px * var(--s)) calc(30px * var(--s)) rgba(20,22,26,0); transition: grid-template-rows 0.35s cubic-bezier(.2,.8,.2,1), box-shadow 0.35s, padding 0.35s; }
-      .wip-drawer.open { box-shadow: 0 calc(12px * var(--s)) calc(30px * var(--s)) rgba(20,22,26,0.08); padding-bottom: calc(0.5rem * var(--s)); }
-      .wip-list { min-width: calc(300px * var(--s)); }
-    }
-    .wip-list { overflow: hidden; list-style: none; }
-    .wip-list li { opacity: 0; transform: translateY(-4px); transition: opacity 0.25s, transform 0.25s; }
-    .wip-drawer.open .wip-list li { opacity: 1; transform: none; }
-    .wip-drawer.open .wip-list li:nth-child(2) { transition-delay: 0.05s; }
-    .wip-drawer.open .wip-list li:nth-child(3) { transition-delay: 0.1s; }
-    .wip-drawer.open .wip-list li:nth-child(4) { transition-delay: 0.15s; }
-    .game { display: flex; align-items: center; gap: calc(0.8rem * var(--s)); padding: calc(0.45rem * var(--s)) calc(0.5rem * var(--s)); margin: 0 calc(-0.5rem * var(--s)); border-radius: calc(6px * var(--s)); background-color: transparent; transition: background-color 0.35s ease; }
-    .wip-list li:first-child .game { margin-top: calc(0.6rem * var(--s)); }
-    .wip-list li:hover a.game { background-color: var(--surface); transition-duration: 0.2s; }
-    .game img, .game .noicon { width: calc(38px * var(--s)); height: calc(38px * var(--s)); border-radius: calc(8px * var(--s)); flex: none; background: var(--surface); object-fit: cover; }
-    .game b { font-weight: 600; display: block; }
-    .game small { color: var(--dim); font-size: calc(12px * var(--s)); }
-    .game small .label { color: var(--faint); }
-    .game .playing { color: var(--online); }
-    .wip-list li { position: relative; }
-    .game-dc { position: absolute; right: calc(0.4rem * var(--s)); top: 50%; display: flex; align-items: center; justify-content: center;
-      width: calc(32px * var(--s)); height: calc(32px * var(--s)); border-radius: calc(8px * var(--s)); color: var(--dim);
-      opacity: 0; transform: translate(6px, -50%); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1), color 0.15s, background 0.15s; }
-    .game-dc svg { width: calc(18px * var(--s)); height: calc(18px * var(--s)); }
-    .wip-list li:hover .game-dc, .game-dc:focus-visible { opacity: 1; transform: translate(0, -50%); }
-    .game-dc:hover { color: #fff; background: #5865f2; }
-    @media (hover: none) { .game-dc { opacity: 1; transform: translate(0, -50%); } }
-
-    /* ── WORK ── */
-    .work { margin-top: calc(4rem * var(--s)); }
-    .work-soon { display: flex; align-items: center; gap: calc(1.2rem * var(--s)); color: var(--faint); }
-    .work-soon::before, .work-soon::after { content: ''; flex: 1; height: calc(1px * var(--s)); background: var(--surface); }
-    .work-soon[hidden] { display: none; }
-    .work-head { display: flex; align-items: center; gap: calc(1.2rem * var(--s)); margin-bottom: calc(0.4rem * var(--s)); }
-    .work-head::after { content: ''; flex: 1; height: 1px; background: var(--surface); order: 1; }
-    .sorter { display: flex; align-items: center; gap: calc(0.3rem * var(--s)); order: 2; user-select: none; }
-    .sort-arrow { width: calc(26px * var(--s)); height: calc(26px * var(--s)); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      color: var(--faint); font-size: calc(15px * var(--s)); transition: color 0.2s, background-color 0.25s; }
-    .sort-arrow:hover { color: var(--text); background: var(--surface); }
-    .sort-label { position: relative; display: inline-block; min-width: calc(7.5em); height: 1.6em; overflow: hidden; text-align: center; }
-    .sort-label span { position: absolute; inset: 0; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.3s; }
-    .work-list li { transition: opacity 0.3s; }
-    .work-list li.out { opacity: 0; }
-    .work-list li[hidden] { display: none; }
-    .work-empty { color: var(--faint); padding: calc(0.8rem * var(--s)) 0; }
-    .work-empty[hidden] { display: none; }
-    .work-title { font-weight: 600; }
-    .showreel { aspect-ratio: 16 / 9; border-radius: calc(8px * var(--s)); overflow: hidden; background: #000; margin: calc(0.8rem * var(--s)) 0; }
-    .showreel iframe { display: block; width: 100%; height: 100%; border: 0; }
-    .showreel[hidden] { display: none; }
-
-    /* liste de travaux à gauche, vignette fixe à droite : survoler une ligne change le clip (fondu), rien ne bouge */
-    .work-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: calc(2.5rem * var(--s)); align-items: start; margin-top: calc(0.4rem * var(--s)); }
-    .work-list { list-style: none; }
-    .work-row { display: flex; flex-direction: column; gap: calc(0.1rem * var(--s)); width: 100%; text-align: left;
-      padding: calc(0.7rem * var(--s)) 0; border-bottom: 1px solid var(--surface); }
-    .work-row .w-title { flex: 1; color: var(--faint); transition: color 0.3s; }
-    @media (hover: hover) and (min-width: 821px) { .work-row { cursor: default; } }
-    .work-row .w-meta { color: var(--faint); font-size: calc(12px * var(--s)); white-space: nowrap; opacity: 0.7; transition: opacity 0.3s; }
-    .work-row.active .w-title { color: var(--text); }
-    .work-row.active .w-meta { opacity: 1; }
-    .w-thumb { display: none; }
-    .work-view { position: sticky; top: calc(1.5rem * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface); cursor: pointer; }
-    .view-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s ease; }
-    .view-layer.on { opacity: 1; }
-    .work-view video, .work-view canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
-    .work-view .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
-
-    /* tactile : pas de survol, on montre une mini vignette dans la ligne */
-    @media (hover: none), (max-width: 820px) {
-      .work-body { grid-template-columns: 1fr; }
-      .work-view { display: none; }
-      .work-row .w-title { color: var(--text); }
-      .w-thumb { display: block; position: relative; flex: none; width: calc(92px * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(6px * var(--s)); overflow: hidden; background: var(--surface); }
-      .w-thumb video, .w-thumb canvas { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-      .work-row .w-meta { display: block; }
-      .w-text { flex: 1; display: flex; flex-direction: column; }
-      .work-row .w-arrow { display: none; }
-    }
-    .clip-demo { font-size: calc(10px * var(--s)); color: var(--faint); background: var(--chip); padding: 0 calc(0.35rem * var(--s)); border-radius: calc(4px * var(--s)); }
-
-    /* ── BOUTONS 88x31 ── */
-    .bottom { margin-top: calc(4rem * var(--s)); }
-    .badges { display: flex; flex-wrap: wrap; gap: calc(6px * var(--s)); }
-    .badges img { display: block; width: calc(88px * var(--s)); height: calc(31px * var(--s)); image-rendering: pixelated; }
-
-
-    /* ── PLAYER ── */
-    .player { position: fixed; inset: 0; z-index: 10; display: none; align-items: center; justify-content: center; padding: calc(1rem * var(--s)); background: rgba(20,22,26,0.85); }
-    .player.open { display: flex; }
-    .player-frame { width: min(calc(960px * var(--s)), 100%, calc((100vh - calc(4rem * var(--s))) * 16 / 9)); aspect-ratio: 16 / 9; background: #000; border-radius: calc(4px * var(--s)); overflow: hidden; }
-    .player-frame iframe, .player-frame video, .player-frame canvas { display: block; width: 100%; height: 100%; border: 0; }
-    .player { opacity: 0; transition: opacity 0.25s; }
-    .player.show { opacity: 1; }
-
-    @keyframes blink { 50% { opacity: 0; } }
-    @keyframes ring { to { --angle: 360deg; } }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 currentColor; } 70%, 100% { box-shadow: 0 0 0 calc(6px * var(--s)) transparent; } }
-    @keyframes hop {   /* chaque lettre saute avec anticipation et squash, comme le perso */
-      0%   { transform: none; }
-      18%  { transform: scale(1.1, 0.88); }
-      46%  { transform: translateY(-6px) scale(0.95, 1.07); }
-      70%  { transform: translateY(0) scale(1.07, 0.93); }
-      85%  { transform: scale(0.98, 1.02); }
-      100% { transform: none; }
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Mono', monospace;
+      font-weight: 300;
+      min-height: 100vh;
+      overflow-x: hidden;
     }
 
-    @media (max-width: 820px) {
-      :root { --s: 1; }
-      main { padding-top: calc(0.5rem * var(--s)); justify-content: flex-start; }
-      .top { grid-template-columns: 1fr; gap: calc(0.5rem * var(--s)); }
-      .stage { height: calc(290px * var(--s)); }
-      .presence, .wip { margin-left: 0; }
+    #page-content {
+      transform-origin: center center;
+      transition: transform 0.7s cubic-bezier(0.16,1,0.3,1);
+      will-change: transform;
     }
-    @media (max-width: 480px) {
-      .pfp-wrap { width: calc(84px * var(--s)); height: calc(84px * var(--s)); }
+    #page-content.zoomed { transform: scale(1.05); }
+
+    #dim-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 9;
+      background: rgba(6,5,4,0);
+      pointer-events: none;
+      transition: background 0.65s cubic-bezier(0.16,1,0.3,1);
     }
-    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+    #dim-overlay.active {
+      background: rgba(6,5,4,0.82);
+      pointer-events: auto;
+    }
+
+    #snow {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    #morph-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1.5rem 4rem;
+      background: rgba(14,13,11,0.65);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { font-family: 'DM Serif Display', serif; font-size: 1.1rem; color: var(--accent); }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      transition: color 0.25s;
+    }
+    .nav-links a:hover { color: var(--text); }
+
+    section { position: relative; z-index: 1; }
+
+    #hero {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 6rem 4rem 4rem;
+    }
+    .hero-tag { font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; opacity: 0; animation: fadeUp 0.7s 0.2s forwards; }
+    .hero-name { font-family: 'DM Serif Display', serif; font-size: clamp(3.5rem, 8vw, 7rem); line-height: 1.05; color: var(--text); opacity: 0; animation: fadeUp 0.8s 0.4s forwards; }
+    .hero-name em { font-style: italic; color: var(--accent); }
+    .hero-sub { margin-top: 2rem; font-size: 0.85rem; color: var(--muted); max-width: 420px; line-height: 1.9; opacity: 0; animation: fadeUp 0.8s 0.6s forwards; }
+    .hero-cta { margin-top: 3rem; display: flex; gap: 1rem; opacity: 0; animation: fadeUp 0.8s 0.8s forwards; }
+    .btn {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 2px;
+      transition: all 0.25s;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-primary { background: var(--accent); color: #ede8df; font-weight: 500; border: 1px solid var(--accent); min-width: 160px; transition: all 0.25s, min-width 0.35s cubic-bezier(0.16,1,0.3,1); }
+    .btn-primary:hover { background: transparent; color: var(--accent); }
+    .btn-ghost { background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+
+    .hero-scroll { margin-top: 6rem; display: flex; align-items: center; gap: 1rem; opacity: 0; animation: fadeUp 0.8s 1s forwards; }
+    .hero-scroll span { font-size: 0.65rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); }
+    .scroll-line { width: 40px; height: 1px; background: var(--muted); position: relative; overflow: hidden; }
+    .scroll-line::after { content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: var(--accent); animation: slide 2s infinite; }
+
+    /* ── PROJECTS ── */
+    #projects { padding: 6rem 4rem; }
+    .projects-header { margin-bottom: 4rem; }
+    .projects-title { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 3.8rem); line-height: 1.1; letter-spacing: -0.01em; }
+
+    /* ── TAB BAR ── */
+    .tab-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 4rem;
+      flex-wrap: wrap;
+    }
+    .tab-group {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .tab-group-label {
+      font-size: 0.55rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+      opacity: 0.6;
+      white-space: nowrap;
+      margin-right: 0.4rem;
+    }
+    .tab-btn {
+      background: rgba(196,80,26,0.08);
+      border: 1px solid rgba(196,80,26,0.25);
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      padding: 0.6rem 1rem;
+      position: relative;
+      transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+      white-space: nowrap;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(196,80,26,0.15);
+      border-color: rgba(196,80,26,0.4);
+    }
+    .tab-btn.active {
+      color: var(--text);
+      background: rgba(196,80,26,0.25);
+      border-color: var(--accent);
+      box-shadow: 0 0 20px rgba(196,80,26,0.2);
+    }
+
+    /* ── SLIDING VIEWPORT ── */
+    .grid-viewport {
+      overflow: hidden;
+      position: relative;
+    }
+    .grid-panel {
+      display: none;
+      width: 100%;
+    }
+    .grid-panel.current { display: block; }
+
+    .grid-panel.slide-out-left  { display: block; position: absolute; top: 0; left: 0; width: 100%; animation: slideOutLeft  0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .grid-panel.slide-out-right { display: block; position: absolute; top: 0; left: 0; width: 100%; animation: slideOutRight 0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .grid-panel.slide-in-left   { display: block; animation: slideInLeft   0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+    .grid-panel.slide-in-right  { display: block; animation: slideInRight  0.4s cubic-bezier(0.4,0,0.2,1) forwards; }
+
+    /* ── GRID ── */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.2rem;
+    }
+    .project-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,0.1);
+      padding: 2rem;
+      border-radius: 12px;
+      transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+    }
+    .project-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at 0% 0%, rgba(196,80,26,0.15), transparent 50%);
+      opacity: 0;
+      transition: opacity 0.4s;
+      pointer-events: none;
+    }
+    .project-card:hover::before { opacity: 1; }
+    .project-card:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(196,80,26,0.4);
+      box-shadow: 0 8px 32px rgba(196,80,26,0.15), inset 0 1px 0 rgba(255,255,255,0.1);
+      transform: translateY(-4px);
+    }
+    .project-type {
+      font-size: 0.6rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.8rem;
+      opacity: 0.9;
+    }
+    .project-name {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.8rem;
+      line-height: 1.2;
+      letter-spacing: -0.01em;
+    }
+    .project-desc {
+      font-size: 0.75rem;
+      color: var(--muted);
+      line-height: 1.8;
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+    }
+    .project-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      padding: 0.4rem 0.8rem;
+      background: rgba(196,80,26,0.1);
+      border: 1px solid rgba(196,80,26,0.3);
+      color: var(--muted);
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .project-card:hover .tag {
+      background: rgba(196,80,26,0.2);
+      border-color: rgba(196,80,26,0.5);
+      color: var(--accent);
+    }
+    .project-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.68rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      transition: gap 0.3s;
+      width: fit-content;
+    }
+    .project-card:hover .project-link { gap: 0.8rem; }
+
+    .divider { position: relative; z-index: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); margin: 0 4rem; }
+
+    #experience {
+      padding: 8rem 4rem;
+      position: relative;
+      z-index: 1;
+    }
+
+    .experience-header {
+      margin-bottom: 3rem;
+    }
+
+    .experience-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2.5rem, 5vw, 3.8rem);
+      line-height: 1.1;
+      letter-spacing: -0.01em;
+    }
+
+    .experience-subtitle {
+      font-size: 0.8rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      letter-spacing: 0.1em;
+    }
+
+    #timeline-container {
+      position: relative;
+      width: 100%;
+      background: rgba(255,255,255,0.01);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      padding-bottom: 3rem;
+    }
+
+    #timeline-canvas {
+      display: block;
+      width: 100%;
+      height: 280px;
+      background: rgba(14,13,11,0.5);
+      cursor: grab;
+    }
+
+    #timeline-canvas:active {
+      cursor: grabbing;
+    }
+
+    #timeline-years {
+      display: flex;
+      justify-content: space-between;
+      padding: 1.5rem 2rem 0;
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+    }
+
+    .timeline-year {
+      text-align: center;
+      flex: 1;
+    }
+
+    /* Modal */
+    .exp-modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(6,5,4,0.88);
+      backdrop-filter: blur(8px);
+    }
+
+    .exp-modal-overlay.active {
+      display: flex;
+    }
+
+    #exp-modal-box {
+      background: var(--surface);
+      border: 1px solid rgba(196,80,26,0.35);
+      border-radius: 12px;
+      padding: 2.5rem;
+      max-width: 450px;
+      width: 90%;
+      max-height: 70vh;
+      overflow-y: auto;
+      animation: slideUp 0.4s cubic-bezier(0.16,1,0.3,1);
+      box-shadow: 0 20px 60px rgba(196,80,26,0.2);
+      position: relative;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #exp-modal-close {
+      position: absolute;
+      top: 1.5rem;
+      right: 1.5rem;
+      width: 32px;
+      height: 32px;
+      background: rgba(196,80,26,0.1);
+      border: 1px solid rgba(196,80,26,0.3);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    #exp-modal-close:hover {
+      background: rgba(196,80,26,0.25);
+      border-color: rgba(196,80,26,0.5);
+    }
+
+    .exp-modal-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+
+    .exp-modal-company {
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 0.5rem;
+    }
+
+    .exp-modal-duration {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+
+    .exp-modal-description {
+      font-size: 0.8rem;
+      line-height: 1.7;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .exp-modal-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .exp-tool-tag {
+      font-size: 0.65rem;
+      padding: 0.35rem 0.7rem;
+      background: rgba(196,80,26,0.1);
+      border: 1px solid rgba(196,80,26,0.25);
+      color: var(--muted);
+      border-radius: 3px;
+      letter-spacing: 0.08em;
+    }
+
+    #contact { padding: 8rem 4rem; text-align: center; }
+    .contact-pre { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); margin-bottom: 1.5rem; }
+    .contact-heading { font-family: 'DM Serif Display', serif; font-size: clamp(2.5rem, 5vw, 4.5rem); line-height: 1.1; margin-bottom: 1.5rem; }
+    .contact-heading em { font-style: italic; color: var(--accent); }
+    .contact-links { display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; }
+
+    footer { position: relative; z-index: 1; border-top: 1px solid var(--border); padding: 2rem 4rem; display: flex; justify-content: space-between; align-items: center; gap: 2rem; }
+    footer p { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.05em; }
+    #visit-counter { font-size: 0.62rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+
+    /* Modal */
+    #modal-overlay { position: fixed; inset: 0; z-index: 300; display: none; }
+    #modal-overlay.active { display: block; }
+    #modal-backdrop { position: absolute; inset: 0; background: rgba(10,9,7,0); }
+    #modal-box { position: absolute; background: #0e0d0b; border: 1px solid rgba(196,80,26,0.35); overflow: hidden; display: none; }
+    #modal-box.visible { display: block; }
+    #modal-box iframe { display: block; width: 100%; height: 100%; border: none; }
+    #modal-close {
+      position: absolute; top: 1rem; right: 1rem;
+      width: 34px; height: 34px;
+      background: rgba(14,13,11,0.9);
+      border: 1px solid rgba(196,80,26,0.4);
+      color: #ede8df; font-size: 0.9rem; cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      transition: background 0.2s; z-index: 10;
+    }
+    #modal-close:hover { background: var(--accent); }
+    #modal-close.visible { display: flex; }
+
+    @keyframes slideOutLeft  { from { transform:translateX(0);    opacity:1; } to { transform:translateX(-6%);  opacity:0; } }
+    @keyframes slideOutRight { from { transform:translateX(0);    opacity:1; } to { transform:translateX(6%);   opacity:0; } }
+    @keyframes slideInLeft   { from { transform:translateX(6%);   opacity:0; } to { transform:translateX(0);   opacity:1; } }
+    @keyframes slideInRight  { from { transform:translateX(-6%);  opacity:0; } to { transform:translateX(0);   opacity:1; } }
+
+    @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes slide  { 0% { left:-100%; } 100% { left:100%; } }
+    .reveal { opacity:0; transform:translateY(30px); transition: opacity 0.8s cubic-bezier(0.16,1,0.3,1), transform 0.8s cubic-bezier(0.16,1,0.3,1); }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    @media (max-width: 768px) {
+      nav { padding: 1.2rem 1.5rem; }
+      #hero, #projects, #contact, footer { padding-left: 1.5rem; padding-right: 1.5rem; }
+      .nav-links { gap: 1.5rem; }
+      .divider { margin: 0 1.5rem; }
+      .tab-group-label { display: none; }
+      .tab-btn { padding: 0.75rem 0.7rem; font-size: 0.63rem; }
+      footer { flex-direction: column; align-items: center; text-align: center; }
+    }
   </style>
 </head>
 <body>
 
-<button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode" title="Dark / light">
-  <svg class="moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
-  <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
-</button>
+<canvas id="snow"></canvas>
+<div id="dim-overlay"></div>
+<canvas id="morph-canvas"></canvas>
 
-<main>
-  <section class="top">
-    <div class="stage" id="avatar-stage" aria-label="My Roblox avatar, click to spin">
-      <div class="stage-msg" id="avatar-loading">loading…</div>
+<div id="modal-overlay">
+  <div id="modal-backdrop"></div>
+  <div id="modal-box">
+    <button id="modal-close">✕</button>
+    <iframe id="modal-iframe" allowfullscreen allow="autoplay; encrypted-media"></iframe>
+  </div>
+</div>
+
+<div id="page-content">
+  <nav>
+    <span class="nav-logo">.JGG</span>
+    <ul class="nav-links">
+      <li><a href="#projects">My Work</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <section id="hero">
+    <p class="hero-tag">Animator</p>
+    <h1 class="hero-name">I <em>Animate</em><br>yes idk</h1>
+    <p class="hero-sub">PLACEHOLDER</p>
+    <div class="hero-cta">
+      <a href="#projects" class="btn btn-primary">See my work</a>
+      <a href="#contact" class="btn btn-ghost">Get in touch</a>
+    </div>
+    <div class="hero-scroll">
+      <span>Scroll</span>
+      <div class="scroll-line"></div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="projects">
+    <div class="projects-header reveal">
+      <h2 class="projects-title">My Work</h2>
     </div>
 
-    <div>
-      <div class="profile">
-        <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
-        <div>
-          <h1 class="hi">hi, i'm <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
-          <p class="sub" id="sub">roblox animator &amp; a bit of everything else.</p>
-          <div class="socials" id="socials"></div>
-        </div>
+    <div class="tab-bar reveal">
+      <div class="tab-group">
+        <span class="tab-group-label">Main</span>
+        <button class="tab-btn active" data-tab="animation">Animation</button>
+      </div>
+      <div class="tab-group">
+        <span class="tab-group-label">Extras</span>
+        <button class="tab-btn" data-tab="vfx">VFX</button>
+        <button class="tab-btn" data-tab="scripts">Scripts</button>
+        <button class="tab-btn" data-tab="models">Models</button>
+      </div>
+    </div>
+
+    <div class="grid-viewport" id="grid-viewport">
+
+      <div class="grid-panel current" id="panel-animation">
+        <div class="projects-grid"></div>
       </div>
 
-      <div class="presence">
-        <div class="row" id="row-discord" hidden>
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.5 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4-2 1 1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>
-          <span class="st" id="st"></span><span class="act" id="act"></span>
-        </div>
-        <div class="row" id="row-spotify" hidden>
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.7.7 0 0 1-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 1 1-.3-1.4c4.6-1 8.5-.6 11.6 1.3.4.2.5.7.3 1Zm1.5-3.3a.9.9 0 0 1-1.3.3c-3.2-2-8.1-2.6-11.9-1.4a.9.9 0 1 1-.5-1.7c4.3-1.3 9.7-.7 13.4 1.6.4.3.5.8.3 1.2Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 1 1-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 0 1-1.2 1.9Z"/></svg>
-          <span id="spotify">not listening to anything</span>
-        </div>
+      <div class="grid-panel" id="panel-vfx">
+        <div class="projects-grid"></div>
       </div>
 
-      <div class="wip" id="wip" hidden>
-        <button class="wip-toggle" id="wip-toggle" aria-expanded="false" aria-controls="wip-list">
-          <span class="chev">›</span> what i'm working on
-        </button>
-        <div class="wip-drawer" id="wip-drawer">
-          <ul class="wip-list" id="wip-list"></ul>
+      <div class="grid-panel" id="panel-scripts">
+        <div class="projects-grid"></div>
+      </div>
+
+      <div class="grid-panel" id="panel-models">
+        <div class="projects-grid"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <section id="experience">
+    <div class="experience-header reveal">
+      <h2 class="experience-title">Experience</h2>
+      <p class="experience-subtitle">Scroll through the timeline</p>
+    </div>
+    
+    <div id="timeline-container">
+      <canvas id="timeline-canvas"></canvas>
+      
+      <!-- Timeline Year Markers -->
+      <div id="timeline-years">
+        <div class="timeline-year">2021</div>
+        <div class="timeline-year">2022</div>
+        <div class="timeline-year">2023</div>
+        <div class="timeline-year">2024</div>
+      </div>
+
+      <!-- Experience Modal -->
+      <div id="exp-modal-overlay" class="exp-modal-overlay">
+        <button id="exp-modal-close" class="exp-close">✕</button>
+        <div id="exp-modal-box">
+          <h3 id="exp-title" class="exp-modal-title">Experience</h3>
+          <p id="exp-company" class="exp-modal-company">Company</p>
+          <p id="exp-duration" class="exp-modal-duration">Duration</p>
+          <p id="exp-description" class="exp-modal-description">Description</p>
+          <div id="exp-tools" class="exp-modal-tools"></div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="work" aria-label="Work">
-    <div class="work-head" id="work-head"><span class="work-title">my work</span><div class="sorter" id="sorter" role="tablist" aria-label="Sort work"></div></div>
-    <p class="work-empty" id="work-empty" hidden>nothing here yet</p>
-    <div class="showreel" id="showreel" hidden></div>
-    <div class="work-body">
-      <ul class="work-list" id="work"></ul>
-      <div class="work-view" id="work-view" aria-hidden="true"></div>
+  <div class="divider"></div>
+    <div class="reveal">
+      <p class="contact-pre">Let's talk</p>
+      <h2 class="contact-heading">Got a project<br>in <em>mind?</em></h2>
+      <div class="contact-links">
+        <a href="#projects" class="btn btn-ghost">See my work</a>
+        <button id="discord-btn" class="btn btn-primary" onclick="navigator.clipboard.writeText('.JGG').then(()=>{this.textContent='Copied!';spawnBurst(this);setTimeout(()=>this.textContent='Discord: .JGG',1800)})">Discord: .JGG</button>
+      </div>
     </div>
-    <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
   </section>
 
-  <section class="bottom" id="bottom" hidden>
-    <div class="badges" id="badges"></div>
-  </section>
-</main>
-
-
-<div class="player" id="player" role="dialog" aria-modal="true" aria-label="Video">
-  <div class="player-frame" id="player-frame"></div>
+  <footer>
+    <p>Made with love by JGG © 2026</p>
+    <div id="visit-counter">Visitors: <span>0</span></div>
+  </footer>
 </div>
 
 <script>
-/* ═══════════ CONFIG — tout se règle ici ═══════════ */
-const CONFIG = {
-  robloxUserId: 1077832330,
-  discordTag: '.JGG',
-  // ID Discord pour le statut live (+ rejoindre https://discord.gg/lanyard). Vide = ligne cachée.
-  discordId: '852210182196035597',
-  // Autres liens (optionnels) : mets l'URL ou laisse vide.
-  youtube: '',
-  x: 'https://x.com/JGG5694',
-};
+/* ════════════════════════════════════════════════════════════════
+   PROJECT CONFIG — Add your projects here (easier!)
+   Just fill in: type, name, description, tags, videoUrl
+════════════════════════════════════════════════════════════════ */
 
-/* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
-   Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
-const GAMES = [
-  { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT", universeId: 10696463443, discord: "https://discord.gg/Y5gAFdphZ" },
-  { name: "elder gate", role: "main animator", url: "https://www.roblox.com/games/104403529162136/Elder-Gate" },
-  // icon: "icons/jeu.png"  -> optionnel, remplace l'icône auto
-  // discord: "https://discord.gg/..."  -> optionnel, bouton Discord au survol
-];
-
-/* MY WORK
-   clip : petit .mp4 muet de 3-8 s qui tourne en boucle dans la grille (mets-le dans un dossier work/ du repo)
-   full : optionnel, version longue/avec son ouverte au clic (.mp4, YouTube ou Streamable). Sinon le clip s'ouvre en grand.
-   type : animation / vfx / scripting / modeling… (sert aux filtres)
-   where : optionnel, jeu ou client
-   ⚠️ TEMPLATES : les lignes avec demo: true sont des exemples animés, supprime-les quand tu mets tes vrais clips. */
-const SHOWREEL = '';   // optionnel : lien YouTube de ton showreel, s'affiche en grand en haut de la section
-/* TRIEUR : catégories affichées au-dessus de « my work ».
-   Un clip va dans une catégorie si son "type" contient le mot-clé (ex : "animation & vfx" apparaît dans animations ET vfx). */
-const SORTS = [
-  { label: 'animations', match: /anim/i },
-  { label: 'vfx',        match: /vfx/i },
-  { label: 'builds',     match: /build/i },
-  { label: 'models',     match: /model/i },
-];
-const PROJECTS = [
-{ title: "miner commission", type: "animation", where: "World Invasion", clip: "PortofolioVideos/World-Invasion-Miner.mp4" },
-{ title: "muscular zombie commission", type: "animation", where: "World Invasion", clip: "PortofolioVideos/World-Invasion-MuscularZombie.mp4" },
-{ title: "angeldust commission ", type: "animation", where: "Hazbin Battlegrounds", clip: "PortofolioVideos/HBZ-Angeldust.mp4" },
-{ title: "super saiyan ", type: "animation & vfx", where: "Practice", clip: "PortofolioVideos/Practice-vfxsupersaiyan.mp4" },
-{ title: "bravery idle ", type: "animation & vfx", where: "Noob Tower Defense Rebooted", clip: "PortofolioVideos/NTDR-Bravery.mp4" },
-
-  // { title: "sword combo", type: "animation", where: "elder gate", clip: "work/sword-combo.mp4", full: "https://youtu.be/..." },
-];
-
-/* Boutons 88x31 de potes (vide = caché). Ex : { img: "buttons/pote.gif", url: "https://..." } */
-const BADGES = [];
-
-/* ═══════════════════════════════════════════════════ */
-const $ = s => document.querySelector(s);
-const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
-
-/* JGG : l'anim se joue en entier au survol, même si la souris repart (pas de snap) */
-(() => {
-  const n = $('.hi .name');
-  n.addEventListener('mouseenter', () => { if (!n.classList.contains('jump')) n.classList.add('jump'); });
-  n.lastElementChild.addEventListener('animationend', () => n.classList.remove('jump'));
-})();
-
-/* thème clair / sombre, mémorisé dans le navigateur */
-(() => {
-  const root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
-  const sync = () => { meta.content = root.dataset.theme === 'dark' ? '#121315' : '#f4f5f7'; };
-  sync();
-  $('#theme-btn').addEventListener('click', () => {
-    const dark = root.dataset.theme !== 'dark';
-    if (dark) root.dataset.theme = 'dark'; else delete root.dataset.theme;
-    try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (_) {}
-    sync();
-    dispatchEvent(new Event('themechange'));
-  });
-})();
-
-/* sous-titre tapé une fois au chargement */
-(() => {
-  const sub = $('#sub'), text = sub.textContent;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sub.append(el('span', 'caret')); return; }
-  sub.textContent = ''; const caret = el('span', 'caret'); sub.append(caret);
-  let i = 0;
-  setTimeout(function type() { caret.before(text[i++]); if (i < text.length) setTimeout(type, 28 + Math.random() * 40); }, 700);
-})();
-
-/* pfp : avatar Discord (via Lanyard) ; si indisponible, tête Roblox */
-let pfpSet = false;
-function robloxPfp() {
-  if (pfpSet) return; pfpSet = true;
-  fetch(`https://thumbnails.roproxy.com/v1/users/avatar-headshot?userIds=${CONFIG.robloxUserId}&size=150x150&format=Png&isCircular=false`)
-  .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u) $('#pfp').src = u; }).catch(() => {});
-}
-
-/* socials */
-const ICONS = {
-  discord: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.5 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4-2 1 1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>',
-  roblox: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5.2 1 1 18.8 18.8 23 23 5.2 5.2 1Zm8.4 13.9-4.5-1.1 1.1-4.5 4.5 1.1-1.1 4.5Z"/></svg>',
-  youtube: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8ZM9.6 15.6V8.4l6.3 3.6-6.3 3.6Z"/></svg>',
-  x: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.2 2.3h3.4l-7.4 8.4 8.7 11.5h-6.8l-5.3-7-6.1 7H1.3l7.9-9L.8 2.3h7l4.8 6.4 5.6-6.4Zm-1.2 17.9h1.9L7.1 4.2H5.1l11.9 16Z"/></svg>',
-};
-const socials = $('#socials');
-const link = (key, url, label) => { const a = el('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener'; a.innerHTML = ICONS[key]; a.setAttribute('aria-label', label); a.title = label; socials.append(a); };
-link('discord', `https://discord.com/users/${CONFIG.discordId}`, 'Discord');
-link('roblox', `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`, 'Roblox profile');
-if (CONFIG.youtube) link('youtube', CONFIG.youtube, 'YouTube');
-if (CONFIG.x) link('x', CONFIG.x, 'X');
-
-
-/* discord + spotify live (Lanyard) */
-/* Texte selon l'appli détectée par Discord (ajoute les tiennes ici) */
-const ACTIVITY = [
-  [/roblox studio/i, 'Working in Roblox Studio'],
-  [/blender/i, 'Working in Blender'],
-  [/visual studio code|^code$|cursor/i, n => `Coding in ${n}`],
-  [/moon animator/i, 'Animating in Moon Animator'],
-  [/photoshop|aseprite|krita/i, n => `Drawing in ${n}`],
-  [/^roblox$/i, 'Playing Roblox'],
-];
-function activityLabel(name) {
-  const hit = ACTIVITY.find(([re]) => re.test(name));
-  if (!hit) return `Playing ${name}`;
-  return typeof hit[1] === 'function' ? hit[1](name) : hit[1];
-}
-const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
-function renderPresence(d) {
-  const s = d.discord_status || 'offline';
-  const u = d.discord_user;
-  $('#pfp-wrap').style.setProperty('--ring', `var(--${s === 'offline' ? 'faint' : s === 'online' ? 'online' : s})`);
-  const deco = u?.avatar_decoration_data?.asset;
-  if (deco && !$('.pfp-deco')) { const di = el('img', 'pfp-deco'); di.src = `https://cdn.discordapp.com/avatar-decoration-presets/${deco}.png?size=240&passthrough=true`; di.alt = ''; $('#pfp-wrap').append(di); }
-  if (u?.avatar) {
-    const src = `https://cdn.discordapp.com/avatars/${u.id}/${u.avatar}.${u.avatar.startsWith('a_') ? 'gif' : 'png'}?size=2048`;
-    if ($('#pfp').src !== src) $('#pfp').src = src;   // suit aussi un changement de pp
-    pfpSet = true;
-  } else robloxPfp();
-  const game = (d.activities || []).find(a => a.type === 0);
-  const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
-  $('#act').textContent = game ? activityLabel(game.name) : '';
-  $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
-  $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
-}
-
-// Temps réel : WebSocket Lanyard (mise à jour instantanée), avec reconnexion auto.
-// Si le socket ne marche pas, on retombe sur un rafraîchissement toutes les 15 s.
-let pollTimer = null;
-async function pollPresence() {
-  try {
-    const j = await (await fetch(`https://api.lanyard.rest/v1/users/${CONFIG.discordId}`)).json();
-    if (j.success) renderPresence(j.data); else robloxPfp();
-  } catch (_) { robloxPfp(); }
-}
-function startPolling() { if (!pollTimer) { pollPresence(); pollTimer = setInterval(pollPresence, 15000); } }
-function stopPolling() { clearInterval(pollTimer); pollTimer = null; }
-
-function connectLanyard(retry = 0) {
-  let ws, heartbeat;
-  try { ws = new WebSocket('wss://api.lanyard.rest/socket'); } catch (_) { startPolling(); return; }
-  ws.onmessage = ev => {
-    const msg = JSON.parse(ev.data);
-    if (msg.op === 1) { // hello
-      heartbeat = setInterval(() => ws.readyState === 1 && ws.send(JSON.stringify({ op: 3 })), msg.d.heartbeat_interval);
-      ws.send(JSON.stringify({ op: 2, d: { subscribe_to_id: CONFIG.discordId } }));
-    } else if (msg.op === 0 && (msg.t === 'INIT_STATE' || msg.t === 'PRESENCE_UPDATE')) {
-      stopPolling(); retry = 0;
-      renderPresence(msg.d);
+const PROJECTS = {
+  animation: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
     }
-  };
-  ws.onclose = () => {
-    clearInterval(heartbeat);
-    startPolling();                                         // pendant la coupure, on continue en polling
-    setTimeout(() => connectLanyard(retry + 1), Math.min(30000, 2000 * 2 ** retry));
-  };
-  ws.onerror = () => ws.close();
+  ],
+  vfx: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    },
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ],
+  scripts: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ],
+  models: [
+    {
+      name: "Placeholder",
+      description: "Placeholder",
+      tags: ["Placeholder"],
+      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+    }
+  ]
+};
+
+/* ────────────────────────────────────────────────────────────────
+   AUTO-GENERATES HTML FROM CONFIG (you don't touch the HTML!)
+────────────────────────────────────────────────────────────────── */
+function renderProjects() {
+  const tabs = ['animation', 'vfx', 'scripts', 'models'];
+  tabs.forEach(tab => {
+    const panel = document.getElementById(`panel-${tab}`);
+    const grid = panel.querySelector('.projects-grid');
+    grid.innerHTML = '';
+    
+    PROJECTS[tab].forEach(proj => {
+      const card = document.createElement('div');
+      card.className = 'project-card';
+      card.dataset.video = proj.videoUrl;
+      
+      const tagsHtml = proj.tags.map(t => `<span class="tag">${t}</span>`).join('');
+      
+      card.innerHTML = `
+        <p class="project-type">${tab.charAt(0).toUpperCase() + tab.slice(1)}</p>
+        <h3 class="project-name">${proj.name}</h3>
+        <p class="project-desc">${proj.description}</p>
+        <div class="project-tags">${tagsHtml}</div>
+        <p class="project-link">View project →</p>
+      `;
+      
+      grid.appendChild(card);
+    });
+  });
+  bindVideoCards();
 }
-if (CONFIG.discordId) { pollPresence(); connectLanyard(); } else robloxPfp();
+renderProjects();
 
-/* work */
-const ytId = u => ((u || '').match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/) || [])[1];
-const stId = u => ((u || '').match(/streamable\.com\/(?:e\/)?(\w+)/) || [])[1];
-const isMp4 = u => /\.(mp4|webm)(\?|$)/i.test(u || '');
-const work = $('#work');
-const reduceMo = matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* ════════════════════════════════════════════════════════════════
+   EXPERIENCE TIMELINE — DRAGGABLE CARDS
+════════════════════════════════════════════════════════════════ */
 
-/* Template animé (demo: true) : l'exercice de base de l'animateur, la balle qui rebondit, avec squash & stretch */
-const DEMO_COLORS = ['#2f6fed', '#e8590c', '#2f9e44', '#c2255c', '#7048e8', '#0c8599'];
-function demoCanvas(seed) {
-  const cv = el('canvas'); const ctx = cv.getContext('2d');
-  const col = DEMO_COLORS[seed % DEMO_COLORS.length], period = 1.1 + (seed % 3) * 0.18, phase = seed * 0.37;
-  let running = false, raf = 0;
-  function draw(t) {
-    const W = cv.width = cv.clientWidth * devicePixelRatio, H = cv.height = cv.clientHeight * devicePixelRatio;
-    if (!W) return;
-    ctx.fillStyle = '#eceef1'; ctx.fillRect(0, 0, W, H);
-    const ground = H * 0.82, r = H * 0.09;
-    ctx.fillStyle = '#dfe2e7'; ctx.fillRect(0, ground, W, H - ground);
-    const u = ((t / 1000 + phase) / period) % 1;                   // 0..1 sur un rebond
-    const x = W * (0.12 + 0.76 * (((t / 1000 + phase) / (period * 4)) % 1));
-    const h = 4 * u * (1 - u);                                      // arc
-    let sy = 1 + 0.25 * Math.abs(1 - 2 * u) * (h < 0.25 ? 1 : 0.4);  // étiré en vitesse
-    const contact = Math.min(u, 1 - u);
-    if (contact < 0.06) sy = 0.62 + contact / 0.06 * 0.38;           // squash au contact
-    const sx = 1 / Math.sqrt(sy);
-    const y = ground - r * sy - h * (H * 0.55);
-    ctx.fillStyle = 'rgba(0,0,0,' + (0.18 * (1 - h * 0.8)) + ')';
-    ctx.beginPath(); ctx.ellipse(x, ground + 2, r * (1.1 - h * 0.5), r * 0.22, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = col; ctx.beginPath(); ctx.ellipse(x, y, r * sx, r * sy, 0, 0, 7); ctx.fill();
+const EXPERIENCE_DATA = [
+  {
+    id: 'animator',
+    title: 'Lead Animator',
+    company: 'Studio Vibes',
+    duration: '2022–2024',
+    year: 2022,
+    description: 'Directed animation pipelines for 50+ projects. Character rigging, motion design, fluid transitions.',
+    tools: ['Moon Animator', 'Rigging', 'Animation'],
+  },
+  {
+    id: 'vfx',
+    title: 'VFX Specialist',
+    company: 'Digital Dreams',
+    duration: '2021–2022',
+    year: 2021,
+    description: 'Real-time particle effects, optimized systems. 60fps guaranteed with Luau controllers.',
+    tools: ['Particles', 'Beams', 'Luau'],
+  },
+  {
+    id: 'scripter',
+    title: 'Luau Developer',
+    company: 'Tech Studios',
+    duration: '2020–2021',
+    year: 2021,
+    description: 'Game systems, cutscene engines, state managers. Zero frame drops. Clean architecture.',
+    tools: ['Luau', 'Game Systems', 'Architecture'],
+  },
+  {
+    id: 'freelance',
+    title: 'Freelancer',
+    company: 'Various',
+    duration: '2019–Present',
+    year: 2023,
+    description: 'Full-stack work across animation, VFX, scripting. Client-focused, detail-oriented.',
+    tools: ['Full Stack', 'Problem Solving', 'Client Work'],
+  },
+  {
+    id: 'mentor',
+    title: 'Mentor & Educator',
+    company: 'Community',
+    duration: '2021–Present',
+    year: 2024,
+    description: 'Teaching animation and game dev. Published tutorials, led workshops. Passionate about sharing knowledge.',
+    tools: ['Teaching', 'Documentation', 'Community'],
+  },
+];
+
+class TimelineCard {
+  constructor(data, x) {
+    this.data = data;
+    this.x = x;
+    this.y = 100;
+    this.width = 120;
+    this.height = 140;
+    this.isDragging = false;
+    this.hovered = false;
   }
-  function loop(t) { draw(t); if (running) raf = requestAnimationFrame(loop); }
-  cv.play = () => { if (!running) { running = true; raf = requestAnimationFrame(loop); } };
-  cv.pause = () => { running = false; cancelAnimationFrame(raf); };
-  requestAnimationFrame(t => draw(reduceMo ? 300 : t));
-  return cv;
-}
 
-/* lecture auto uniquement quand le média est visible (économise la batterie) */
-const autoplay = new IntersectionObserver(es => es.forEach(e => {
-  const m = e.target; if (reduceMo) return;
-  if (e.isIntersecting) { const p = m.play(); if (p && p.catch) p.catch(() => {}); } else m.pause();
-}), { threshold: 0.1 });
-function makeMedia(p, idx) {
-  if (p.demo) return demoCanvas(idx);
-  if (!p.clip) return null;
-  const v = el('video'); v.src = p.clip; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('muted', '');
-  v.preload = 'metadata'; if (p.poster) v.poster = p.poster; return v;
-}
-
-const touchUI = matchMedia('(hover: none)').matches;
-const smallUI = matchMedia('(max-width: 820px)').matches;
-const peekMedia = [];
-
-if (!PROJECTS.length) { work.remove(); $('#work-head').remove(); $('#work-soon').hidden = false; }
-PROJECTS.forEach((p, idx) => {
-  const li = el('li');
-  const row = el('button', 'work-row');
-  const meta = el('span', 'w-meta', [p.type, p.where].filter(Boolean).join(' · '));
-  if (touchUI || smallUI) {
-    const th = el('span', 'w-thumb'); const m = makeMedia(p, idx);
-    if (m) { th.append(m); autoplay.observe(m); }
-    const tx = el('span', 'w-text'); tx.append(el('span', 'w-title', p.title), meta);
-    row.append(th, tx);
-  } else {
-    row.append(el('span', 'w-title', p.title), meta);
-    peekMedia[idx] = makeMedia(p, idx);
-    row.addEventListener('mouseenter', () => showView(idx));
-    row.addEventListener('focus', () => showView(idx));
+  update() {
+    // No snap-back! Just stay where dragged
   }
-  // PC : clic sur une ligne = juste afficher le clip dans la vignette ; plein écran = clic sur la vignette.
-  // Téléphone (pas de vignette) : clic = plein écran.
-  row.addEventListener('click', () => (touchUI || smallUI) ? openWork(p, idx) : showView(idx));
-  li.append(row); work.append(li);
+
+  draw(ctx) {
+    const x = this.x;
+    const y = this.y;
+
+    // Subtle glow on hover
+    if (this.hovered) {
+      ctx.fillStyle = 'rgba(196,80,26,0.12)';
+      ctx.roundRect(x - 6, y - 6, this.width + 12, this.height + 12, 8);
+      ctx.fill();
+    }
+
+    // Main card
+    ctx.fillStyle = this.hovered ? 'rgba(196,80,26,0.18)' : 'rgba(196,80,26,0.09)';
+    ctx.strokeStyle = 'rgba(196,80,26,0.4)';
+    ctx.lineWidth = 1.2;
+    ctx.roundRect(x, y, this.width, this.height, 6);
+    ctx.fill();
+    ctx.stroke();
+
+    // Year badge
+    ctx.fillStyle = 'rgba(196,80,26,0.3)';
+    ctx.roundRect(x + 6, y + 6, 40, 20, 3);
+    ctx.fill();
+
+    ctx.fillStyle = '#c4501a';
+    ctx.font = '600 11px "DM Mono"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(this.data.year, x + 26, y + 16);
+
+    // Title
+    ctx.fillStyle = '#ede8df';
+    ctx.font = '500 11px "DM Serif Display"';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    
+    const titleWords = this.data.title.split(' ');
+    let lineY = y + 32;
+    for (let word of titleWords) {
+      ctx.fillText(word, x + this.width/2, lineY);
+      lineY += 14;
+    }
+
+    // Company
+    ctx.fillStyle = 'rgba(196,80,26,0.7)';
+    ctx.font = '300 9px "DM Mono"';
+    ctx.fillText(this.data.company.substring(0, 12), x + this.width/2, y + 110);
+  }
+
+  contains(px, py) {
+    return px >= this.x - 6 && px <= this.x + this.width + 6 &&
+           py >= this.y - 6 && py <= this.y + this.height + 6;
+  }
+}
+
+const tlCanvas = document.getElementById('timeline-canvas');
+const tlCtx = tlCanvas.getContext('2d');
+
+// Polyfill roundRect
+if (!tlCtx.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    this.beginPath();
+    this.moveTo(x + r, y);
+    this.lineTo(x + w - r, y);
+    this.arcTo(x + w, y, x + w, y + r, r);
+    this.lineTo(x + w, y + h - r);
+    this.arcTo(x + w, y + h, x + w - r, y + h, r);
+    this.lineTo(x + r, y + h);
+    this.arcTo(x, y + h, x, y + h - r, r);
+    this.lineTo(x, y + r);
+    this.arcTo(x, y, x + r, y, r);
+    this.closePath();
+  };
+}
+
+function resizeTlCanvas() {
+  const container = document.getElementById('timeline-container');
+  tlCanvas.width = container.clientWidth;
+  tlCanvas.height = 280;
+}
+resizeTlCanvas();
+window.addEventListener('resize', resizeTlCanvas);
+
+const cards = [];
+let dragCard = null;
+let dragOffsetX = 0;
+let scrollOffset = 0;
+
+// Init cards with spacing
+let cardX = 60;
+EXPERIENCE_DATA.forEach((data) => {
+  cards.push(new TimelineCard(data, cardX));
+  cardX += 160;
 });
 
-/* vignette fixe : un calque par clip, fondu entre eux ; seul le clip affiché tourne */
-const view = $('#work-view'), viewLayers = [];
-let viewIdx = -1;
-function showView(idx) {
-  if (idx === viewIdx || !view) return;
-  const m = peekMedia[idx]; if (!m) return;
-  let l = viewLayers[idx];
-  if (!l) { l = viewLayers[idx] = el('div', 'view-layer'); l.append(m); if (PROJECTS[idx].demo) l.append(el('span', 'clip-demo', 'template')); view.append(l); }
-  viewLayers.forEach((x, i) => x && x.classList.toggle('on', i === idx));
-  work.querySelectorAll('.work-row').forEach((r, i) => r.classList.toggle('active', i === idx));
-  if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
-  const prev = viewIdx; viewIdx = idx;
-  if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (viewIdx !== prev) peekMedia[prev].pause(); }, 420);
-}
-if (view && !(touchUI || smallUI) && PROJECTS.length) {
-  showView(0);
-  view.addEventListener('click', () => openWork(PROJECTS[viewIdx], viewIdx));
-  // ne tourne que si la section est visible
-  new IntersectionObserver(([e]) => { const m = peekMedia[viewIdx]; if (!m || reduceMo) return; if (e.isIntersecting) { const r = m.play(); if (r && r.catch) r.catch(() => {}); } else m.pause(); }).observe(view);
-}
+// Mouse events
+tlCanvas.addEventListener('mousedown', (e) => {
+  const rect = tlCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left + scrollOffset;
+  const y = e.clientY - rect.top;
 
-/* trieur : ‹ catégorie › — les flèches font défiler les catégories */
-(() => {
-  const bar = $('#sorter'); if (!bar || !PROJECTS.length) return;
-  const items = [...work.children];
-  const cats = ['all', ...SORTS.map(x => x.label)];
-  let ci = 0;
-  const prev = el('button', 'sort-arrow', '‹'); prev.setAttribute('aria-label', 'Previous category');
-  const next = el('button', 'sort-arrow', '›'); next.setAttribute('aria-label', 'Next category');
-  const label = el('span', 'sort-label'); label.setAttribute('aria-live', 'polite');
-  let cur = el('span', null, cats[0]); label.append(cur);
-  bar.append(prev, label, next);
-
-  const apply = (dir) => {
-    const cat = cats[ci];
-    // le texte glisse dans le sens de la flèche
-    const nu = el('span', null, cat);
-    nu.style.transform = `translateX(${dir * 60}%)`; nu.style.opacity = '0';
-    label.append(nu);
-    const old = cur; cur = nu;
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      nu.style.transform = ''; nu.style.opacity = '';
-      old.style.transform = `translateX(${-dir * 60}%)`; old.style.opacity = '0';
-    }));
-    setTimeout(() => old.remove(), 380);
-
-    const shown = [];
-    items.forEach((li, i) => {
-      const ok = cat === 'all' || SORTS.find(x => x.label === cat).match.test(PROJECTS[i].type || '');
-      if (ok) { li.hidden = false; requestAnimationFrame(() => li.classList.remove('out')); shown.push(i); }
-      else { li.classList.add('out'); setTimeout(() => { if (li.classList.contains('out')) li.hidden = true; }, 300); }
-    });
-    $('#work-empty').hidden = shown.length > 0;
-    if (view && !(touchUI || smallUI)) { view.style.display = shown.length ? '' : 'none'; if (shown.length && !shown.includes(viewIdx)) showView(shown[0]); }
-  };
-  prev.addEventListener('click', () => { ci = (ci - 1 + cats.length) % cats.length; apply(-1); });
-  next.addEventListener('click', () => { ci = (ci + 1) % cats.length; apply(1); });
-})();
-
-/* showreel */
-if (SHOWREEL && ytId(SHOWREEL)) {
-  const sr = $('#showreel'); sr.hidden = false;
-  const f = el('iframe'); f.src = `https://www.youtube.com/embed/${ytId(SHOWREEL)}?rel=0`; f.allow = 'encrypted-media; fullscreen'; f.allowFullscreen = true; f.loading = 'lazy';
-  sr.append(f);
-}
-
-const player = $('#player'), frame = $('#player-frame');
-function openWork(p, idx) {
-  frame.innerHTML = '';
-  const url = p.full || p.clip;
-  if (p.demo && !url) { const cv = demoCanvas(idx); frame.append(cv); requestAnimationFrame(() => cv.play()); }
-  else if (isMp4(url)) { const v = el('video'); v.src = url; v.controls = v.autoplay = v.playsInline = true; v.loop = !p.full; frame.append(v); }
-  else {
-    const f = el('iframe'); f.allow = 'autoplay; encrypted-media; fullscreen'; f.allowFullscreen = true;
-    f.src = ytId(url) ? `https://www.youtube.com/embed/${ytId(url)}?autoplay=1&rel=0` : stId(url) ? `https://streamable.com/e/${stId(url)}?autoplay=1` : url;
-    frame.append(f);
-  }
-  player.classList.add('open'); requestAnimationFrame(() => player.classList.add('show'));
-}
-function closePlayer() {
-  player.classList.remove('show');
-  setTimeout(() => { player.classList.remove('open'); frame.innerHTML = ''; }, 250);
-}
-player.addEventListener('click', e => { if (e.target === player) closePlayer(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePlayer(); });
-
-/* what i'm working on */
-if (GAMES.length) {
-  $('#wip').hidden = false;
-  const list = $('#wip-list'), toggle = $('#wip-toggle'), drawer = $('#wip-drawer');
-  const setOpen = open => { toggle.setAttribute('aria-expanded', open); drawer.classList.toggle('open', open); };
-  toggle.addEventListener('click', () => setOpen(toggle.getAttribute('aria-expanded') !== 'true'));
-  if (matchMedia('(max-width: 820px)').matches) setOpen(true);   // ouvert de base sur mobile
-  GAMES.forEach(g => {
-    const li = el('li');
-    const row = el(g.url ? 'a' : 'div', 'game');
-    if (g.url) { row.href = g.url; row.target = '_blank'; row.rel = 'noopener'; }
-    let icon = el('span', 'noicon');
-    if (g.icon) { icon = el('img'); icon.src = g.icon; icon.alt = ''; }
-    const info = el('span'); const b = el('b', null, g.name); const sm = el('small');
-    if (g.role) { sm.append(el('span', 'label', 'role: ')); sm.append(g.role); } else if (!g.url) sm.append('not public yet');
-    info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
-    if (g.discord) {
-      const dcb = el('a', 'game-dc'); dcb.href = g.discord; dcb.target = '_blank'; dcb.rel = 'noopener';
-      dcb.innerHTML = ICONS.discord; dcb.setAttribute('aria-label', `Join the ${g.name} Discord`); dcb.title = 'Join the Discord';
-      li.append(dcb);
+  for (let card of cards) {
+    if (card.contains(x, y)) {
+      dragCard = card;
+      card.isDragging = true;
+      dragOffsetX = x - card.x;
+      return;
     }
-    g._icon = icon; g._sm = sm;
+  }
+});
+
+document.addEventListener('mousemove', (e) => {
+  if (!tlCanvas.parentElement.contains(e.target) && !dragCard) return;
+
+  const rect = tlCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left + scrollOffset;
+  const y = e.clientY - rect.top;
+
+  for (let card of cards) {
+    card.hovered = card.contains(x, y) && !dragCard;
+  }
+
+  if (dragCard && e.buttons & 1) {
+    dragCard.x = x - dragOffsetX;
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  if (dragCard) {
+    dragCard.isDragging = false;
+    dragCard = null;
+  }
+});
+
+tlCanvas.addEventListener('click', (e) => {
+  if (dragCard) return;
+
+  const rect = tlCanvas.getBoundingClientRect();
+  const x = e.clientX - rect.left + scrollOffset;
+  const y = e.clientY - rect.top;
+
+  for (let card of cards) {
+    if (card.contains(x, y)) {
+      openExpModal(card);
+      return;
+    }
+  }
+});
+
+// Scroll wheel for horizontal panning
+tlCanvas.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  scrollOffset += e.deltaY * 0.5;
+  scrollOffset = Math.max(0, scrollOffset);
+}, { passive: false });
+
+// Modal
+const expModalOverlay = document.getElementById('exp-modal-overlay');
+const expModalClose = document.getElementById('exp-modal-close');
+
+function openExpModal(card) {
+  document.getElementById('exp-title').textContent = card.data.title;
+  document.getElementById('exp-company').textContent = card.data.company;
+  document.getElementById('exp-duration').textContent = card.data.duration;
+  document.getElementById('exp-description').textContent = card.data.description;
+
+  const toolsContainer = document.getElementById('exp-tools');
+  toolsContainer.innerHTML = card.data.tools
+    .map(t => `<span class="exp-tool-tag">${t}</span>`)
+    .join('');
+
+  expModalOverlay.classList.add('active');
+}
+
+function closeExpModal() {
+  expModalOverlay.classList.remove('active');
+}
+
+expModalClose.addEventListener('click', closeExpModal);
+expModalOverlay.addEventListener('click', (e) => {
+  if (e.target === expModalOverlay) closeExpModal();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeExpModal();
+});
+
+// Animation loop
+function animateTl() {
+  tlCtx.clearRect(0, 0, tlCanvas.width, tlCanvas.height);
+
+  // Draw timeline line
+  tlCtx.strokeStyle = 'rgba(196,80,26,0.2)';
+  tlCtx.lineWidth = 1;
+  tlCtx.beginPath();
+  tlCtx.moveTo(-scrollOffset, 80);
+  tlCtx.lineTo(tlCanvas.width + 1000 - scrollOffset, 80);
+  tlCtx.stroke();
+
+  // Draw year markers on timeline
+  const years = [2021, 2022, 2023, 2024];
+  const yearSpacing = tlCanvas.width / 4;
+  
+  tlCtx.fillStyle = 'rgba(196,80,26,0.15)';
+  tlCtx.strokeStyle = 'rgba(196,80,26,0.25)';
+  tlCtx.lineWidth = 0.5;
+  
+  years.forEach((year, i) => {
+    const xPos = yearSpacing * i + yearSpacing/2 - scrollOffset;
+    if (xPos > -20 && xPos < tlCanvas.width + 20) {
+      tlCtx.beginPath();
+      tlCtx.arc(xPos, 80, 4, 0, Math.PI * 2);
+      tlCtx.fill();
+      tlCtx.stroke();
+    }
   });
-  loadGameIcons();
-  loadPlayerCounts();
-}
 
-/* Icônes des jeux : 1 seule requête groupée par placeId (l'ancienne méthode passait par une API souvent bloquée = icônes qui ratent).
-   Cache local + 3 essais si Roblox ne répond pas. */
-function placeIdOf(g) { return ((g.url || '').match(/games\/(\d+)/) || [])[1]; }
-function setGameIcon(g, url) {
-  if (!url || g.icon || g._icon.tagName === 'IMG') return;
-  const img = el('img'); img.alt = '';
-  img.onerror = () => { try { localStorage.removeItem('icon:' + placeIdOf(g)); } catch (_) {} };
-  img.src = url; g._icon.replaceWith(img); g._icon = img;
+  // Update & draw cards
+  for (let card of cards) {
+    card.update();
+  }
+
+  tlCtx.save();
+  tlCtx.translate(-scrollOffset, 0);
+  
+  for (let card of cards) {
+    card.draw(tlCtx);
+  }
+
+  tlCtx.restore();
+
+  requestAnimationFrame(animateTl);
 }
-async function loadGameIcons(attempt = 0) {
-  const todo = GAMES.filter(g => !g.icon && placeIdOf(g));
-  todo.forEach(g => { try { setGameIcon(g, localStorage.getItem('icon:' + placeIdOf(g))); } catch (_) {} });
-  if (!todo.length) return;
+animateTl();
+
+
+async function initVisitCounter(){
   try {
-    const ids = todo.map(placeIdOf).join(',');
-    const r = await fetch(`https://thumbnails.roproxy.com/v1/places/gameicons?placeIds=${ids}&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false`);
-    if (!r.ok) throw 0;
-    const { data = [] } = await r.json();
-    let pending = false;
-    data.forEach(d => {
-      const g = todo.find(x => placeIdOf(x) === String(d.targetId));
-      if (!g) return;
-      if (d.state === 'Completed' && d.imageUrl) {
-        try { localStorage.setItem('icon:' + d.targetId, d.imageUrl); } catch (_) {}
-        if (g._icon.tagName === 'IMG') { if (g._icon.src !== d.imageUrl) g._icon.src = d.imageUrl; }
-        else setGameIcon(g, d.imageUrl);
-      } else pending = true;
-    });
-    if (pending && attempt < 3) setTimeout(() => loadGameIcons(attempt + 1), 2000);
-  } catch (_) { if (attempt < 3) setTimeout(() => loadGameIcons(attempt + 1), 1500 * (attempt + 1)); }
+    const res = await fetch('https://api.countapi.com/hit/jgg-portfolio/visits');
+    const data = await res.json();
+    document.querySelector('#visit-counter span').textContent = data.value.toLocaleString();
+  } catch (err) {
+    console.log('Counter unavailable, showing fallback');
+    document.querySelector('#visit-counter span').textContent = '∞';
+  }
 }
+initVisitCounter();
 
-/* Joueurs en ligne (bonus) : universeId mis en cache, aucun impact sur les icônes si ça échoue */
-async function loadPlayerCounts() {
-  for (const g of GAMES) {
-    const pid = placeIdOf(g); if (!pid) continue;
-    try {
-      let uid = g.universeId; try { uid = uid || localStorage.getItem('uni:' + pid); } catch (_) {}
-      if (!uid) {
-        const r = await fetch(`https://apis.roproxy.com/universes/v1/places/${pid}/universe`);
-        if (!r.ok) continue;
-        uid = (await r.json()).universeId; if (!uid) continue;
-        try { localStorage.setItem('uni:' + pid, uid); } catch (_) {}
-      }
-      const j = await (await fetch(`https://games.roproxy.com/v1/games?universeIds=${uid}`)).json();
-      const n = j.data?.[0]?.playing;
-      if (n > 0) { g._sm.append(' · '); g._sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
-    } catch (_) {}
+/* ── SNOW ── */
+const canvas = document.getElementById('snow');
+const ctx    = canvas.getContext('2d');
+let W = canvas.width  = window.innerWidth;
+let H = canvas.height = window.innerHeight;
+window.addEventListener('resize', () => { W = canvas.width = window.innerWidth; H = canvas.height = window.innerHeight; });
+
+function rand(a, b) { return a + Math.random() * (b - a); }
+
+class Flake {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x = rand(0, W);
+    this.y = init ? rand(0, H) : -10;
+    const t = Math.random();
+    this.r  = t < 0.5 ? rand(0.6,1.2) : t < 0.85 ? rand(1.2,2.2) : rand(2.2,3.5);
+    this.vy = rand(0.4,1.1) * (this.r/1.5);
+    this.vx = rand(0.1,0.35);
+    this.swayAmp   = rand(0.2,0.8);
+    this.swaySpeed = rand(0.003,0.009);
+    this.swayOff   = rand(0,Math.PI*2);
+    this.turbX     = 0;
+    this.turbDecay = rand(0.92,0.97);
+    this.alpha     = this.r<1.2 ? rand(0.2,0.45) : this.r<2.2 ? rand(0.45,0.7) : rand(0.65,0.9);
+    this.frozen    = false;
+  }
+  isOnScreen() { return this.x>=-10 && this.x<=W+10 && this.y>=-10 && this.y<=H+10; }
+  draw() {
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.r, 0, Math.PI*2);
+    ctx.fillStyle = `rgba(240,225,210,${this.alpha})`;
+    ctx.fill();
   }
 }
 
-/* badges */
-const badges = $('#badges');
-BADGES.forEach(b => { const a = el('a'); a.href = b.url; a.target = '_blank'; a.rel = 'noopener'; const i = el('img'); i.src = b.img; i.alt = ''; a.append(i); badges.append(a); });
-if (BADGES.length) $('#bottom').hidden = false;
-</script>
-
-<!-- Avatar 3D : avatar/avatar.json est mis à jour par la GitHub Action. Fallback 2D sinon. -->
-<script type="module">
-const stage = document.getElementById('avatar-stage');
-const loading = document.getElementById('avatar-loading');
-const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const pointer = { x: 0, y: 0, last: -1e9 };
-addEventListener('pointermove', e => {
-  const r = stage.getBoundingClientRect();
-  pointer.x = Math.max(-1, Math.min(1, (e.clientX - (r.left + r.width / 2)) / (innerWidth * 0.5)));
-  pointer.y = Math.max(-1, Math.min(1, (e.clientY - (r.top + r.height * 0.3)) / (innerHeight * 0.5)));
-  pointer.last = performance.now();
-}, { passive: true });
-
-// Mobile : la tête suit l'inclinaison du téléphone (gyroscope), comme s'il te regardait.
-// La position de départ sert de "neutre" et se recale doucement si tu changes ta façon de tenir le tel.
-const tilt = { on: false, base: null, x: 0, y: 0 };
-function onTilt(e) {
-  if (e.beta == null || e.gamma == null) return;
-  let b = e.beta, g = e.gamma;
-  const ang = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
-  if (ang === 90) { [b, g] = [-g, b]; } else if (ang === -90 || ang === 270) { [b, g] = [g, -b]; }
-  if (!tilt.base) tilt.base = { b, g };
-  tilt.base.b += (b - tilt.base.b) * 0.004;                 // recalage très lent du neutre
-  tilt.base.g += (g - tilt.base.g) * 0.004;
-  const tx = Math.max(-1, Math.min(1, -(g - tilt.base.g) / 25));   // penche à droite -> il te regarde (vers la gauche de l'écran)
-  const ty = Math.max(-1, Math.min(1, (b - tilt.base.b) / 22));    // haut du tel vers l'arrière -> il regarde vers le bas
-  tilt.x += (tx - tilt.x) * 0.25; tilt.y += (ty - tilt.y) * 0.25;  // anti-tremblement
-  pointer.x = tilt.x; pointer.y = tilt.y; pointer.last = performance.now();
-  tilt.on = true;
-}
-if (matchMedia('(hover: none)').matches && 'DeviceOrientationEvent' in window) {
-  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-    // iPhone : il faut une autorisation, demandée au premier toucher sur la page
-    const ask = () => DeviceOrientationEvent.requestPermission()
-      .then(r => { if (r === 'granted') addEventListener('deviceorientation', onTilt); }).catch(() => {});
-    addEventListener('touchend', ask, { once: true });
-  } else {
-    addEventListener('deviceorientation', onTilt);
+class BurstFlake extends Flake {
+  constructor(ox, oy) {
+    super();
+    this.x = ox; this.y = oy;
+    const angle = rand(0, Math.PI*2), speed = rand(2.5,7);
+    this.bvx = Math.cos(angle)*speed; this.bvy = Math.sin(angle)*speed;
+    const t = Math.random();
+    this.r = t<0.4?rand(1,1.8):t<0.8?rand(1.8,2.8):rand(2.8,3.5);
+    this.alpha = rand(0.7,1);
+    this.burst = 1; this.burstDecay = rand(0.88,0.94);
+  }
+  update(windY, tick) {
+    this.burst *= this.burstDecay;
+    const bx=this.bvx*this.burst, by=this.bvy*this.burst;
+    const sway=Math.sin(tick*this.swaySpeed+this.swayOff)*this.swayAmp;
+    if(Math.random()<0.001) this.turbX=rand(-1.5,1.5);
+    this.turbX*=this.turbDecay;
+    this.x+=bx+(this.vx+sway+this.turbX)*(1-this.burst);
+    this.y+=by+(this.vy-windY*(this.r/1.5))*(1-this.burst);
+    this.vx+=rand(-0.008,0.008); this.vx=Math.max(-0.6,Math.min(0.6,this.vx));
+    if(this.x<-10) this.x=W+10; if(this.x>W+10) this.x=-10;
+    if(this.y>H+10) this.reset(false); if(this.y<-10) this.y=H+10;
   }
 }
 
-async function init3D() {
-  const res = await fetch('avatar/avatar.json', { cache: 'no-cache' });
-  if (!res.ok) throw new Error('no avatar.json');
-  const meta = await res.json();
-  const THREE = await import('three');
-  const { OBJLoader } = await import('three/addons/loaders/OBJLoader.js');
-  const { MTLLoader } = await import('three/addons/loaders/MTLLoader.js');
-
-  const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-  renderer.setPixelRatio(matchMedia('(hover: none)').matches ? Math.min(devicePixelRatio, 3) : 3);
-  renderer.outputColorSpace = THREE.SRGBColorSpace;
-  renderer.toneMapping = THREE.NeutralToneMapping;
-  renderer.toneMappingExposure = 1.1;
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 100);
-  const hemi = new THREE.HemisphereLight(0xffffff, 0x9a9ca3, 2.0); scene.add(hemi);
-  const themeLights = () => { const d = document.documentElement.dataset.theme === 'dark'; hemi.groundColor.setHex(d ? 0x3a3c42 : 0x9a9ca3); };
-  themeLights(); addEventListener('themechange', themeLights);
-  const sun = new THREE.DirectionalLight(0xffffff, 2.0); sun.position.set(3, 6, 5); scene.add(sun);
-  const fill = new THREE.DirectionalLight(0xdfe6ff, 0.6); fill.position.set(-5, 2, 4); scene.add(fill);
-
-  const v = meta.signature || '';
-  const mtl = new MTLLoader();
-  mtl.setResourcePath('avatar/');
-  mtl.setMaterialOptions({ side: THREE.DoubleSide });
-  const materials = await mtl.loadAsync(`avatar/${meta.mtl}?v=${v}`);
-  materials.preload();
-  // Roblox : couleur finale = mix(couleur du corps, texture, alpha de la texture).
-  // three.js multiplie les deux par défaut, ce qui teintait tout en orange et cachait le t-shirt.
-  for (const k in materials.materials) {
-    const m = materials.materials[k];
-    m.transparent = false; m.alphaMap = null; m.alphaTest = 0; m.opacity = 1; m.shininess = 4;
-    if (m.specular) m.specular.setHex(0x0a0a0a);
-    if (m.map) {
-      m.map.colorSpace = THREE.SRGBColorSpace;
-      m.map.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      const body = m.color.clone();
-      m.color.set(0xffffff);
-      m.onBeforeCompile = sh => {
-        sh.uniforms.bodyColor = { value: body };
-        sh.fragmentShader = 'uniform vec3 bodyColor;\n' + sh.fragmentShader.replace('#include <map_fragment>',
-          '#ifdef USE_MAP\n vec4 texel = texture2D( map, vMapUv );\n diffuseColor.rgb = mix( bodyColor, texel.rgb, texel.a );\n#endif');
-      };
-      m.customProgramCacheKey = () => 'roblox-mix';
-    }
-    m.needsUpdate = true;
-  }
-  const loader = new OBJLoader(); loader.setMaterials(materials);
-  const obj = await loader.loadAsync(`avatar/${meta.obj}?v=${v}`);
-
-  // pieds à y=0 pour que le squash & stretch se fasse depuis le sol
-  const box = new THREE.Box3().setFromObject(obj);
-  const size = box.getSize(new THREE.Vector3()), center = box.getCenter(new THREE.Vector3());
-  obj.position.set(-center.x, -box.min.y, -center.z);
-  const H = 4;
-  const scaler = new THREE.Group(); scaler.add(obj); scaler.scale.setScalar(H / size.y);
-  const facing = new THREE.Group(); facing.add(scaler);
-  if (meta.camera?.position) facing.rotation.y = -Math.atan2(meta.camera.position.x - center.x, meta.camera.position.z - center.z);
-  facing.rotation.y += meta.yawOffset || 0;
-  const pivot = new THREE.Group(); pivot.add(facing);
-  const root = new THREE.Group(); root.add(pivot); scene.add(root);
-
-  // Tête séparée du corps : la tête suit la souris, le corps suit un peu.
-  // Tête = la pièce "Player" la plus haute ; accessoires (Handle) au-dessus du cou = attachés à la tête.
-  const fwd = meta.camera?.position ? Math.atan2(meta.camera.position.x - center.x, meta.camera.position.z - center.z) : 0;
-  const headAxisX = new THREE.Vector3(Math.cos(fwd), 0, -Math.sin(fwd));   // axe "oui" de la tête dans le repère de l'OBJ
-  const AXIS_Y = new THREE.Vector3(0, 1, 0);
-  let head = null;
-  {
-    const parts = obj.children.filter(c => c.isMesh).map(c => ({ c, b: new THREE.Box3().setFromObject(c) }));
-    const players = parts.filter(p => /^player/i.test(p.c.name));
-    if (players.length > 1) {
-      const top = players.reduce((a, b) => (b.b.getCenter(new THREE.Vector3()).y > a.b.getCenter(new THREE.Vector3()).y ? b : a));
-      const neckY = top.b.min.y;
-      const hc = top.b.getCenter(new THREE.Vector3());
-      head = new THREE.Group();
-      head.position.set(hc.x, neckY, hc.z);
-      obj.add(head);
-      parts.forEach(p => {
-        const isHead = p === top || (!/^player/i.test(p.c.name) && p.b.getCenter(new THREE.Vector3()).y > neckY);
-        if (!isHead) return;
-        p.c.position.sub(head.position);
-        head.add(p.c);
-      });
-    }
-  }
-  const qY = new THREE.Quaternion(), qX = new THREE.Quaternion();
-
-  // Le canvas déborde du cadre (110px en haut/bas, 40px sur les côtés) pour que le saut,
-  // la couronne et l'ombre ne soient jamais coupés ; le perso garde la taille du cadre.
-  function fit() {
-    const sw = stage.clientWidth, sh = stage.clientHeight;
-    const w = renderer.domElement.clientWidth, h = renderer.domElement.clientHeight;
-    renderer.setSize(w, h, false);
-    camera.aspect = w / h;
-    const half = H * 0.5 * 1.2;
-    const fitH = Math.max(half, half * 0.62 / (sw / sh));
-    const dist = fitH * (h / sh) / Math.tan(THREE.MathUtils.degToRad(13));
-    camera.position.set(0, H / 2 + 1.6, dist); camera.lookAt(0, H / 2 + 0.05, 0);
-    camera.updateProjectionMatrix();
-  }
-  // ombre au sol dans la scène 3D, sous les pieds ; rétrécit quand il saute
-  const shC = document.createElement('canvas'); shC.width = shC.height = 128;
-  const shx = shC.getContext('2d'), grd = shx.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grd.addColorStop(0, 'rgba(0,0,0,0.32)'); grd.addColorStop(0.6, 'rgba(0,0,0,0.12)'); grd.addColorStop(1, 'rgba(0,0,0,0)');
-  shx.fillStyle = grd; shx.fillRect(0, 0, 128, 128);
-  const shadowMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shC), transparent: true, depthWrite: false, toneMapped: false });
-  const shadow = new THREE.Mesh(new THREE.PlaneGeometry(3.4, 3.4), shadowMat);
-  shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.005; shadow.renderOrder = -1;
-  scene.add(shadow);
-  stage.append(renderer.domElement); loading.remove(); fit();
-  new ResizeObserver(fit).observe(stage);
-
-  // Entrée : le perso tombe et atterrit (squash & stretch). Clic : anticipation, saut, vrille.
-  let drop = reduce ? null : { t0: performance.now() + 150 };
-  let hop = null, landAt = -1;
-  if (drop) stage.classList.add('falling'); else stage.classList.add('landed');
-  stage.addEventListener('click', () => { if (!hop && !drop && (landAt < 0 || performance.now() - landAt > 450)) hop = { t0: performance.now() }; });
-  const ease = t => t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-  const smooth = t => t * t * (3 - 2 * t);
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const inOut = t => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-
-  let vis = true; new IntersectionObserver(([e]) => vis = e.isIntersecting).observe(stage);
-  const touch = matchMedia('(hover: none)').matches;
-  // Pose de repos : tourné vers SA gauche et regard un peu vers le bas
-  const REST_YAW = 0.45, REST_PITCH = 0.14;
-  let look = REST_YAW, lookP = REST_PITCH, body = REST_YAW * 0.6, last = performance.now();
-  // ressorts amortis (pas de saut de vitesse = pas de snap)
-  let vLook = 0, vLookP = 0, vBody = 0, idleW = 1;
-  const spring = (x, v, target, k, dt) => { const c = 2 * Math.sqrt(k); v += ((target - x) * k - v * c) * dt; return [x + v * dt, v]; };
-  (function frame(now) {
-    requestAnimationFrame(frame);
-    if (!vis || document.hidden) { last = now; return; }
-    const dt = Math.min((now - last) / 1000, 0.05); last = now;
-    // passage progressif souris <-> pose de repos (au lieu d'un switch brutal)
-    const idleTarget = ((touch && !tilt.on) || now - pointer.last > 4000) ? 1 : 0;
-    idleW += (idleTarget - idleW) * (1 - Math.exp(-dt * (idleTarget ? 1.2 : 6)));
-    // où la tête regarde (yaw/pitch "monde") : la souris, ou la pose de repos avec un léger balancement
-    const restYaw = REST_YAW + (reduce ? 0 : Math.sin(now / 2200) * 0.12);
-    const tLook = pointer.x * 0.95 * (1 - idleW) + restYaw * idleW;
-    const tLookP = (0.04 + pointer.y * 0.35) * (1 - idleW) + REST_PITCH * idleW;
-    [look, vLook] = spring(look, vLook, tLook, 45, dt);            // tête : réactive
-    [lookP, vLookP] = spring(lookP, vLookP, tLookP, 45, dt);
-    const tBody = head ? REST_YAW * 0.6 + (look - REST_YAW * 0.6) * 0.3 : look;
-    [body, vBody] = spring(body, vBody, tBody, 10, dt);            // corps : suit plus lentement
-
-    // Toutes les courbes sont continues : chaque phase démarre exactement là où la précédente s'arrête.
-    let y = 0, sy = 1, spin = 0;
-    if (drop) {
-      const p = Math.max(0, Math.min((now - drop.t0) / 550, 1));
-      y = 8 * (1 - p * p);
-      sy = 1 + 0.12 * 4 * p * (1 - p);                       // stretch en chute, revient à 1 pile à l'impact
-      if (p >= 1) { drop = null; landAt = now; stage.classList.replace('falling', 'landed'); }
-    } else if (hop) {
-      const e = (now - hop.t0) / 1000;
-      const ANTI = 0.16, AIR = 0.6;
-      if (e < ANTI) {
-        sy = 1 - 0.16 * ease((e / ANTI));                     // anticipation : il s'accroupit
-      } else {
-        const p = Math.min((e - ANTI) / AIR, 1);
-        y = 0.55 * 4 * p * (1 - p);
-        spin = inOut(p) * Math.PI * 2;
-        const airSy = 1 + 0.12 * (1 - p) * (1 - p);           // stretch au décollage, 1 pile à l'atterrissage
-        sy = lerp(0.84, airSy, smooth(Math.min((e - ANTI) / 0.11, 1)));  // transition douce accroupi -> étiré
-        if (p >= 1) { hop = null; landAt = now; }
-      }
-    }
-    if (landAt >= 0) {
-      const e = (now - landAt) / 1000;
-      sy *= 1 - 0.27 * Math.exp(-6.5 * e) * Math.sin(15 * e); // squash à l'impact (part de 0 : pas de saut)
-      if (e > 1.4) landAt = -1;
-    }
-    if (!reduce) sy *= 1 + 0.006 * Math.sin(now / 650);       // respiration, toujours active
-    const sx = 1 / Math.sqrt(sy);                             // volume conservé
-
-    root.position.y = y;
-    root.scale.set(sx, sy, sx);
-    const lift = Math.min(y / 3, 1);
-    shadow.scale.setScalar(1 - lift * 0.55);
-    shadowMat.opacity = (1 - lift * 0.85) * (document.documentElement.dataset.theme === 'dark' ? 1.6 : 1);
-    if (head) {
-      const hy = Math.tanh((look - body) / 1.1) * 1.1;          // limite douce, pas d'arrêt sec
-      const hp = Math.tanh(lookP / 0.45) * 0.45;
-      head.quaternion.copy(qY.setFromAxisAngle(AXIS_Y, hy)).multiply(qX.setFromAxisAngle(headAxisX, hp));
-      pivot.rotation.set(0, body + spin, 0);
-    } else {
-      pivot.rotation.set(lookP * 0.6, body + spin, 0);
-    }
-    renderer.render(scene, camera);
-  })(performance.now());
+function spawnBurst(btn) {
+  const rect=btn.getBoundingClientRect();
+  const ox=rect.left+rect.width/2, oy=rect.top+rect.height/2;
+  for(let i=0;i<22;i++) flakes.push(new BurstFlake(ox,oy));
 }
 
-async function init2D() {
-  const j = await (await fetch(`https://thumbnails.roproxy.com/v1/users/avatar?userIds=${CONFIG.robloxUserId}&size=720x720&format=Png&isCircular=false`)).json();
-  const url = j.data?.[0]?.imageUrl; if (!url) throw 0;
-  const img = new Image(); img.className = 'avatar-2d'; img.alt = 'My Roblox avatar'; img.src = url;
-  await img.decode(); stage.append(img); loading.remove();
-  stage.style.perspective = '900px';
-  (function tilt() { requestAnimationFrame(tilt); img.style.transform = `rotateY(${pointer.x * 18}deg) rotateX(${-pointer.y * 8}deg)`; })();
+const flakes = Array.from({length:160}, ()=>new Flake());
+let lastScrollY=window.scrollY, windY=0, tick=0;
+window.addEventListener('scroll',()=>{
+  const d=window.scrollY-lastScrollY; lastScrollY=window.scrollY; windY+=d*0.08;
+},{passive:true});
+
+function snowLoop() {
+  windY*=0.88; ctx.clearRect(0,0,W,H); tick++;
+  for(const f of flakes){
+    if(f.frozen) continue;
+    if(f instanceof BurstFlake){ f.update(windY,tick); }
+    else{
+      const sway=Math.sin(tick*f.swaySpeed+f.swayOff)*f.swayAmp;
+      if(Math.random()<0.001) f.turbX=rand(-1.5,1.5);
+      f.turbX*=f.turbDecay;
+      f.x+=f.vx+sway+f.turbX; f.y+=f.vy-windY*(f.r/2);
+      f.vx+=rand(-0.008,0.008); f.vx=Math.max(-0.6,Math.min(0.6,f.vx));
+      if(f.x<-10) f.x=W+10; if(f.x>W+10) f.x=-10;
+      if(f.y>H+10) f.reset(false); if(f.y<-10) f.y=H+10;
+    }
+    f.draw();
+  }
+  requestAnimationFrame(snowLoop);
+}
+snowLoop();
+
+/* ── TABS ── */
+const TAB_ORDER = ['animation','vfx','scripts','models'];
+let currentTab = 'animation';
+let isAnimating = false;
+const viewport = document.getElementById('grid-viewport');
+
+function switchTab(nextTab) {
+  if(nextTab===currentTab||isAnimating) return;
+  isAnimating = true;
+
+  const fromIdx=TAB_ORDER.indexOf(currentTab), toIdx=TAB_ORDER.indexOf(nextTab);
+  const goRight=toIdx>fromIdx;
+  const fromPanel=document.getElementById('panel-'+currentTab);
+  const toPanel=document.getElementById('panel-'+nextTab);
+
+  viewport.style.height = fromPanel.offsetHeight+'px';
+
+  toPanel.style.display='block';
+  fromPanel.classList.add(goRight?'slide-out-left':'slide-out-right');
+  toPanel.classList.add(goRight?'slide-in-left':'slide-in-right');
+
+  setTimeout(()=>{
+    fromPanel.classList.remove('current','slide-out-left','slide-out-right');
+    fromPanel.style.display='';
+    toPanel.classList.remove('slide-in-left','slide-in-right');
+    toPanel.classList.add('current');
+    viewport.style.height='';
+    currentTab=nextTab;
+    isAnimating=false;
+    bindVideoCards();
+  }, 400);
 }
 
-init3D().catch(() => init2D().catch(() => loading.textContent = ''));
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    if(btn.dataset.tab===currentTab) return;
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    switchTab(btn.dataset.tab);
+  });
+});
+
+/* ── MORPH / VIDEO ── */
+const mc=document.getElementById('morph-canvas');
+const mctx=mc.getContext('2d');
+mc.width=window.innerWidth; mc.height=window.innerHeight;
+window.addEventListener('resize',()=>{ mc.width=window.innerWidth; mc.height=window.innerHeight; });
+
+const overlay=document.getElementById('modal-overlay');
+const modalBox=document.getElementById('modal-box');
+const iframeEl=document.getElementById('modal-iframe');
+const closeBtn=document.getElementById('modal-close');
+const backdrop=document.getElementById('modal-backdrop');
+const pageContent=document.getElementById('page-content');
+const dimOverlay=document.getElementById('dim-overlay');
+
+let morphRAF=null, trackedFlake=null;
+
+function ease(p){ return p<0.5?2*p*p:-1+(4-2*p)*p; }
+
+function rrect(c,x,y,w,h,r){
+  r=Math.max(0,Math.min(r,w/2,h/2));
+  c.beginPath();
+  c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.arcTo(x+w,y,x+w,y+r,r);
+  c.lineTo(x+w,y+h-r);c.arcTo(x+w,y+h,x+w-r,y+h,r);
+  c.lineTo(x+r,y+h);c.arcTo(x,y+h,x,y+h-r,r);
+  c.lineTo(x,y+r);c.arcTo(x,y,x+r,y,r);
+  c.closePath();
+}
+
+function getTarget(){
+  const tw=Math.min(860,window.innerWidth*0.85), th=tw*(9/16);
+  return{tx:(window.innerWidth-tw)/2,ty:(window.innerHeight-th)/2,tw,th};
+}
+
+const EDGE=0.22;
+function isEdgeFlake(f){ return f.y<H*EDGE||f.y>H*(1-EDGE); }
+
+function pickFlake(){
+  const edgeBig=flakes.filter(f=>!f.frozen&&f.r>2&&f.isOnScreen()&&isEdgeFlake(f));
+  if(edgeBig.length) return edgeBig[Math.floor(Math.random()*edgeBig.length)];
+  const edge=flakes.filter(f=>!f.frozen&&f.isOnScreen()&&isEdgeFlake(f));
+  if(edge.length) return edge[Math.floor(Math.random()*edge.length)];
+  const any=flakes.filter(f=>!f.frozen&&f.isOnScreen());
+  return any.length?any[Math.floor(Math.random()*any.length)]:flakes[0];
+}
+
+function getTrackedOrSwap(){
+  if(!trackedFlake||!trackedFlake.isOnScreen()){
+    if(trackedFlake) trackedFlake.frozen=false;
+    trackedFlake=pickFlake(); trackedFlake.frozen=true;
+  }
+  return trackedFlake;
+}
+
+function openVideo(url){
+  cancelAnimationFrame(morphRAF); mctx.clearRect(0,0,mc.width,mc.height);
+  if(trackedFlake) trackedFlake.frozen=false;
+  trackedFlake=pickFlake(); trackedFlake.frozen=true;
+  const sr=trackedFlake.r, sa=trackedFlake.alpha;
+  overlay.classList.add('active');
+  modalBox.classList.remove('visible'); closeBtn.classList.remove('visible');
+  pageContent.classList.add('zoomed'); dimOverlay.classList.add('active');
+  const t0=performance.now(),dur=700;
+  function step(now){
+    const f=getTrackedOrSwap(), sx=f.x, sy=f.y;
+    const p=ease(Math.min((now-t0)/dur,1));
+    const{tx,ty,tw,th}=getTarget();
+    mctx.clearRect(0,0,mc.width,mc.height);
+    const cx=sx+(tx+tw/2-sx)*p, cy=sy+(ty+th/2-sy)*p;
+    const cw=sr*2+(tw-sr*2)*p, ch=sr*2+(th-sr*2)*p, cr=sr*(1-p);
+    const r=Math.round(240-240*p),g=Math.round(225-225*p),b=Math.round(210-210*p),a=sa+(1-sa)*p;
+    mctx.fillStyle=`rgba(${r},${g},${b},${a})`;
+    rrect(mctx,cx-cw/2,cy-ch/2,cw,ch,cr); mctx.fill();
+    if(p<1){morphRAF=requestAnimationFrame(step);return;}
+    mctx.clearRect(0,0,mc.width,mc.height);
+    const{tx:tx2,ty:ty2,tw:tw2,th:th2}=getTarget();
+    modalBox.style.cssText=`left:${tx2}px;top:${ty2}px;width:${tw2}px;height:${th2}px;`;
+    iframeEl.src=url+'?autoplay=1';
+    modalBox.classList.add('visible'); closeBtn.classList.add('visible');
+  }
+  morphRAF=requestAnimationFrame(step);
+}
+
+function pickOppositeFlake(fromFlake){
+  const fromTop=fromFlake?fromFlake.y<H*0.5:true;
+  const candidates=flakes.filter(f=>!f.frozen&&f.r>2&&f.isOnScreen()&&isEdgeFlake(f));
+  const pool=candidates.length
+    ?candidates
+    :flakes.filter(f=>!f.frozen&&f.r>2&&f.isOnScreen()).concat(flakes.filter(f=>!f.frozen&&f.isOnScreen())).slice(0,20);
+  if(!pool.length) return pickFlake();
+  pool.sort((a,b)=>{
+    const ax=fromFlake?Math.abs(a.x-fromFlake.x)/W+(fromTop?(a.y/H):(1-a.y/H)):0;
+    const bx=fromFlake?Math.abs(b.x-fromFlake.x)/W+(fromTop?(b.y/H):(1-b.y/H)):0;
+    return bx-ax;
+  });
+  return pool[Math.floor(Math.random()*Math.max(1,Math.floor(pool.length/3)))];
+}
+
+function closeVideo(){
+  cancelAnimationFrame(morphRAF);
+  iframeEl.src=''; modalBox.classList.remove('visible'); closeBtn.classList.remove('visible');
+  pageContent.classList.remove('zoomed'); dimOverlay.classList.remove('active');
+  const openFlake=trackedFlake;
+  if(trackedFlake){trackedFlake.frozen=false;trackedFlake=null;}
+  const destFlake=pickOppositeFlake(openFlake);
+  destFlake.frozen=true; trackedFlake=destFlake;
+  const er=destFlake.r, ea=destFlake.alpha;
+  const{tx,ty,tw,th}=getTarget();
+  const t0=performance.now(),dur=620;
+  function step(now){
+    if(destFlake&&!destFlake.isOnScreen()){destFlake.frozen=false;trackedFlake=null;}
+    const lx=destFlake.isOnScreen()?destFlake.x:W*0.5;
+    const ly=destFlake.isOnScreen()?destFlake.y:H*0.1;
+    const p=ease(Math.min((now-t0)/dur,1));
+    mctx.clearRect(0,0,mc.width,mc.height);
+    const cx=(tx+tw/2)+(lx-(tx+tw/2))*p, cy=(ty+th/2)+(ly-(ty+th/2))*p;
+    const cw=tw+(er*2-tw)*p, ch=th+(er*2-th)*p, cr=er*p;
+    const r=Math.round(240*p),g=Math.round(225*p),b=Math.round(210*p),a=1-(1-ea)*p;
+    mctx.fillStyle=`rgba(${r},${g},${b},${a})`;
+    rrect(mctx,cx-cw/2,cy-ch/2,cw,ch,cr); mctx.fill();
+    if(p<1){morphRAF=requestAnimationFrame(step);return;}
+    mctx.clearRect(0,0,mc.width,mc.height);
+    if(trackedFlake){trackedFlake.frozen=false;trackedFlake=null;}
+    overlay.classList.remove('active');
+  }
+  morphRAF=requestAnimationFrame(step);
+}
+
+function bindVideoCards(){
+  document.querySelectorAll('.project-card[data-video]').forEach(card=>{
+    const clone=card.cloneNode(true);
+    card.parentNode.replaceChild(clone,card);
+  });
+  document.querySelectorAll('.project-card[data-video]').forEach(card=>{
+    card.addEventListener('click',()=>openVideo(card.dataset.video));
+  });
+}
+bindVideoCards();
+
+backdrop.addEventListener('click',closeVideo);
+closeBtn.addEventListener('click',closeVideo);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeVideo();});
+
+/* ── REVEALS ── */
+const obs=new IntersectionObserver(
+  es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),
+  {threshold:0.15}
+);
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 </script>
 </body>
 </html>
