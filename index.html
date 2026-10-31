@@ -107,9 +107,9 @@
     .wip-drawer.open .wip-list li:nth-child(2) { transition-delay: 0.05s; }
     .wip-drawer.open .wip-list li:nth-child(3) { transition-delay: 0.1s; }
     .wip-drawer.open .wip-list li:nth-child(4) { transition-delay: 0.15s; }
-    .game { display: flex; align-items: center; gap: calc(0.8rem * var(--s)); padding: calc(0.45rem * var(--s)) calc(0.5rem * var(--s)); margin: 0 -0.5rem; border-radius: calc(6px * var(--s)); }
+    .game { display: flex; align-items: center; gap: calc(0.8rem * var(--s)); padding: calc(0.45rem * var(--s)) calc(0.5rem * var(--s)); margin: 0 calc(-0.5rem * var(--s)); border-radius: calc(6px * var(--s)); background-color: transparent; transition: background-color 0.35s ease; }
     .wip-list li:first-child .game { margin-top: calc(0.6rem * var(--s)); }
-    a.game:hover { background: var(--surface); }
+    .wip-list li:hover a.game { background-color: var(--surface); transition-duration: 0.2s; }
     .game img, .game .noicon { width: calc(38px * var(--s)); height: calc(38px * var(--s)); border-radius: calc(8px * var(--s)); flex: none; background: var(--surface); object-fit: cover; }
     .game b { font-weight: 600; display: block; }
     .game small { color: var(--dim); font-size: calc(12px * var(--s)); }
