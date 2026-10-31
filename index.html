@@ -167,7 +167,7 @@
     .sort-arrow:hover { color: var(--text); background: var(--surface); }
     .sort-label { position: relative; display: inline-block; min-width: calc(7.5em); height: 1.6em; overflow: hidden; text-align: center; }
     .sort-label span { position: absolute; inset: 0; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.3s; }
-    .work-list li { transition: opacity 0.3s; }
+    .work-list li { overflow: hidden; transition: opacity 0.3s ease, height 0.38s cubic-bezier(.4,0,.2,1); }
     .work-list li.out { opacity: 0; }
     .work-list li[hidden] { display: none; }
     .work-empty { color: var(--faint); padding: calc(0.8rem * var(--s)) 0; }
@@ -604,6 +604,27 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
   let cur = el('span', null, cats[0]); label.append(cur);
   bar.append(prev, label, next);
 
+  // les lignes qui partent se replient (hauteur -> 0) en fondu, celles qui arrivent se déplient : rien ne saute
+  const DUR = 380;
+  const hideItem = li => {
+    if (li.hidden || li.dataset.state === 'out') return;
+    li.dataset.state = 'out'; clearTimeout(li._t);
+    li.style.height = li.offsetHeight + 'px'; li.offsetHeight;
+    li.classList.add('out'); li.style.height = '0px';
+    li._t = setTimeout(() => { if (li.dataset.state === 'out') { li.hidden = true; li.style.height = ''; } }, DUR);
+  };
+  const showItem = li => {
+    if (li.dataset.state === 'in' && !li.hidden) return;
+    const from = li.hidden ? 0 : li.offsetHeight;
+    li.dataset.state = 'in'; clearTimeout(li._t);
+    li.hidden = false; li.style.height = 'auto';
+    const to = li.scrollHeight;
+    li.style.height = from + 'px'; li.offsetHeight;
+    li.classList.remove('out'); li.style.height = to + 'px';
+    li._t = setTimeout(() => { if (li.dataset.state === 'in') li.style.height = ''; }, DUR);
+  };
+  items.forEach(li => li.dataset.state = 'in');
+
   const apply = (dir) => {
     const cat = cats[ci];
     // le texte glisse dans le sens de la flèche
@@ -620,8 +641,7 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
     const shown = [];
     items.forEach((li, i) => {
       const ok = cat === 'all' || SORTS.find(x => x.label === cat).match.test(PROJECTS[i].type || '');
-      if (ok) { li.hidden = false; requestAnimationFrame(() => li.classList.remove('out')); shown.push(i); }
-      else { li.classList.add('out'); setTimeout(() => { if (li.classList.contains('out')) li.hidden = true; }, 300); }
+      if (ok) { showItem(li); shown.push(i); } else hideItem(li);
     });
     $('#work-empty').hidden = shown.length > 0;
     if (view && !(touchUI || smallUI)) { view.style.display = shown.length ? '' : 'none'; if (shown.length && !shown.includes(viewIdx)) showView(shown[0]); }
