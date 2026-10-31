@@ -115,6 +115,14 @@
     .game small { color: var(--dim); font-size: calc(12px * var(--s)); }
     .game small .label { color: var(--faint); }
     .game .playing { color: var(--online); }
+    .wip-list li { position: relative; }
+    .game-dc { position: absolute; right: calc(0.4rem * var(--s)); top: 50%; display: flex; align-items: center; justify-content: center;
+      width: calc(32px * var(--s)); height: calc(32px * var(--s)); border-radius: calc(8px * var(--s)); color: var(--dim);
+      opacity: 0; transform: translate(6px, -50%); transition: opacity 0.2s, transform 0.25s cubic-bezier(.2,.8,.2,1), color 0.15s, background 0.15s; }
+    .game-dc svg { width: calc(18px * var(--s)); height: calc(18px * var(--s)); }
+    .wip-list li:hover .game-dc, .game-dc:focus-visible { opacity: 1; transform: translate(0, -50%); }
+    .game-dc:hover { color: #fff; background: #5865f2; }
+    @media (hover: none) { .game-dc { opacity: 1; transform: translate(0, -50%); } }
 
     /* ── WORK ── */
     .work { margin-top: calc(4rem * var(--s)); }
@@ -243,9 +251,10 @@ const CONFIG = {
 /* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
    Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
 const GAMES = [
-  { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT" },
+  { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT", universeId: 10696463443, discord: "https://discord.gg/Y5gAFdphZ" },
   { name: "elder gate", role: "main animator", url: "https://www.roblox.com/games/104403529162136/Elder-Gate" },
   // icon: "icons/jeu.png"  -> optionnel, remplace l'icône auto
+  // discord: "https://discord.gg/..."  -> optionnel, bouton Discord au survol
 ];
 
 /* Tes vidéos. videoUrl : YouTube, Streamable ou .mp4. thumb optionnel. */
@@ -418,19 +427,66 @@ if (GAMES.length) {
     const info = el('span'); const b = el('b', null, g.name); const sm = el('small');
     if (g.role) { sm.append(el('span', 'label', 'role: ')); sm.append(g.role); } else if (!g.url) sm.append('not public yet');
     info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
-    // icône + nombre de joueurs en live depuis Roblox
-    const placeId = (g.url.match(/games\/(\d+)/) || [])[1];
-    if (!placeId) return;
-    fetch(`https://apis.roproxy.com/universes/v1/places/${placeId}/universe`).then(r => r.json()).then(({ universeId }) => {
-      if (!universeId) return;
-      fetch(`https://thumbnails.roproxy.com/v1/games/icons?universeIds=${universeId}&size=150x150&format=Png&isCircular=false`)
-        .then(r => r.json()).then(j => { const u = j.data?.[0]?.imageUrl; if (u && !g.icon) { const img = el('img'); img.src = u; img.alt = ''; icon.replaceWith(img); } });
-      fetch(`https://games.roproxy.com/v1/games?universeIds=${universeId}`).then(r => r.json()).then(j => {
-        const n = j.data?.[0]?.playing;
-        if (n > 0) { sm.append(' · '); sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
-      });
-    }).catch(() => {});
+    if (g.discord) {
+      const dcb = el('a', 'game-dc'); dcb.href = g.discord; dcb.target = '_blank'; dcb.rel = 'noopener';
+      dcb.innerHTML = ICONS.discord; dcb.setAttribute('aria-label', `Join the ${g.name} Discord`); dcb.title = 'Join the Discord';
+      li.append(dcb);
+    }
+    g._icon = icon; g._sm = sm;
   });
+  loadGameIcons();
+  loadPlayerCounts();
+}
+
+/* Icônes des jeux : 1 seule requête groupée par placeId (l'ancienne méthode passait par une API souvent bloquée = icônes qui ratent).
+   Cache local + 3 essais si Roblox ne répond pas. */
+function placeIdOf(g) { return ((g.url || '').match(/games\/(\d+)/) || [])[1]; }
+function setGameIcon(g, url) {
+  if (!url || g.icon || g._icon.tagName === 'IMG') return;
+  const img = el('img'); img.alt = '';
+  img.onerror = () => { try { localStorage.removeItem('icon:' + placeIdOf(g)); } catch (_) {} };
+  img.src = url; g._icon.replaceWith(img); g._icon = img;
+}
+async function loadGameIcons(attempt = 0) {
+  const todo = GAMES.filter(g => !g.icon && placeIdOf(g));
+  todo.forEach(g => { try { setGameIcon(g, localStorage.getItem('icon:' + placeIdOf(g))); } catch (_) {} });
+  if (!todo.length) return;
+  try {
+    const ids = todo.map(placeIdOf).join(',');
+    const r = await fetch(`https://thumbnails.roproxy.com/v1/places/gameicons?placeIds=${ids}&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false`);
+    if (!r.ok) throw 0;
+    const { data = [] } = await r.json();
+    let pending = false;
+    data.forEach(d => {
+      const g = todo.find(x => placeIdOf(x) === String(d.targetId));
+      if (!g) return;
+      if (d.state === 'Completed' && d.imageUrl) {
+        try { localStorage.setItem('icon:' + d.targetId, d.imageUrl); } catch (_) {}
+        if (g._icon.tagName === 'IMG') { if (g._icon.src !== d.imageUrl) g._icon.src = d.imageUrl; }
+        else setGameIcon(g, d.imageUrl);
+      } else pending = true;
+    });
+    if (pending && attempt < 3) setTimeout(() => loadGameIcons(attempt + 1), 2000);
+  } catch (_) { if (attempt < 3) setTimeout(() => loadGameIcons(attempt + 1), 1500 * (attempt + 1)); }
+}
+
+/* Joueurs en ligne (bonus) : universeId mis en cache, aucun impact sur les icônes si ça échoue */
+async function loadPlayerCounts() {
+  for (const g of GAMES) {
+    const pid = placeIdOf(g); if (!pid) continue;
+    try {
+      let uid = g.universeId; try { uid = uid || localStorage.getItem('uni:' + pid); } catch (_) {}
+      if (!uid) {
+        const r = await fetch(`https://apis.roproxy.com/universes/v1/places/${pid}/universe`);
+        if (!r.ok) continue;
+        uid = (await r.json()).universeId; if (!uid) continue;
+        try { localStorage.setItem('uni:' + pid, uid); } catch (_) {}
+      }
+      const j = await (await fetch(`https://games.roproxy.com/v1/games?universeIds=${uid}`)).json();
+      const n = j.data?.[0]?.playing;
+      if (n > 0) { g._sm.append(' · '); g._sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
+    } catch (_) {}
+  }
 }
 
 /* badges */
