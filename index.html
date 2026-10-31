@@ -157,7 +157,7 @@
     .work-row:hover .w-arrow { opacity: 1; transform: none; }
     .w-thumb { display: none; }
 
-    .peek { position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; width: calc(300px * var(--s)); aspect-ratio: 16 / 9;
+    .peek { position: fixed; left: 0; top: 0; z-index: 8; pointer-events: none; width: min(calc(420px * var(--s)), 42vw); aspect-ratio: 16 / 9;
       border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface);
       box-shadow: 0 calc(18px * var(--s)) calc(40px * var(--s)) rgba(20,22,26,0.18);
       opacity: 0; transition: opacity 0.25s ease; will-change: transform; }
