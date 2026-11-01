@@ -204,10 +204,15 @@
       .work-body { grid-template-columns: 1fr; }
       .work-view { display: none; }
       .work-row .w-title { color: var(--text); }
-      .w-thumb { display: block; position: relative; flex: none; width: calc(92px * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(6px * var(--s)); overflow: hidden; background: var(--surface); }
+      /* téléphone / petit écran : grandes cartes, miniature en image (la vidéo ne se charge qu'au toucher) */
+      .work-list li + li { margin-top: calc(0.4rem * var(--s)); }
+      .work-row { flex-direction: column; align-items: stretch; gap: calc(0.55rem * var(--s)); border-bottom: 0; padding: calc(0.6rem * var(--s)) 0; }
+      .w-thumb { display: block; position: relative; width: 100%; aspect-ratio: 16 / 9; border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface); }
       .w-thumb video, .w-thumb canvas, .w-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+      .w-thumb .w-play { position: absolute; right: calc(0.6rem * var(--s)); bottom: calc(0.6rem * var(--s)); width: calc(34px * var(--s)); height: calc(34px * var(--s));
+        border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--chip); color: var(--text); font-size: calc(12px * var(--s)); padding-left: 2px; }
       .work-row .w-meta { display: block; }
-      .w-text { flex: 1; display: flex; flex-direction: column; }
+      .w-text { display: flex; flex-direction: column; }
       .work-row .w-arrow { display: none; }
     }
     .clip-demo { font-size: calc(10px * var(--s)); color: var(--faint); background: var(--chip); padding: 0 calc(0.35rem * var(--s)); border-radius: calc(4px * var(--s)); }
@@ -559,6 +564,28 @@ const autoplay = new IntersectionObserver(es => es.forEach(e => {
   const m = e.target; if (reduceMo) return;
   if (e.isIntersecting) { const p = m.play(); if (p && p.catch) p.catch(() => {}); } else m.pause();
 }), { threshold: 0.1 });
+/* miniature légère (téléphone) : image « poster » générée automatiquement par la GitHub Action
+   dans <dossier de la vidéo>/posters/<nom>.jpg ; si elle n'existe pas encore, 1re image de la vidéo */
+function posterFor(clip) {
+  if (!clip) return ''; const i = clip.lastIndexOf('/');
+  const dir = i >= 0 ? clip.slice(0, i + 1) : '', base = clip.slice(i + 1).replace(/\.[^.]+$/, '');
+  return encodeURI(dir + 'posters/' + base + '.jpg');
+}
+function makeThumb(p, idx) {
+  if (p.demo) return demoCanvas(idx);
+  if (!p.clip) return null;
+  const im = el('img'); im.className = 'fade-media'; im.alt = p.title || ''; im.loading = 'lazy'; im.decoding = 'async';
+  im.addEventListener('load', () => im.classList.add('ready'), { once: true });
+  if (isImg(p.clip)) { im.src = p.poster || p.clip; return im; }
+  im.addEventListener('error', () => {   // pas encore de poster : on montre la 1re image de la vidéo (sans la lire)
+    const v = el('video'); v.className = 'fade-media'; v.muted = true; v.playsInline = true; v.preload = 'metadata';
+    v.addEventListener('loadeddata', () => v.classList.add('ready'), { once: true });
+    v.src = p.clip + '#t=0.1'; im.replaceWith(v);
+  }, { once: true });
+  im.src = p.poster || posterFor(p.clip);
+  return im;
+}
+
 function makeMedia(p, idx) {
   if (p.demo) return demoCanvas(idx);
   if (!p.clip) return null;
@@ -584,8 +611,9 @@ PROJECTS.forEach((p, idx) => {
   const row = el('button', 'work-row');
   const meta = el('span', 'w-meta', [p.type, p.where].filter(Boolean).join(' · '));
   if (touchUI || smallUI) {
-    const th = el('span', 'w-thumb'); const m = makeMedia(p, idx);
-    if (m) { th.append(m); autoplay.observe(m); }
+    const th = el('span', 'w-thumb'); const m = makeThumb(p, idx);
+    if (m) { th.append(m); if (p.demo) autoplay.observe(m); }
+    if (p.clip && !isImg(p.clip)) th.append(el('span', 'w-play', '▶'));
     const tx = el('span', 'w-text'); tx.append(el('span', 'w-title', p.title), meta);
     row.append(th, tx);
   } else {
