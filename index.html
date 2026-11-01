@@ -190,6 +190,9 @@
     .w-thumb { display: none; }
     .work-view { position: sticky; top: calc(1.5rem * var(--s)); aspect-ratio: 16 / 9; border-radius: calc(10px * var(--s)); overflow: hidden; background: var(--surface); cursor: pointer; }
     .view-layer { position: absolute; inset: 0; opacity: 0; transition: opacity 0.4s ease; }
+    /* vidéos / images : invisibles tant qu'elles ne sont pas chargées, puis fondu */
+    .fade-media { opacity: 0; transition: opacity 0.5s ease; }
+    .fade-media.ready { opacity: 1; }
     .view-layer.on { opacity: 1; }
     .work-view video, .work-view canvas, .work-view img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
     .work-view .clip-demo { position: absolute; left: calc(0.45rem * var(--s)); top: calc(0.45rem * var(--s)); }
@@ -538,10 +541,14 @@ function makeMedia(p, idx) {
   if (p.demo) return demoCanvas(idx);
   if (!p.clip) return null;
   if (isImg(p.clip)) {   // image (png/jpg/webp/gif) : pour les builds, models, etc.
-    const im = el('img'); im.src = p.clip; im.alt = p.title || ''; im.loading = 'lazy'; im.decoding = 'async';
+    const im = el('img'); im.className = 'fade-media'; im.alt = p.title || ''; im.decoding = 'async';
+    im.addEventListener('load', () => im.classList.add('ready'), { once: true });
+    im.src = p.clip; if (im.complete && im.naturalWidth) im.classList.add('ready');
     im.play = () => {}; im.pause = () => {}; return im;
   }
-  const v = el('video'); v.src = p.clip; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('muted', '');
+  const v = el('video'); v.className = 'fade-media';
+  ['loadeddata', 'playing'].forEach(ev => v.addEventListener(ev, () => v.classList.add('ready'), { once: true }));
+  v.src = p.clip; v.muted = true; v.loop = true; v.playsInline = true; v.setAttribute('muted', '');
   v.preload = 'metadata'; if (p.poster) v.poster = p.poster; return v;
 }
 
@@ -677,8 +684,8 @@ function openWork(p, idx) {
   frame.innerHTML = '';
   const url = p.full || p.clip;
   if (p.demo && !url) { const cv = demoCanvas(idx); frame.append(cv); requestAnimationFrame(() => cv.play()); }
-  else if (isImg(url)) { const im = el('img'); im.src = url; im.alt = p.title || ''; frame.append(im); }
-  else if (isMp4(url)) { const v = el('video'); v.src = url; v.controls = v.autoplay = v.playsInline = true; v.loop = !p.full; frame.append(v); }
+  else if (isImg(url)) { const im = el('img'); im.className = 'fade-media'; im.onload = () => im.classList.add('ready'); im.src = url; im.alt = p.title || ''; frame.append(im); }
+  else if (isMp4(url)) { const v = el('video'); v.className = 'fade-media'; v.addEventListener('loadeddata', () => v.classList.add('ready'), { once: true }); v.src = url; v.controls = v.autoplay = v.playsInline = true; v.loop = !p.full; frame.append(v); }
   else {
     const f = el('iframe'); f.allow = 'autoplay; encrypted-media; fullscreen'; f.allowFullscreen = true;
     f.src = ytId(url) ? `https://www.youtube.com/embed/${ytId(url)}?autoplay=1&rel=0` : stId(url) ? `https://streamable.com/e/${stId(url)}?autoplay=1` : url;
