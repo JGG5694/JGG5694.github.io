@@ -116,6 +116,11 @@
     .row .act { color: var(--dim); }
     .row-link { transition: opacity 0.2s; }
     .row-link:hover { opacity: 0.7; }
+    .open-row { color: var(--text); }
+    .open-dot { width: calc(14px * var(--s)); height: calc(14px * var(--s)); flex: none; display: flex; align-items: center; justify-content: center; }
+    .open-dot::before { content: ''; width: calc(7px * var(--s)); height: calc(7px * var(--s)); border-radius: 50%; background: var(--online); }
+    .open-row.closed { color: var(--dim); }
+    .open-row.closed .open-dot::before { background: var(--faint); }
 
     /* ── WHAT I'M WORKING ON ── */
     .wip { position: relative; margin: calc(1.6rem * var(--s)) 0 0 calc(calc(120px * var(--s)) + calc(1.6rem * var(--s))); }
@@ -289,6 +294,10 @@
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.7.7 0 0 1-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 1 1-.3-1.4c4.6-1 8.5-.6 11.6 1.3.4.2.5.7.3 1Zm1.5-3.3a.9.9 0 0 1-1.3.3c-3.2-2-8.1-2.6-11.9-1.4a.9.9 0 1 1-.5-1.7c4.3-1.3 9.7-.7 13.4 1.6.4.3.5.8.3 1.2Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 1 1-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 0 1-1.2 1.9Z"/></svg>
           <span id="spotify">not listening to anything</span>
         </div>
+        <a class="row row-link open-row" id="row-open" target="_blank" rel="noopener" title="DM me on Discord">
+          <span class="open-dot" aria-hidden="true"></span>
+          <span id="open-text">open to cool projects</span><span class="act" id="open-sub">dm me on discord</span>
+        </a>
       </div>
 
       <div class="wip" id="wip" hidden>
@@ -335,6 +344,8 @@ const CONFIG = {
   x: 'https://x.com/JGG5694',
   // Compteur de visiteurs privé (GoatCounter) : mets ton code (ex : 'jgg' si ton tableau de bord est jgg.goatcounter.com). Vide = désactivé.
   goatcounter: 'jgg5694',
+  // Dispo pour des projets ? true = « open to cool projects » (point vert) ; false = « not taking projects right now » (point gris)
+  openToProjects: true,
 };
 
 /* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
@@ -518,6 +529,12 @@ function connectLanyard(retry = 0) {
   };
   ws.onerror = () => ws.close();
 }
+if (CONFIG.openToProjects === false) {
+  $('#row-open').classList.add('closed');
+  $('#open-text').textContent = 'not taking projects right now';
+  $('#open-sub').textContent = 'still down to chat';
+}
+$('#row-open').href = CONFIG.discordId ? `https://discord.com/users/${CONFIG.discordId}` : `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`;
 if (CONFIG.discordId) { $('#row-discord').href = `https://discord.com/users/${CONFIG.discordId}`; pollPresence(); connectLanyard(); } else robloxPfp();
 
 /* work */
