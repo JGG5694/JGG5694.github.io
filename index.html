@@ -326,6 +326,8 @@ const CONFIG = {
   // Autres liens (optionnels) : mets l'URL ou laisse vide.
   youtube: '',
   x: 'https://x.com/JGG5694',
+  // Compteur de visiteurs privé (GoatCounter) : mets ton code (ex : 'jgg' si ton tableau de bord est jgg.goatcounter.com). Vide = désactivé.
+  goatcounter: '',
 };
 
 /* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
@@ -378,6 +380,24 @@ const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.classN
   n.addEventListener('mouseenter', () => { if (!n.classList.contains('jump')) n.classList.add('jump'); });
   n.lastElementChild.addEventListener('animationend', () => n.classList.remove('jump'));
 })();
+
+/* compteur de visiteurs privé (GoatCounter) — visible seulement sur ton tableau de bord, rien sur le site.
+   - « / » = chaque visite (GoatCounter regroupe déjà les visiteurs du jour)
+   - « unique-visitor » = compté UNE seule fois par navigateur, à vie (s'il revient, ça ne monte pas)
+   Pour ne pas te compter toi-même : ouvre une fois ton site avec #toggle-goatcounter à la fin de l'adresse. */
+if (CONFIG.goatcounter) {
+  const sc = document.createElement('script');
+  sc.async = true; sc.src = 'https://gc.zgo.at/count.js';
+  sc.dataset.goatcounter = `https://${CONFIG.goatcounter}.goatcounter.com/count`;
+  sc.onload = () => {
+    let seen = false; try { seen = localStorage.getItem('jgg-visited') === '1'; } catch (_) {}
+    if (!seen && window.goatcounter && window.goatcounter.count) {
+      window.goatcounter.count({ path: 'unique-visitor', title: 'Unique visitor (lifetime)', event: true });
+      try { localStorage.setItem('jgg-visited', '1'); } catch (_) {}
+    }
+  };
+  document.head.append(sc);
+}
 
 /* thème clair / sombre, mémorisé dans le navigateur */
 (() => {
