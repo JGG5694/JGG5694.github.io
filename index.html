@@ -585,7 +585,7 @@ function showView(idx) {
   if (idx === viewIdx || !view) return;
   const m = peekMedia[idx]; if (!m) return;
   let l = viewLayers[idx];
-  if (!l) { l = viewLayers[idx] = el('div', 'view-layer'); l.append(m); if (PROJECTS[idx].demo) l.append(el('span', 'clip-demo', 'template')); view.append(l); }
+  if (!l) { l = viewLayers[idx] = el('div', 'view-layer'); l.append(m); if (PROJECTS[idx].demo) l.append(el('span', 'clip-demo', 'template')); view.append(l); l.offsetWidth; /* force le navigateur à « voir » le calque invisible avant le fondu */ }
   viewLayers.forEach((x, i) => x && x.classList.toggle('on', i === idx));
   work.querySelectorAll('.work-row').forEach((r, i) => r.classList.toggle('active', i === idx));
   if (!reduceMo) { const r = m.play(); if (r && r.catch) r.catch(() => {}); }
@@ -593,6 +593,14 @@ function showView(idx) {
   if (prev >= 0 && peekMedia[prev]) setTimeout(() => { if (viewIdx !== prev) peekMedia[prev].pause(); }, 420);
 }
 if (view && !(touchUI || smallUI) && PROJECTS.length) {
+  // tous les calques sont créés dès le départ (invisibles) : le 1er survol fait déjà un vrai fondu
+  PROJECTS.forEach((p, i) => {
+    const m = peekMedia[i]; if (!m || viewLayers[i]) return;
+    const l = viewLayers[i] = el('div', 'view-layer'); l.append(m);
+    if (p.demo) l.append(el('span', 'clip-demo', 'template'));
+    view.append(l);
+  });
+  view.offsetWidth;
   showView(0);
   view.addEventListener('click', () => openWork(PROJECTS[viewIdx], viewIdx));
   // ne tourne que si la section est visible
