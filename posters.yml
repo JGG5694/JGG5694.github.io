@@ -1,0 +1,61 @@
+name: Make video posters
+
+# Crée automatiquement une image légère (.jpg) pour chaque vidéo,
+# utilisée comme miniature sur téléphone : <dossier>/posters/<nom>.jpg
+on:
+  push:
+    paths:
+      - 'PortofolioVideos/**.mp4'
+      - 'PortofolioVideos/**.webm'
+      - 'work/**.mp4'
+      - 'work/**.webm'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: posters
+  cancel-in-progress: true
+
+jobs:
+  posters:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install ffmpeg
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg
+
+      - name: Generate missing posters
+        shell: bash
+        run: |
+          shopt -s nullglob
+          for dir in PortofolioVideos work; do
+            [ -d "$dir" ] || continue
+            mkdir -p "$dir/posters"
+            for f in "$dir"/*.mp4 "$dir"/*.webm; do
+              base="$(basename "${f%.*}")"
+              out="$dir/posters/$base.jpg"
+              # régénère si la vidéo est plus récente que son poster
+              if [ -f "$out" ] && [ "$out" -nt "$f" ]; then continue; fi
+              dur=$(ffprobe -v error -show_entries format=duration -of csv=p=0 "$f" || echo 2)
+              t=$(awk -v d="$dur" 'BEGIN { t = d * 0.3; if (t > 3) t = 3; printf "%.2f", t }')
+              ffmpeg -y -loglevel error -ss "$t" -i "$f" -frames:v 1 -vf "scale=960:-2" -q:v 4 "$out"
+              echo "poster: $out"
+            done
+            # supprime les posters dont la vidéo n'existe plus
+            for p in "$dir"/posters/*.jpg; do
+              b="$(basename "${p%.*}")"
+              [ -e "$dir/$b.mp4" ] || [ -e "$dir/$b.webm" ] || rm -f "$p"
+            done
+          done
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A PortofolioVideos/posters work/posters 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Rien de nouveau."; exit 0; fi
+          git commit -m "chore: video posters"
+          git push
