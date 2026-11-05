@@ -72,8 +72,14 @@
     .lang-btn span { transition: color 0.25s; }
     .lang-btn .sep { opacity: 0.6; }
     :root[lang="en"] .lang-btn .l-en, :root[lang="fr"] .lang-btn .l-fr { color: var(--text); font-weight: 600; }
-    [data-i18n] { transition: opacity 0.18s; }
-    .i18n-swap [data-i18n], .i18n-swap .sort-label, .i18n-swap .presence, .i18n-swap .wip-list small { opacity: 0; }
+    /* changement de langue : les textes s'effacent puis reviennent en douceur */
+    [data-i18n], #sub-text, .sort-label, .presence, .wip-list small { transition: opacity 0.28s ease; }
+    .work-row .w-title { transition: color 0.3s, opacity 0.28s ease; }
+    .i18n-swap [data-i18n], .i18n-swap #sub-text, .i18n-swap .sort-label, .i18n-swap .presence, .i18n-swap .wip-list small, .i18n-swap .w-title { opacity: 0; }
+    /* « hi, i'm » : la largeur s'anime, donc « JGG » glisse au lieu de sauter */
+    #hi-text { display: inline-block; white-space: nowrap; overflow: hidden; vertical-align: bottom;
+      transition: width 0.45s cubic-bezier(.65,0,.35,1), opacity 0.28s ease; }
+    #hi-text.hide { opacity: 0; }
     .theme-btn svg { width: calc(17px * var(--s)); height: calc(17px * var(--s)); position: absolute; transition: opacity 0.3s, transform 0.45s cubic-bezier(.2,.8,.2,1); }
     .theme-btn .moon { opacity: 1; transform: none; }
     .theme-btn .sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
@@ -293,7 +299,7 @@
       <div class="profile">
         <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
         <div>
-          <h1 class="hi"><span data-i18n="hi">hi, i'm</span> <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
+          <h1 class="hi"><span id="hi-text">hi, i'm</span> <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
           <p class="sub" id="sub"><span id="sub-text">roblox animator &amp; a bit of everything else.</span></p>
           <div class="socials-line">
             <div class="socials" id="socials"></div>
@@ -464,26 +470,49 @@ const I18N = {
   },
 };
 let LANG = document.documentElement.lang === 'fr' ? 'fr' : 'en';
+let hiBusy = false;
 const t = (k, n) => (I18N[LANG][k] ?? I18N.en[k] ?? k).replace('{n}', n ?? '');
 // texte d'un élément du contenu (titre de projet, rôle…) : utilise la version FR si elle existe
 const tx = (obj, key) => (LANG === 'fr' && obj[key + 'Fr']) || obj[key];
 function applyStaticText() {
   document.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = t(n.dataset.i18n); });
+  if (!hiBusy) $('#hi-text').textContent = t('hi');
   $('#row-open').title = t('dmMe');
   $('#row-discord') && ($('#row-discord').title = t('openDiscord'));
 }
 applyStaticText();
+let langTimer = 0;
 $('#lang-btn').addEventListener('click', () => {
   LANG = LANG === 'en' ? 'fr' : 'en';
   try { localStorage.setItem('lang', LANG); } catch (_) {}
-  // petit fondu : on efface, on change les textes, on réaffiche
+  document.documentElement.lang = LANG;   // le bouton EN/FR change tout de suite
+
+  // 1) tout s'efface en fondu
+  const hi = $('#hi-text');
+  hiBusy = true;
+  const from = hi.getBoundingClientRect().width;
+  hi.style.width = from + 'px';
+  hi.classList.add('hide');
   document.body.classList.add('i18n-swap');
-  setTimeout(() => {
-    document.documentElement.lang = LANG;
+  clearTimeout(langTimer);
+  langTimer = setTimeout(() => {
+    // 2) nouveaux textes (encore invisibles)
     applyStaticText();
     dispatchEvent(new Event('langchange'));
-    requestAnimationFrame(() => document.body.classList.remove('i18n-swap'));
-  }, 180);
+    // 3) « JGG » glisse : la zone du « hi » prend sa nouvelle largeur
+    hi.textContent = t('hi');
+    hi.style.width = 'auto';
+    const to = hi.getBoundingClientRect().width;
+    hi.style.width = from + 'px'; hi.offsetWidth;
+    hi.style.width = to + 'px';
+    // le reste réapparaît pendant le glissement
+    document.body.classList.remove('i18n-swap');
+    // 4) le nouveau « hi » apparaît une fois JGG arrivé
+    langTimer = setTimeout(() => {
+      hi.classList.remove('hide');
+      langTimer = setTimeout(() => { hi.style.width = ''; hiBusy = false; }, 200);
+    }, 330);
+  }, 280);
 });
 
 /* thème clair / sombre, mémorisé dans le navigateur */
