@@ -73,13 +73,13 @@
     .lang-btn .sep { opacity: 0.6; }
     :root[lang="en"] .lang-btn .l-en, :root[lang="fr"] .lang-btn .l-fr { color: var(--text); font-weight: 600; }
     /* changement de langue : les textes s'effacent puis reviennent en douceur */
-    [data-i18n], #sub-text, .sort-label, .presence, .wip-list small { transition: opacity 0.28s ease; }
-    .work-row .w-title { transition: color 0.3s, opacity 0.28s ease; }
-    .i18n-swap [data-i18n], .i18n-swap #sub-text, .i18n-swap .sort-label, .i18n-swap .presence, .i18n-swap .wip-list small, .i18n-swap .w-title { opacity: 0; }
-    /* « hi, i'm » : la largeur s'anime, donc « JGG » glisse au lieu de sauter */
-    #hi-text { display: inline-block; white-space: nowrap; overflow: hidden; vertical-align: bottom;
+    /* Chaque texte traduit (.morph) : il s'efface, sa largeur s'anime vers la nouvelle (ce qui est à côté glisse), puis il réapparaît.
+       Rien ne saute. Les titres de projets ne sont pas touchés. */
+    .morph { display: inline-block; white-space: nowrap; overflow: hidden; vertical-align: bottom; max-width: 100%;
       transition: width 0.45s cubic-bezier(.65,0,.35,1), opacity 0.28s ease; }
-    #hi-text.hide { opacity: 0; }
+    .morph.wrap { white-space: normal; }
+    .i18n-swap .morph { opacity: 0; }
+    .i18n-late #hi-text { opacity: 0; }
     .theme-btn svg { width: calc(17px * var(--s)); height: calc(17px * var(--s)); position: absolute; transition: opacity 0.3s, transform 0.45s cubic-bezier(.2,.8,.2,1); }
     .theme-btn .moon { opacity: 1; transform: none; }
     .theme-btn .sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
@@ -169,7 +169,7 @@
     .game img, .game .noicon { width: calc(38px * var(--s)); height: calc(38px * var(--s)); border-radius: calc(8px * var(--s)); flex: none; background: var(--surface); object-fit: cover; }
     .game b { font-weight: 600; display: block; }
     .game small { color: var(--dim); font-size: calc(12px * var(--s)); }
-    .game small .label { color: var(--faint); }
+    .game small .label { color: var(--faint); margin-right: 0.5em; }
     .game .playing { color: var(--online); }
     .wip-list li { position: relative; }
     .game-dc { position: absolute; right: calc(0.4rem * var(--s)); top: 50%; display: flex; align-items: center; justify-content: center;
@@ -193,6 +193,7 @@
     .sort-arrow:hover { color: var(--text); background: var(--surface); }
     .sort-label { position: relative; display: inline-block; min-width: calc(7.5em); height: 1.6em; overflow: hidden; text-align: center; }
     .sort-label span { position: absolute; inset: 0; transition: transform 0.35s cubic-bezier(.2,.8,.2,1), opacity 0.3s; }
+    .i18n-swap .sort-label span { opacity: 0; }
     .work-list li { overflow: hidden; transition: opacity 0.3s ease, height 0.38s cubic-bezier(.4,0,.2,1); }
     .work-list li.out { opacity: 0; }
     .work-list li[hidden] { display: none; }
@@ -299,12 +300,12 @@
       <div class="profile">
         <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
         <div>
-          <h1 class="hi"><span id="hi-text">hi, i'm</span> <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
-          <p class="sub" id="sub"><span id="sub-text">roblox animator &amp; a bit of everything else.</span></p>
+          <h1 class="hi"><span id="hi-text" class="morph">hi, i'm</span> <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
+          <p class="sub" id="sub"><span id="sub-text" class="morph wrap">roblox animator &amp; a bit of everything else.</span></p>
           <div class="socials-line">
             <div class="socials" id="socials"></div>
             <a class="open-pill" id="row-open" target="_blank" rel="noopener" title="DM me on Discord">
-              <span class="open-dot" aria-hidden="true"></span><span id="open-text" data-i18n="open">open to cool projects</span>
+              <span class="open-dot" aria-hidden="true"></span><span id="open-text" class="morph" data-i18n="open">open to cool projects</span>
             </a>
           </div>
         </div>
@@ -313,17 +314,17 @@
       <div class="presence">
         <a class="row row-link" id="row-discord" hidden target="_blank" rel="noopener" title="Open my Discord profile">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.3 4.4A19.6 19.6 0 0 0 15.4 3l-.6 1.3a18.2 18.2 0 0 0-5.5 0L8.6 3a19.5 19.5 0 0 0-4.9 1.5C.6 9.1-.3 13.6.1 18.1a19.7 19.7 0 0 0 6 3l1.3-2.1a12.8 12.8 0 0 1-2-1l.5-.4a14 14 0 0 0 12.2 0l.5.4-2 1 1.3 2.1a19.6 19.6 0 0 0 6-3c.5-5.2-.8-9.7-3.6-13.7ZM8 15.4c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Zm8 0c-1.2 0-2.2-1.1-2.2-2.4s1-2.4 2.2-2.4 2.2 1.1 2.2 2.4-1 2.4-2.2 2.4Z"/></svg>
-          <span class="st" id="st"></span><span class="act" id="act"></span>
+          <span class="st" id="st"></span><span class="act morph" id="act"></span>
         </a>
         <div class="row" id="row-spotify" hidden>
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24Zm5.5 17.3a.7.7 0 0 1-1 .3c-2.8-1.7-6.4-2.1-10.6-1.2a.7.7 0 1 1-.3-1.4c4.6-1 8.5-.6 11.6 1.3.4.2.5.7.3 1Zm1.5-3.3a.9.9 0 0 1-1.3.3c-3.2-2-8.1-2.6-11.9-1.4a.9.9 0 1 1-.5-1.7c4.3-1.3 9.7-.7 13.4 1.6.4.3.5.8.3 1.2Zm.1-3.4C15.3 8.3 8.9 8.1 5.2 9.2a1.1 1.1 0 1 1-.6-2.1c4.2-1.3 11.3-1 15.7 1.6a1.1 1.1 0 0 1-1.2 1.9Z"/></svg>
-          <span id="spotify">not listening to anything</span>
+          <span id="spotify" class="morph">not listening to anything</span>
         </div>
       </div>
 
       <div class="wip" id="wip" hidden>
         <button class="wip-toggle" id="wip-toggle" aria-expanded="false" aria-controls="wip-list">
-          <span class="chev">›</span> <span data-i18n="wip">what i'm working on</span>
+          <span class="chev">›</span> <span class="morph" data-i18n="wip">what i'm working on</span>
         </button>
         <div class="wip-drawer" id="wip-drawer">
           <ul class="wip-list" id="wip-list"></ul>
@@ -333,7 +334,7 @@
   </section>
 
   <section class="work" aria-label="Work">
-    <div class="work-head" id="work-head"><span class="work-title" data-i18n="work">my work</span><div class="sorter" id="sorter" role="tablist" aria-label="Sort work"></div></div>
+    <div class="work-head" id="work-head"><span class="work-title morph" data-i18n="work">my work</span><div class="sorter" id="sorter" role="tablist" aria-label="Sort work"></div></div>
     <p class="work-empty" id="work-empty" hidden data-i18n="empty">nothing here yet</p>
     <div class="showreel" id="showreel" hidden></div>
     <div class="work-body">
@@ -447,7 +448,7 @@ const I18N = {
   en: {
     hi: "hi, i'm", sub: 'roblox animator & a bit of everything else.',
     open: 'open to cool projects', closed: 'not taking projects rn',
-    wip: "what i'm working on", role: 'role: ', notPublic: 'not public yet', playing: 'playing',
+    wip: "what i'm working on", role: 'role:', notPublic: 'not public yet', playing: 'playing',
     work: 'my work', empty: 'nothing here yet', soon: 'my work is coming soon', loading: 'loading…',
     all: 'all', animations: 'animations', vfx: 'vfx', builds: 'builds', models: 'models',
     online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline',
@@ -459,7 +460,7 @@ const I18N = {
   fr: {
     hi: 'salut, moi c\'est', sub: 'animateur roblox & un peu de tout le reste.',
     open: 'ouvert aux projets cool', closed: 'pas dispo pour des projets',
-    wip: 'sur quoi je bosse', role: 'rôle : ', notPublic: 'pas encore public', playing: 'en jeu',
+    wip: 'sur quoi je bosse', role: 'rôle :', notPublic: 'pas encore public', playing: 'en jeu',
     work: 'mon travail', empty: "rien pour l'instant", soon: 'mon travail arrive bientôt', loading: 'chargement…',
     all: 'tout', animations: 'animations', vfx: 'vfx', builds: 'builds', models: 'modèles',
     online: 'En ligne', idle: 'Absent', dnd: 'Ne pas déranger', offline: 'Hors ligne',
@@ -476,42 +477,44 @@ const t = (k, n) => (I18N[LANG][k] ?? I18N.en[k] ?? k).replace('{n}', n ?? '');
 const tx = (obj, key) => (LANG === 'fr' && obj[key + 'Fr']) || obj[key];
 function applyStaticText() {
   document.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = t(n.dataset.i18n); });
-  if (!hiBusy) $('#hi-text').textContent = t('hi');
+  $('#hi-text').textContent = t('hi');
   $('#row-open').title = t('dmMe');
   $('#row-discord') && ($('#row-discord').title = t('openDiscord'));
 }
 applyStaticText();
-let langTimer = 0;
+let langTimer = 0, langBusy = false;
 $('#lang-btn').addEventListener('click', () => {
+  if (langBusy) return;
+  langBusy = true;
   LANG = LANG === 'en' ? 'fr' : 'en';
   try { localStorage.setItem('lang', LANG); } catch (_) {}
   document.documentElement.lang = LANG;   // le bouton EN/FR change tout de suite
 
-  // 1) tout s'efface en fondu
-  const hi = $('#hi-text');
-  hiBusy = true;
-  const from = hi.getBoundingClientRect().width;
-  hi.style.width = from + 'px';
-  hi.classList.add('hide');
-  document.body.classList.add('i18n-swap');
-  clearTimeout(langTimer);
+  // 1) on fige la largeur actuelle de chaque texte, puis tout s'efface en fondu
+  const targets = [...document.querySelectorAll('.morph')];
+  const from = new Map(targets.map(e => [e, e.getBoundingClientRect().width]));
+  targets.forEach(e => { e.style.width = from.get(e) + 'px'; });
+  document.body.classList.add('i18n-swap', 'i18n-late');
+
   langTimer = setTimeout(() => {
-    // 2) nouveaux textes (encore invisibles)
+    // 2) nouveaux textes, encore invisibles
+    hiBusy = false;
     applyStaticText();
     dispatchEvent(new Event('langchange'));
-    // 3) « JGG » glisse : la zone du « hi » prend sa nouvelle largeur
-    hi.textContent = t('hi');
-    hi.style.width = 'auto';
-    const to = hi.getBoundingClientRect().width;
-    hi.style.width = from + 'px'; hi.offsetWidth;
-    hi.style.width = to + 'px';
-    // le reste réapparaît pendant le glissement
-    document.body.classList.remove('i18n-swap');
-    // 4) le nouveau « hi » apparaît une fois JGG arrivé
-    langTimer = setTimeout(() => {
-      hi.classList.remove('hide');
-      langTimer = setTimeout(() => { hi.style.width = ''; hiBusy = false; }, 200);
-    }, 330);
+    // 3) chaque zone glisse vers sa nouvelle largeur : ce qui est à côté (JGG, la ligne, le texte suivant…) se décale en douceur
+    const now = [...document.querySelectorAll('.morph')];
+    now.forEach(e => {
+      const f = from.get(e);
+      e.style.width = 'auto';
+      const to = e.getBoundingClientRect().width;
+      if (f == null) { e.style.width = ''; return; }
+      e.style.width = f + 'px'; e.offsetWidth;
+      e.style.width = to + 'px';
+    });
+    // 4) les textes réapparaissent pendant le glissement, « salut, moi c'est » un poil après
+    requestAnimationFrame(() => document.body.classList.remove('i18n-swap'));
+    langTimer = setTimeout(() => document.body.classList.remove('i18n-late'), 260);
+    setTimeout(() => { now.forEach(e => { e.style.width = ''; }); langBusy = false; }, 480);
   }, 280);
 });
 
@@ -593,7 +596,9 @@ function renderPresence(d) {
     pfpSet = true;
   } else robloxPfp();
   const game = (d.activities || []).find(a => a.type === 0);
-  const st = $('#st'); st.className = 'st ' + s; st.textContent = t(s) || s; st.prepend(el('span', 'dot'));
+  const st = $('#st'); st.className = 'st ' + s;
+  if (!st.querySelector('.st-txt')) { st.textContent = ''; st.append(el('span', 'dot'), el('span', 'st-txt morph')); }
+  st.querySelector('.st-txt').textContent = t(s) || s;
   $('#act').textContent = game ? activityLabel(game.name) : '';
   $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : t('notListening');
   $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
@@ -776,7 +781,7 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
 }
 
 /* titres des projets : version FR si « titleFr » est rempli, sinon le titre normal */
-addEventListener('langchange', () => work.querySelectorAll('.w-title').forEach((n, i) => { if (PROJECTS[i]) n.textContent = tx(PROJECTS[i], 'title'); }));
+addEventListener('langchange', () => work.querySelectorAll('.w-title').forEach((n, i) => { const v = PROJECTS[i] && tx(PROJECTS[i], 'title'); if (v && n.textContent !== v) n.textContent = v; }));
 
 /* trieur : ‹ catégorie › — les flèches font défiler les catégories */
 (() => {
@@ -894,10 +899,11 @@ if (GAMES.length) {
     let icon = el('span', 'noicon');
     if (g.icon) { icon = el('img'); icon.src = g.icon; icon.alt = ''; }
     const info = el('span'); const b = el('b', null, g.name); const sm = el('small');
+    const lab = el('span', 'label morph'), rt = el('span', 'role-txt morph');
+    if (g.role) sm.prepend(lab, rt); else if (!g.url) sm.prepend(rt);
     const fillRole = () => {
-      sm.querySelectorAll('.label, .role-txt, .np').forEach(n => n.remove());
-      if (g.role) sm.prepend(el('span', 'label', t('role')), el('span', 'role-txt', tx(g, 'role')));
-      else if (!g.url) sm.prepend(el('span', 'np', t('notPublic')));
+      if (g.role) { lab.textContent = t('role'); rt.textContent = tx(g, 'role'); }
+      else rt.textContent = t('notPublic');
     };
     fillRole(); addEventListener('langchange', fillRole);
     info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
