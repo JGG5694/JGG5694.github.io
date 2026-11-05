@@ -15,6 +15,8 @@
   <script>
     // thème sauvegardé appliqué avant l'affichage (évite un flash blanc en mode sombre)
     try { if (localStorage.getItem('theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (_) {}
+    // langue : anglais par défaut, sauf si le visiteur a choisi FR
+    try { document.documentElement.lang = localStorage.getItem('lang') === 'fr' ? 'fr' : 'en'; } catch (_) {}
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -63,6 +65,15 @@
       width: calc(34px * var(--s)); height: calc(34px * var(--s)); border-radius: 50%; display: flex; align-items: center; justify-content: center;
       color: var(--dim); transition: color 0.2s, background-color 0.25s; }
     .theme-btn:hover { color: var(--text); background: var(--surface); }
+    .lang-btn { position: fixed; top: calc(1.1rem * var(--s)); right: calc(1.2rem * var(--s) + 34px * var(--s) + 0.4rem); z-index: 9;
+      height: calc(34px * var(--s)); padding: 0 calc(0.7rem * var(--s)); border-radius: 999px; display: flex; align-items: center; gap: calc(0.3rem * var(--s));
+      font-size: calc(12px * var(--s)); color: var(--faint); transition: background-color 0.25s; }
+    .lang-btn:hover { background: var(--surface); }
+    .lang-btn span { transition: color 0.25s; }
+    .lang-btn .sep { opacity: 0.6; }
+    :root[lang="en"] .lang-btn .l-en, :root[lang="fr"] .lang-btn .l-fr { color: var(--text); font-weight: 600; }
+    [data-i18n] { transition: opacity 0.18s; }
+    .i18n-swap [data-i18n], .i18n-swap .sort-label, .i18n-swap .presence, .i18n-swap .wip-list small { opacity: 0; }
     .theme-btn svg { width: calc(17px * var(--s)); height: calc(17px * var(--s)); position: absolute; transition: opacity 0.3s, transform 0.45s cubic-bezier(.2,.8,.2,1); }
     .theme-btn .moon { opacity: 1; transform: none; }
     .theme-btn .sun { opacity: 0; transform: rotate(-90deg) scale(0.6); }
@@ -266,6 +277,7 @@
 </head>
 <body>
 
+<button class="lang-btn" id="lang-btn" aria-label="Switch language / Changer de langue"><span class="l-en">EN</span><span class="sep">/</span><span class="l-fr">FR</span></button>
 <button class="theme-btn" id="theme-btn" aria-label="Toggle dark mode" title="Dark / light">
   <svg class="moon" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
   <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
@@ -274,19 +286,19 @@
 <main>
   <section class="top">
     <div class="stage" id="avatar-stage" aria-label="My Roblox avatar, click to spin">
-      <div class="stage-msg" id="avatar-loading">loading…</div>
+      <div class="stage-msg" id="avatar-loading" data-i18n="loading">loading…</div>
     </div>
 
     <div>
       <div class="profile">
         <div class="pfp-wrap" id="pfp-wrap"><img class="pfp" id="pfp" alt="" /></div>
         <div>
-          <h1 class="hi">hi, i'm <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
-          <p class="sub" id="sub">roblox animator &amp; a bit of everything else.</p>
+          <h1 class="hi"><span data-i18n="hi">hi, i'm</span> <span class="name" aria-label="JGG"><span>J</span><span>G</span><span>G</span></span></h1>
+          <p class="sub" id="sub"><span id="sub-text">roblox animator &amp; a bit of everything else.</span></p>
           <div class="socials-line">
             <div class="socials" id="socials"></div>
             <a class="open-pill" id="row-open" target="_blank" rel="noopener" title="DM me on Discord">
-              <span class="open-dot" aria-hidden="true"></span><span id="open-text">open to cool projects</span>
+              <span class="open-dot" aria-hidden="true"></span><span id="open-text" data-i18n="open">open to cool projects</span>
             </a>
           </div>
         </div>
@@ -305,7 +317,7 @@
 
       <div class="wip" id="wip" hidden>
         <button class="wip-toggle" id="wip-toggle" aria-expanded="false" aria-controls="wip-list">
-          <span class="chev">›</span> what i'm working on
+          <span class="chev">›</span> <span data-i18n="wip">what i'm working on</span>
         </button>
         <div class="wip-drawer" id="wip-drawer">
           <ul class="wip-list" id="wip-list"></ul>
@@ -315,14 +327,14 @@
   </section>
 
   <section class="work" aria-label="Work">
-    <div class="work-head" id="work-head"><span class="work-title">my work</span><div class="sorter" id="sorter" role="tablist" aria-label="Sort work"></div></div>
-    <p class="work-empty" id="work-empty" hidden>nothing here yet</p>
+    <div class="work-head" id="work-head"><span class="work-title" data-i18n="work">my work</span><div class="sorter" id="sorter" role="tablist" aria-label="Sort work"></div></div>
+    <p class="work-empty" id="work-empty" hidden data-i18n="empty">nothing here yet</p>
     <div class="showreel" id="showreel" hidden></div>
     <div class="work-body">
       <ul class="work-list" id="work"></ul>
       <div class="work-view" id="work-view" aria-hidden="true"></div>
     </div>
-    <div class="work-soon" id="work-soon" hidden><span>my work is coming soon</span></div>
+    <div class="work-soon" id="work-soon" hidden><span data-i18n="soon">my work is coming soon</span></div>
   </section>
 
   <section class="bottom" id="bottom" hidden>
@@ -354,10 +366,11 @@ const CONFIG = {
 /* WHAT I'M WORKING ON — tes jeux Roblox. url = lien roblox.com/games/... (icône + joueurs en ligne auto).
    Laisse url vide si le jeu n'est pas encore public. Liste vide = bouton caché. */
 const GAMES = [
-  { name: "aftershift", role: "basically everything", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT", universeId: 10696463443, discord: "https://discord.gg/Y5gAFdphZ" },
-  { name: "elder gate", role: "main animator", url: "https://www.roblox.com/games/104403529162136/Elder-Gate" },
+  { name: "aftershift", role: "basically everything", roleFr: "un peu de tout", url: "https://www.roblox.com/games/97049467136477/AFTERSHIFT", universeId: 10696463443, discord: "https://discord.gg/Y5gAFdphZ" },
+  { name: "elder gate", role: "main animator", roleFr: "animateur principal", url: "https://www.roblox.com/games/104403529162136/Elder-Gate" },
   // icon: "icons/jeu.png"  -> optionnel, remplace l'icône auto
   // discord: "https://discord.gg/..."  -> optionnel, bouton Discord au survol
+  // roleFr: "..."  -> optionnel, rôle affiché quand le site est en français
 ];
 
 /* MY WORK
@@ -365,6 +378,7 @@ const GAMES = [
    full : optionnel, version longue/avec son ouverte au clic (.mp4, YouTube ou Streamable). Sinon le clip s'ouvre en grand.
    type : animation / vfx / scripting / modeling… (sert aux filtres)
    where : optionnel, jeu ou client
+   titleFr : optionnel, titre affiché quand le site est en français
    ⚠️ TEMPLATES : les lignes avec demo: true sont des exemples animés, supprime-les quand tu mets tes vrais clips. */
 const SHOWREEL = '';   // optionnel : lien YouTube de ton showreel, s'affiche en grand en haut de la section
 /* TRIEUR : catégories affichées au-dessus de « my work ».
@@ -420,6 +434,58 @@ if (CONFIG.goatcounter) {
   document.head.append(sc);
 }
 
+/* ═══════════ TRADUCTIONS EN / FR ═══════════
+   Anglais par défaut. Le choix du visiteur est mémorisé.
+   Pour changer un texte, modifie-le ici dans les deux langues. */
+const I18N = {
+  en: {
+    hi: "hi, i'm", sub: 'roblox animator & a bit of everything else.',
+    open: 'open to cool projects', closed: 'not taking projects rn',
+    wip: "what i'm working on", role: 'role: ', notPublic: 'not public yet', playing: 'playing',
+    work: 'my work', empty: 'nothing here yet', soon: 'my work is coming soon', loading: 'loading…',
+    all: 'all', animations: 'animations', vfx: 'vfx', builds: 'builds', models: 'models',
+    online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline',
+    notListening: 'not listening to anything',
+    act_studio: 'Working in Roblox Studio', act_blender: 'Working in Blender', act_code: 'Coding in {n}',
+    act_moon: 'Animating in Moon Animator', act_draw: 'Drawing in {n}', act_roblox: 'Playing Roblox', act_other: 'Playing {n}',
+    joinDiscord: 'Join the Discord', dmMe: 'DM me on Discord', openDiscord: 'Open my Discord profile',
+  },
+  fr: {
+    hi: 'salut, moi c\'est', sub: 'animateur roblox & un peu de tout le reste.',
+    open: 'ouvert aux projets cool', closed: 'pas dispo pour des projets',
+    wip: 'sur quoi je bosse', role: 'rôle : ', notPublic: 'pas encore public', playing: 'en jeu',
+    work: 'mon travail', empty: "rien pour l'instant", soon: 'mon travail arrive bientôt', loading: 'chargement…',
+    all: 'tout', animations: 'animations', vfx: 'vfx', builds: 'builds', models: 'modèles',
+    online: 'En ligne', idle: 'Absent', dnd: 'Ne pas déranger', offline: 'Hors ligne',
+    notListening: "n'écoute rien",
+    act_studio: 'Bosse sur Roblox Studio', act_blender: 'Bosse sur Blender', act_code: 'Code sur {n}',
+    act_moon: 'Anime sur Moon Animator', act_draw: 'Dessine sur {n}', act_roblox: 'Joue à Roblox', act_other: 'Joue à {n}',
+    joinDiscord: 'Rejoindre le Discord', dmMe: 'Écris-moi sur Discord', openDiscord: 'Ouvrir mon profil Discord',
+  },
+};
+let LANG = document.documentElement.lang === 'fr' ? 'fr' : 'en';
+const t = (k, n) => (I18N[LANG][k] ?? I18N.en[k] ?? k).replace('{n}', n ?? '');
+// texte d'un élément du contenu (titre de projet, rôle…) : utilise la version FR si elle existe
+const tx = (obj, key) => (LANG === 'fr' && obj[key + 'Fr']) || obj[key];
+function applyStaticText() {
+  document.querySelectorAll('[data-i18n]').forEach(n => { n.textContent = t(n.dataset.i18n); });
+  $('#row-open').title = t('dmMe');
+  $('#row-discord') && ($('#row-discord').title = t('openDiscord'));
+}
+applyStaticText();
+$('#lang-btn').addEventListener('click', () => {
+  LANG = LANG === 'en' ? 'fr' : 'en';
+  try { localStorage.setItem('lang', LANG); } catch (_) {}
+  // petit fondu : on efface, on change les textes, on réaffiche
+  document.body.classList.add('i18n-swap');
+  setTimeout(() => {
+    document.documentElement.lang = LANG;
+    applyStaticText();
+    dispatchEvent(new Event('langchange'));
+    requestAnimationFrame(() => document.body.classList.remove('i18n-swap'));
+  }, 180);
+});
+
 /* thème clair / sombre, mémorisé dans le navigateur */
 (() => {
   const root = document.documentElement, meta = document.querySelector('meta[name="theme-color"]');
@@ -436,11 +502,14 @@ if (CONFIG.goatcounter) {
 
 /* sous-titre tapé une fois au chargement */
 (() => {
-  const sub = $('#sub'), text = sub.textContent;
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { sub.append(el('span', 'caret')); return; }
-  sub.textContent = ''; const caret = el('span', 'caret'); sub.append(caret);
+  const sub = $('#sub'), st = $('#sub-text'), text = t('sub');
+  const caret = el('span', 'caret'); sub.append(caret);
+  let typing = true;
+  addEventListener('langchange', () => { typing = false; st.textContent = t('sub'); });
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) { st.textContent = text; return; }
+  st.textContent = '';
   let i = 0;
-  setTimeout(function type() { caret.before(text[i++]); if (i < text.length) setTimeout(type, 28 + Math.random() * 40); }, 700);
+  setTimeout(function type() { if (!typing) return; st.textContent += text[i++]; if (i < text.length) setTimeout(type, 28 + Math.random() * 40); }, 700);
 })();
 
 /* pfp : avatar Discord (via Lanyard) ; si indisponible, tête Roblox */
@@ -469,20 +538,21 @@ if (CONFIG.x) link('x', CONFIG.x, 'X');
 /* discord + spotify live (Lanyard) */
 /* Texte selon l'appli détectée par Discord (ajoute les tiennes ici) */
 const ACTIVITY = [
-  [/roblox studio/i, 'Working in Roblox Studio'],
-  [/blender/i, 'Working in Blender'],
-  [/visual studio code|^code$|cursor/i, n => `Coding in ${n}`],
-  [/moon animator/i, 'Animating in Moon Animator'],
-  [/photoshop|aseprite|krita/i, n => `Drawing in ${n}`],
-  [/^roblox$/i, 'Playing Roblox'],
+  [/roblox studio/i, 'act_studio'],
+  [/blender/i, 'act_blender'],
+  [/visual studio code|^code$|cursor/i, 'act_code'],
+  [/moon animator/i, 'act_moon'],
+  [/photoshop|aseprite|krita/i, 'act_draw'],
+  [/^roblox$/i, 'act_roblox'],
 ];
 function activityLabel(name) {
   const hit = ACTIVITY.find(([re]) => re.test(name));
-  if (!hit) return `Playing ${name}`;
-  return typeof hit[1] === 'function' ? hit[1](name) : hit[1];
+  return t(hit ? hit[1] : 'act_other', name);
 }
-const LABEL = { online: 'Online', idle: 'Idle', dnd: 'Do Not Disturb', offline: 'Offline' };
+let lastPresence = null;
+addEventListener('langchange', () => { if (lastPresence) renderPresence(lastPresence); });
 function renderPresence(d) {
+  lastPresence = d;
   const s = d.discord_status || 'offline';
   const u = d.discord_user;
   $('#pfp-wrap').style.setProperty('--ring', `var(--${s === 'offline' ? 'faint' : s === 'online' ? 'online' : s})`);
@@ -494,9 +564,9 @@ function renderPresence(d) {
     pfpSet = true;
   } else robloxPfp();
   const game = (d.activities || []).find(a => a.type === 0);
-  const st = $('#st'); st.className = 'st ' + s; st.textContent = LABEL[s] || s; st.prepend(el('span', 'dot'));
+  const st = $('#st'); st.className = 'st ' + s; st.textContent = t(s) || s; st.prepend(el('span', 'dot'));
   $('#act').textContent = game ? activityLabel(game.name) : '';
-  $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : 'not listening to anything';
+  $('#spotify').textContent = d.listening_to_spotify && d.spotify ? `${d.spotify.song} · ${d.spotify.artist.split(';')[0]}` : t('notListening');
   $('#row-discord').hidden = false; $('#row-spotify').hidden = false;
 }
 
@@ -534,7 +604,7 @@ function connectLanyard(retry = 0) {
 }
 if (CONFIG.openToProjects === false) {
   $('#row-open').classList.add('closed');
-  $('#open-text').textContent = 'not taking projects rn';
+  $('#open-text').dataset.i18n = 'closed'; $('#open-text').textContent = t('closed');
 }
 $('#row-open').href = CONFIG.discordId ? `https://discord.com/users/${CONFIG.discordId}` : `https://www.roblox.com/users/${CONFIG.robloxUserId}/profile`;
 if (CONFIG.discordId) { $('#row-discord').href = `https://discord.com/users/${CONFIG.discordId}`; pollPresence(); connectLanyard(); } else robloxPfp();
@@ -633,10 +703,10 @@ PROJECTS.forEach((p, idx) => {
     const th = el('span', 'w-thumb'); const m = makeThumb(p, idx);
     if (m) { th.append(m); if (p.demo) autoplay.observe(m); }
     if (p.clip && !isImg(p.clip)) th.append(el('span', 'w-play', '▶'));
-    const tx = el('span', 'w-text'); tx.append(el('span', 'w-title', p.title), meta);
+    const tx = el('span', 'w-text'); tx.append(el('span', 'w-title', tx(p, 'title')), meta);
     row.append(th, tx);
   } else {
-    row.append(el('span', 'w-title', p.title), meta);
+    row.append(el('span', 'w-title', tx(p, 'title')), meta);
     peekMedia[idx] = makeMedia(p, idx);
     row.addEventListener('mouseenter', () => showView(idx));
     row.addEventListener('focus', () => showView(idx));
@@ -676,6 +746,9 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
   new IntersectionObserver(([e]) => { const m = peekMedia[viewIdx]; if (!m || reduceMo) return; if (e.isIntersecting) { const r = m.play(); if (r && r.catch) r.catch(() => {}); } else m.pause(); }).observe(view);
 }
 
+/* titres des projets : version FR si « titleFr » est rempli, sinon le titre normal */
+addEventListener('langchange', () => work.querySelectorAll('.w-title').forEach((n, i) => { if (PROJECTS[i]) n.textContent = tx(PROJECTS[i], 'title'); }));
+
 /* trieur : ‹ catégorie › — les flèches font défiler les catégories */
 (() => {
   const bar = $('#sorter'); if (!bar || !PROJECTS.length) return;
@@ -685,7 +758,8 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
   const prev = el('button', 'sort-arrow', '‹'); prev.setAttribute('aria-label', 'Previous category');
   const next = el('button', 'sort-arrow', '›'); next.setAttribute('aria-label', 'Next category');
   const label = el('span', 'sort-label'); label.setAttribute('aria-live', 'polite');
-  let cur = el('span', null, cats[0]); label.append(cur);
+  let cur = el('span', null, t(cats[0])); label.append(cur);
+  addEventListener('langchange', () => { cur.textContent = t(cats[ci]); });
   bar.append(prev, label, next);
 
   // les lignes qui partent se replient (hauteur -> 0) en fondu, celles qui arrivent se déplient : rien ne saute
@@ -712,7 +786,7 @@ if (view && !(touchUI || smallUI) && PROJECTS.length) {
   const apply = (dir) => {
     const cat = cats[ci];
     // le texte glisse dans le sens de la flèche
-    const nu = el('span', null, cat);
+    const nu = el('span', null, t(cat));
     nu.style.transform = `translateX(${dir * 60}%)`; nu.style.opacity = '0';
     label.append(nu);
     const old = cur; cur = nu;
@@ -791,11 +865,16 @@ if (GAMES.length) {
     let icon = el('span', 'noicon');
     if (g.icon) { icon = el('img'); icon.src = g.icon; icon.alt = ''; }
     const info = el('span'); const b = el('b', null, g.name); const sm = el('small');
-    if (g.role) { sm.append(el('span', 'label', 'role: ')); sm.append(g.role); } else if (!g.url) sm.append('not public yet');
+    const fillRole = () => {
+      sm.querySelectorAll('.label, .role-txt, .np').forEach(n => n.remove());
+      if (g.role) sm.prepend(el('span', 'label', t('role')), el('span', 'role-txt', tx(g, 'role')));
+      else if (!g.url) sm.prepend(el('span', 'np', t('notPublic')));
+    };
+    fillRole(); addEventListener('langchange', fillRole);
     info.append(b, sm); row.append(icon, info); li.append(row); list.append(li);
     if (g.discord) {
       const dcb = el('a', 'game-dc'); dcb.href = g.discord; dcb.target = '_blank'; dcb.rel = 'noopener';
-      dcb.innerHTML = ICONS.discord; dcb.setAttribute('aria-label', `Join the ${g.name} Discord`); dcb.title = 'Join the Discord';
+      dcb.innerHTML = ICONS.discord; dcb.setAttribute('aria-label', `${t('joinDiscord')} — ${g.name}`); dcb.title = t('joinDiscord');
       li.append(dcb);
     }
     g._icon = icon; g._sm = sm;
@@ -850,7 +929,7 @@ async function loadPlayerCounts() {
       }
       const j = await (await fetch(`https://games.roproxy.com/v1/games?universeIds=${uid}`)).json();
       const n = j.data?.[0]?.playing;
-      if (n > 0) { g._sm.append(' · '); g._sm.append(el('span', 'playing', `${n.toLocaleString()} playing`)); }
+      if (n > 0) { g._sm.append(' · '); const pl = el('span', 'playing'); const upd = () => pl.textContent = `${n.toLocaleString()} ${t('playing')}`; upd(); addEventListener('langchange', upd); g._sm.append(pl); }
     } catch (_) {}
   }
 }
